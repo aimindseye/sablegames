@@ -2,7 +2,24 @@ package org.sableos.games
 
 import kotlin.random.Random
 
-/** Snakes & Ladders on an 8 x 8 board, two to four players; you are player 0. Roll a six and roll again. */
+/**
+ * One Snakes & Ladders move, for the screen to replay: [player] rolled [dice] from square [from], walked
+ * to [land] and ended on [to] (a ladder or snake moves it from [land] to [to]). [overshot] when the
+ * roll was too high to finish, so the token stayed.
+ */
+internal data class SnakesMove(
+    val player: Int,
+    val dice: Int,
+    val from: Int,
+    val land: Int,
+    val to: Int,
+    val overshot: Boolean,
+) {
+    /** The squares the token steps on, one at a time, before any ladder or snake. */
+    val walk: List<Int> get() = if (land > from) (from + 1..land).toList() else emptyList()
+}
+
+/** Snakes & Ladders on a 10 x 10 board, two to four players; you are player 0. Roll a six and roll again. */
 internal data class SnakesGame(
     val names: List<String>,
     val pos: List<Int>,
@@ -10,9 +27,17 @@ internal data class SnakesGame(
     val roll: Int = 0,
     val winner: Int? = null,
     val note: String = "",
+    val last: SnakesMove? = null,
 ) {
     val over: Boolean get() = winner != null
     val needsStep: Boolean get() = !over && turn != HUMAN
+
+    /** The last roll was a six, so the same player rolls again. */
+    val rollsAgain: Boolean get() = !over && last != null && last.dice == 6 && last.player == turn
+
+    /** The players from first to last: the winner, then the others by how far they got. */
+    val standings: List<Int>
+        get() = pos.indices.sortedWith(compareByDescending<Int> { it == winner }.thenByDescending { pos[it] })
 
     /** One roll for the player whose turn it is. */
     fun roll(random: Random): SnakesGame = move(random.nextInt(1, 7))
@@ -21,47 +46,59 @@ internal data class SnakesGame(
         if (over) return this
         val p = turn
         val target = pos[p] + dice
-        var note = ""
-        var land = pos[p]
-        if (target <= LAST) {
-            land = target
-            val jump = JUMPS[land]
-            if (jump != null) {
-                note =
-                    if (jump >
-                        land
-                    ) {
-                        "${names[p]} climbs a ladder: $land to $jump"
-                    } else {
-                        "${names[p]} slips on a snake: $land to $jump"
-                    }
-                land = jump
+        val from = pos[p]
+        val overshot = target > LAST
+        val land = if (overshot) from else target
+        val jump = if (overshot) null else JUMPS[land]
+        val end = jump ?: land
+        val note =
+            when {
+                overshot -> "${names[p]} rolled $dice but needed exactly ${LAST - from}"
+                jump != null && jump > land -> "${names[p]} rolled $dice and climbed a ladder: $land to $jump"
+                jump != null -> "${names[p]} rolled $dice and slid down a snake: $land to $jump"
+                end == LAST -> "${names[p]} rolled $dice, reached $LAST and won!"
+                else -> "${names[p]} rolled $dice: $from to $end"
             }
-        } else {
-            note = "${names[p]} needs exactly ${LAST - pos[p]}"
-        }
-        val next = pos.mapIndexed { i, v -> if (i == p) land else v }
-        val won = land == LAST
+        val next = pos.mapIndexed { i, v -> if (i == p) end else v }
+        val won = end == LAST
         val again = dice == 6 && !won
         return copy(
             pos = next,
             roll = dice,
             turn = if (again) p else (p + 1) % pos.size,
             winner = if (won) p else null,
-            note = note.ifEmpty { "${names[p]} rolls $dice" },
+            note = note,
+            last = SnakesMove(p, dice, from, land, end, overshot),
         )
     }
 
     companion object {
         const val HUMAN = 0
-        const val SIDE = 8
+        const val SIDE = 10
         const val LAST = SIDE * SIDE
-        val LADDERS = mapOf(4 to 25, 14 to 45, 33 to 56, 40 to 60)
-        val SNAKES = mapOf(58 to 19, 47 to 26, 37 to 8)
+
+        /** Eight ladders and eight snakes on the classic 100-square board (owner, 2026-11-14). */
+        val LADDERS = mapOf(3 to 22, 8 to 30, 28 to 55, 36 to 44, 51 to 67, 58 to 77, 71 to 92, 80 to 99)
+        val SNAKES = mapOf(97 to 78, 95 to 56, 88 to 24, 74 to 53, 62 to 18, 48 to 26, 32 to 10, 17 to 4)
         private val JUMPS = LADDERS + SNAKES
 
         fun start(names: List<String>): SnakesGame = SnakesGame(names, List(names.size) { 0 })
     }
+}
+
+/**
+ * One Ludo move, for the screen to replay: [player]'s [token] went from [from] to [to] (progress, as in
+ * [LudoGame.tokens]), and each of [captured] (colour, token, progress) went back to its yard.
+ */
+internal data class LudoMove(
+    val player: Int,
+    val token: Int,
+    val from: Int,
+    val to: Int,
+    val captured: List<Triple<Int, Int, Int>> = emptyList(),
+) {
+    /** The progress steps the token takes, one at a time: out of the yard is one step to its start. */
+    val walk: List<Int> get() = if (from < 0) listOf(0) else (from + 1..to).toList()
 }
 
 /**
@@ -79,9 +116,28 @@ internal data class LudoGame(
     val sixes: Int = 0,
     val winner: Int? = null,
     val note: String = "",
+    val last: LudoMove? = null,
+    /** The player who just lost the turn to three sixes, until the next roll. */
+    val threeSixes: Int? = null,
+    /** The number the last roll showed, kept after a roll that could not move. */
+    val rolled: Int? = null,
 ) {
     val over: Boolean get() = winner != null
     val needsStep: Boolean get() = !over && turn != HUMAN
+
+    /** How many of [player]'s tokens are home. */
+    fun homeCount(player: Int): Int = tokens[player].count { it == HOME }
+
+    /** Where [player]'s [token] would land with the current roll, or null if it cannot move. */
+    fun landing(
+        token: Int,
+        player: Int = turn,
+    ): Int? {
+        val r = roll ?: return null
+        if (token !in movable(player)) return null
+        val from = tokens[player][token]
+        return if (from < 0) 0 else from + r
+    }
 
     /** Tokens of [player] that can move with the current roll. */
     fun movable(player: Int = turn): List<Int> {
@@ -103,16 +159,18 @@ internal data class LudoGame(
                 roll = null,
                 sixes = 0,
                 turn = (turn + 1) % PLAYERS,
-                note = "${names[turn]} rolled three sixes and loses the turn",
+                note = "${names[turn]} rolled three sixes and lost the turn",
+                threeSixes = turn,
+                rolled = r,
             )
         }
-        val withRoll = copy(roll = r, sixes = six, note = "${names[turn]} rolls $r")
+        val withRoll = copy(roll = r, sixes = six, note = "${names[turn]} rolled $r", threeSixes = null, rolled = r)
         return if (withRoll.movable().isEmpty()) {
             withRoll.copy(
                 roll = null,
                 turn = (turn + 1) % PLAYERS,
                 sixes = 0,
-                note = "${names[turn]} rolls $r and cannot move",
+                note = "${names[turn]} rolled $r and could not move",
             )
         } else {
             withRoll
@@ -136,7 +194,7 @@ internal data class LudoGame(
                     list
                 }
             }
-        var captured = false
+        val sent = mutableListOf<Triple<Int, Int, Int>>()
         if (to in 0..LAST_TRACK && !isSafe(to, p)) {
             val square = square(p, to)
             bumped =
@@ -144,9 +202,9 @@ internal data class LudoGame(
                     if (c == p) {
                         list
                     } else {
-                        list.map { v ->
+                        list.mapIndexed { t, v ->
                             if (v in 0..LAST_TRACK && square(c, v) == square) {
-                                captured = true
+                                sent += Triple(c, t, v)
                                 -1
                             } else {
                                 v
@@ -155,15 +213,42 @@ internal data class LudoGame(
                     }
                 }
         }
+        val captured = sent.isNotEmpty()
         val home = to == HOME
         val won = bumped[p].all { it == HOME }
         val again = (r == 6 || captured || home) && !won
         val text =
             when {
-                won -> "${names[p]} wins!"
-                captured -> "${names[p]} sends a token home"
-                home -> "${names[p]} gets a token home"
-                else -> "${names[p]} moves $r"
+                won -> {
+                    "${names[p]} won!"
+                }
+
+                captured -> {
+                    val whose =
+                        sent.map { it.first }.distinct().joinToString(" and ") {
+                            if (it ==
+                                HUMAN
+                            ) {
+                                "your"
+                            } else {
+                                "${names[it]}'s"
+                            }
+                        }
+                    val tokens = if (sent.size == 1) "token" else "tokens"
+                    "${names[p]} sent $whose $tokens back to the yard"
+                }
+
+                home -> {
+                    "${names[p]} got a token home"
+                }
+
+                from < 0 -> {
+                    "${names[p]} brought a token out"
+                }
+
+                else -> {
+                    "${names[p]} moved a token $r"
+                }
             }
         return copy(
             tokens = bumped,
@@ -172,6 +257,7 @@ internal data class LudoGame(
             sixes = if (again && r == 6) sixes else 0,
             winner = if (won) p else null,
             note = text,
+            last = LudoMove(p, token, from, to, sent),
         )
     }
 

@@ -416,13 +416,13 @@ class IndianGamesTest {
     @Test
     fun snakesAndLaddersJumpAndNeedAnExactFinish() {
         val g = SnakesGame.start(listOf("You", "Maria"))
-        assertEquals(25, g.move(4).pos[0])
-        val onSnake = g.copy(pos = listOf(52, 0)).move(6)
-        assertEquals(19, onSnake.pos[0])
+        assertEquals(22, g.move(3).pos[0])
+        val onSnake = g.copy(pos = listOf(56, 0)).move(6)
+        assertEquals(18, onSnake.pos[0])
         assertEquals(0, onSnake.turn) // a six rolls again
-        val close = g.copy(pos = listOf(62, 0))
-        assertEquals(62, close.move(3).pos[0])
-        assertEquals(64, close.move(2).pos[0])
+        val close = g.copy(pos = listOf(98, 0))
+        assertEquals(98, close.move(3).pos[0])
+        assertEquals(100, close.move(2).pos[0])
         assertEquals(0, close.move(2).winner)
     }
 
