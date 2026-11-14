@@ -2,12 +2,23 @@ name: SonarCloud
 
 # CI-based SonarQube Cloud analysis. It runs once the SONAR_TOKEN secret is set (create the
 # project aimindseye_sablegames in SonarQube Cloud and turn its Automatic Analysis off first).
+# Documentation-only changes skip the analysis (security.yml still scans them).
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - 'LICENSE'
+      - 'NOTICE'
   pull_request:
     branches: ["main"]
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - 'LICENSE'
+      - 'NOTICE'
   workflow_dispatch:
 
 permissions:

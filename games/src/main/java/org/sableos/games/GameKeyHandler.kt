@@ -12,9 +12,10 @@ internal fun GameKeyHandler(
     onCommand: (GameCommand) -> Boolean,
 ) {
     val host = LocalGameKeyHost.current
+    val profile = LocalDeviceProfile.current
     val latest by rememberUpdatedState(onCommand)
-    DisposableEffect(host, game) {
-        host.handler = { press -> GameKeymap.command(game, press)?.let { latest(it) } ?: false }
+    DisposableEffect(host, game, profile) {
+        host.handler = { press -> GameKeymap.command(game, press, profile)?.let { latest(it) } ?: false }
         onDispose { host.handler = null }
     }
 }

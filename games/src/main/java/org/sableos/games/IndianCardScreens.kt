@@ -43,6 +43,7 @@ internal fun TeenPattiScreen(
     onChips: (Int) -> Unit,
 ) {
     val names = remember { listOf("You") + others(random, 3) }
+    val lookKey = if (LocalDeviceProfile.current.letterMoves) "S" else "L"
     var game by remember { mutableStateOf(TeenPattiGame.deal(random, names, listOf(bank, 1000, 1000, 1000))) }
     var choice by remember { mutableIntStateOf(0) }
     LaunchedEffect(game.over) { if (game.over) onChips(game.chips[0]) }
@@ -100,7 +101,8 @@ internal fun TeenPattiScreen(
                     'R' -> run(1)
                     'T' -> run(2)
                     'P' -> run(3)
-                    'L' -> game = game.see()
+                    // S too: on a phone without arrows L moves the cursor (DeviceProfile.letterMoves).
+                    'L', 'S' -> game = game.see()
                     else -> return@GameKeyHandler false
                 }
             }
@@ -117,10 +119,10 @@ internal fun TeenPattiScreen(
         subtitle = "Practice chips only: they have no value",
         statusLabel = "chips",
         status = game.chips[0].toString(),
-        hint = "Arrows choose · Enter confirms · C chaal · R raise · T show · P pack · L look · N next round",
+        hint = "Arrows choose · Enter confirms · C chaal · R raise · T show · P pack · $lookKey look · N next round",
         actions =
             listOf(
-                GameAction("Look", "L", active = !game.seen[0]) { game = game.see() },
+                GameAction("Look", lookKey, active = !game.seen[0]) { game = game.see() },
                 GameAction(
                     if (game.over) "Next" else "Pack",
                     if (game.over) "N" else "P",

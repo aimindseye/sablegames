@@ -1,5 +1,12 @@
 # Sable Games
 
+[![Build and test](https://github.com/aimindseye/sablegames/actions/workflows/android.yml/badge.svg)](https://github.com/aimindseye/sablegames/actions/workflows/android.yml)
+[![Security](https://github.com/aimindseye/sablegames/actions/workflows/security.yml/badge.svg)](https://github.com/aimindseye/sablegames/actions/workflows/security.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=aimindseye_sablegames&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=aimindseye_sablegames)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Android 11+](https://img.shields.io/badge/Android-11%2B-3DDC84.svg)](docs/USER_GUIDE.md#install)
+[![Devices: Zinwa Q25, Unihertz Titan 2](https://img.shields.io/badge/Devices-Zinwa_Q25_%7C_Unihertz_Titan_2-black.svg)](docs/USER_GUIDE.md#your-phone)
+
 Keyboard-first games for BlackBerry-style Android phones: the Zinwa Q25 and the Unihertz Titan 2, and any other phone with a hardware keyboard. They play from the keys and the trackpad, and also by touch. They were first written for [SableOS](https://github.com/aimindseye/zinwaq25-sableos) and live here so they install on stock firmware too, with no SableOS and no Sable launcher.
 
 ## The apps
@@ -23,7 +30,7 @@ Each game is its own app, so you install only the ones you want.
 | Sable Mahjong | `io.github.aimindseye.sablegames.mahjong` | Remove matching free tiles in pairs |
 | Sable Words | `io.github.aimindseye.sablegames.words` | Guess the five-letter word in six tries |
 
-Coming next: a device profile so each game fits the Q25 and the Titan 2 keyboards, and an installer that sets up the games you pick in one go.
+Each game reads which phone it runs on and fits its keys to it: the Q25's trackpad, or I J K L on the Titan 2, which has no arrows (see the [User Guide](docs/USER_GUIDE.md#your-phone)). Coming next: an installer that sets up the games you pick in one go.
 
 ## Install
 

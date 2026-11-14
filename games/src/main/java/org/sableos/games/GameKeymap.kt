@@ -6,9 +6,11 @@ import android.view.KeyEvent
  * Keyboard play for the Sable games (keyboard-first, like the other Sable apps).
  *
  * The trackpad sends arrow keys, so arrows move the board cursor (Sudoku, Minesweeper) or slide the
- * tiles (2048). Numbers come from the character the key produces, so Alt+W E R S D F Z X C (the Q25
- * and Titan digit layer) and a number row both work; plain W E R S D F Z X C also enter 1-9 in Sudoku,
- * where no letter has another meaning. There is no Ctrl on the Q25: Ctrl chords are left alone.
+ * tiles (2048). On a phone without arrows ([DeviceProfile.letterMoves], the Titan 2) I J K L move
+ * instead, in every game but Words, where every letter types. Numbers come from the character the key
+ * produces, so the Alt digit layer and a number row both work; the plain digit-layer letters (W E R S
+ * D F Z X C on the Q25, W E R S D F X C V on the Titan 2) also enter 1-9 in Sudoku, where no letter
+ * has another meaning. There is no Ctrl on the Q25: Ctrl chords are left alone.
  */
 internal sealed interface GameCommand {
     data class Move(
@@ -65,30 +67,20 @@ internal data class GameKeyPress(
 internal enum class GameKind { Sudoku, Minesweeper, Game2048, Bricks, Snake, Blocks, Reversi, Solitaire, Mahjong, Words, Indian }
 
 internal object GameKeymap {
-    /** BlackBerry-style digit keys: W E R S D F Z X C are 1-9. */
-    private val LETTER_DIGITS =
-        mapOf(
-            KeyEvent.KEYCODE_W to 1,
-            KeyEvent.KEYCODE_E to 2,
-            KeyEvent.KEYCODE_R to 3,
-            KeyEvent.KEYCODE_S to 4,
-            KeyEvent.KEYCODE_D to 5,
-            KeyEvent.KEYCODE_F to 6,
-            KeyEvent.KEYCODE_Z to 7,
-            KeyEvent.KEYCODE_X to 8,
-            KeyEvent.KEYCODE_C to 9,
-        )
-
     fun command(
         game: GameKind,
         press: GameKeyPress,
+        profile: DeviceProfile = DeviceProfile.Other,
     ): GameCommand? {
         if (press.ctrl) return null
         move(press.keyCode)?.let { return it }
+        if (profile.letterMoves && game != GameKind.Words && !press.alt) {
+            DeviceProfile.LETTER_MOVES[press.keyCode]?.let { return it }
+        }
         // A held key repeats only cursor moves.
         if (press.repeatCount > 0) return null
         return when (game) {
-            GameKind.Sudoku -> sudoku(press)
+            GameKind.Sudoku -> sudoku(press, profile.letterDigits)
             GameKind.Minesweeper -> minesweeper(press)
             GameKind.Game2048 -> common(press)
             GameKind.Bricks, GameKind.Snake, GameKind.Blocks -> arcade(press)
@@ -147,7 +139,10 @@ internal object GameKeymap {
             else -> null
         }
 
-    private fun sudoku(press: GameKeyPress): GameCommand? {
+    private fun sudoku(
+        press: GameKeyPress,
+        letterDigits: Map<Int, Int>,
+    ): GameCommand? {
         val digit = press.char?.takeIf { it in '1'..'9' }?.digitToInt()
         return when {
             digit != null -> GameCommand.Digit(digit)
@@ -159,7 +154,7 @@ internal object GameKeymap {
             // Alt plus a letter types a symbol; only the digits above are taken from it.
             press.alt -> null
 
-            press.keyCode in LETTER_DIGITS -> GameCommand.Digit(LETTER_DIGITS.getValue(press.keyCode))
+            press.keyCode in letterDigits -> GameCommand.Digit(letterDigits.getValue(press.keyCode))
 
             press.keyCode == KeyEvent.KEYCODE_U -> GameCommand.Undo
 

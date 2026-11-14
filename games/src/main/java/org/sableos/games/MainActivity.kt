@@ -22,7 +22,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SableGlobalTheme(window = window) {
-                CompositionLocalProvider(LocalGameKeyHost provides keyHost) {
+                CompositionLocalProvider(
+                    LocalGameKeyHost provides keyHost,
+                    LocalDeviceProfile provides DeviceProfile.current(resources.configuration),
+                ) {
                     when (BuildConfig.SABLE_GAME) {
                         "sudoku" -> SudokuScreen()
 

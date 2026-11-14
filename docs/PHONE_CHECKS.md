@@ -23,3 +23,5 @@ Checks run by hand on a phone, carried over from SableOS's qualification list. S
 | Q4-INDIAN-GAMES-TRICKS | Mendicot, Callbreak, Judgement and 2-3-5 each play a whole game; you cannot play a card that breaks follow-suit; the phone players do not stall | NOT_RUN |
 | Q4-INDIAN-GAMES-BLUFF-DONKEY-GULAM | Bluff, Donkey and Gulam Choor each finish a round; Donkey's spoon grab works from Space | NOT_RUN |
 | Q4-INDIAN-GAMES-BOARD | Snakes & Ladders and Ludo play to a winner with Space; the Ludo token highlight follows Left/Right | NOT_RUN |
+| Q4-DEVICE-PROFILE-TITAN2 | On the Unihertz Titan 2, Sudoku, Minesweeper, Reversi and the Sable Card Games menu move with I J K L (a held key keeps moving); Sudoku fills 7 8 9 from X C V and from Alt+X C V, and Alt+Q erases; Words types I J K L as letters; Teen Patti's Look button shows S and S looks; every board fits the 1440 x 1440 square with the side rail | NOT_RUN |
+| Q4-DEVICE-PROFILE-Q25 | On the Q25 nothing changes: the trackpad moves, I J K L do nothing in Sudoku, Teen Patti's Look is L, and Sudoku fills 7 8 9 from Z X C | NOT_RUN |
