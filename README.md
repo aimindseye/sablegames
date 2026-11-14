@@ -23,7 +23,7 @@ Each game is its own app, so you install only the ones you want.
 | Sable Mahjong | `io.github.aimindseye.sablegames.mahjong` | Remove matching free tiles in pairs |
 | Sable Words | `io.github.aimindseye.sablegames.words` | Guess the five-letter word in six tries |
 
-Coming next: a device profile so each game fits the Q25 and the Titan 2 keyboards, and an installer that sets up the games you pick in one go.
+Each game reads which phone it runs on and fits its keys to it: the Q25's trackpad, or I J K L on the Titan 2, which has no arrows (see the [User Guide](docs/USER_GUIDE.md#your-phone)). Coming next: an installer that sets up the games you pick in one go.
 
 ## Install
 

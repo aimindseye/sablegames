@@ -437,11 +437,12 @@ internal fun GameMenu(
                     }
                 }
             }
+            val move = if (LocalDeviceProfile.current.letterMoves) "I J K L choose" else "Arrows choose"
             Text(
                 if (onSwitch != null) {
-                    "Arrows choose · Enter opens · T switches tab · Back returns"
+                    "$move · Enter opens · T switches tab · Back returns"
                 } else {
-                    "Arrows choose · Enter opens · Back returns"
+                    "$move · Enter opens · Back returns"
                 },
                 fontSize = 11.sp,
                 color = colors.onSurfaceVariant,

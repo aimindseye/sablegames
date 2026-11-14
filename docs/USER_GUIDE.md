@@ -13,13 +13,27 @@ The games need Android 11 or later and ask for no permissions. Each one is a sep
 | Key | Does |
 | --- | --- |
 | Arrows or the trackpad | Move |
+| I J K L, on a phone without arrows (the Titan 2) | Move: I up, J left, K down, L right |
 | Space or Enter (trackpad click) | The main action: reveal, play, pick, launch |
 | N | New game (in Words, Enter starts the next round once one is done) |
 | P | Pause, in the games that move by themselves |
 | U | Undo, where the game allows it |
 | Back | Leaves the game |
 
-The digit keys in Sudoku are the letters with digits printed on them on the Q25 (W E R S D F Z X C for 1 to 9). On any keyboard, a typed digit also works, such as Alt plus the key that shows it. 0 or Del erases.
+The digit keys in Sudoku are the letters with digits printed on them: W E R S D F Z X C for 1 to 9 on the Q25, and W E R S D F X C V on the Titan 2. On any keyboard, a typed digit also works, such as Alt plus the key that shows it. 0 (Alt+Q on the Titan 2) or Del erases.
+
+### Your phone
+
+Each game reads which phone it runs on when it starts, and fits its keys to that phone. The screen needs nothing extra: the Q25's 720 x 720 and the Titan 2's 1440 x 1440 both get the square layout, with the board on the left and the controls beside it.
+
+| Phone | Move with | Sudoku digits |
+| --- | --- | --- |
+| Zinwa Q25 | The trackpad or arrows | W E R S D F Z X C, or Alt+ those |
+| Unihertz Titan 2 | I J K L (it has no arrows or trackpad) | W E R S D F X C V, or Alt+ those |
+| Another phone with a keyboard but no arrows | I J K L | A typed digit |
+| Any other phone | Arrows, if it has them, and touch | A typed digit |
+
+On a phone that moves with I J K L, Words still types every letter, and Teen Patti's Look is S instead of L. Sable Games Console's tilt games move with W A S D on every phone.
 
 ## Games
 
