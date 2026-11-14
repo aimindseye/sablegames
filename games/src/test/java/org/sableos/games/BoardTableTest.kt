@@ -1,5 +1,6 @@
 package org.sableos.games
 
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -43,7 +44,9 @@ class BoardTableTest {
         assertEquals(8, SnakesGame.SNAKES.size)
         SnakesGame.LADDERS.forEach { (from, to) -> assertTrue(to > from) }
         SnakesGame.SNAKES.forEach { (from, to) -> assertTrue(to < from) }
-        val ends = SnakesGame.LADDERS.flatMap { listOf(it.key, it.value) } + SnakesGame.SNAKES.flatMap { listOf(it.key, it.value) }
+        val ends =
+            SnakesGame.LADDERS.flatMap { listOf(it.key, it.value) } +
+                SnakesGame.SNAKES.flatMap { listOf(it.key, it.value) }
         assertEquals(ends.size, ends.toSet().size)
         assertFalse(SnakesGame.LAST in SnakesGame.SNAKES || 1 in SnakesGame.LADDERS)
     }
@@ -82,5 +85,14 @@ class BoardTableTest {
         val out = LudoGame.start(names).copy(roll = 6).move(2)
         assertEquals(listOf(0), out.last!!.walk)
         assertEquals("You brought a token out", out.note)
+    }
+
+    @Test
+    fun theBoardKeepsItsWidthOnSquarePhones() {
+        // Q25, 720 x 720 at 2x: the frame gives a 248 dp square beside the rail, with 320 dp of height.
+        assertEquals(242.dp, boardSideFor(248.dp, 320.dp, 78.dp))
+        assertEquals(248.dp, boardSideFor(248.dp, 320.dp, 44.dp))
+        // A tall phone scrolls: the board gives up the room for the seats and lines.
+        assertEquals(282.dp, boardSideFor(360.dp, null, 78.dp))
     }
 }
