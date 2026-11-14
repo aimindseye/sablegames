@@ -72,11 +72,11 @@ private class SnakesPalette(
     val number = if (dark) Color(0xFFCDB894) else Color(0xFF7A6142)
     val wood = Color(0xFFA9773F)
     val woodDark = Color(0xFF6E4A22)
-    val snakes = listOf(Color(0xFF6E8B3D), Color(0xFFB5583F), Color(0xFF3F7F7B))
+    val snakes = listOf(Color(0xFF6E8B3D), Color(0xFFB5583F), Color(0xFF3F7F7B), Color(0xFF8A5A9E), Color(0xFFC08A2E))
     val finish = Color(0xFFD9A62E)
 }
 
-/** The centre of square [n] (1 to 64) on a board of cells [cell] wide; square 0 sits just off the first square. */
+/** The centre of square [n] (1 to 100) on a board of cells [cell] wide; square 0 sits just off the first square. */
 private fun snakeCentre(
     n: Int,
     cell: Float,
@@ -176,7 +176,7 @@ internal fun SnakesScreen(random: Random) {
     val yourTurn = game.turn == SnakesGame.HUMAN && !game.over && !busy
     GameFrame(
         title = "Snakes & Ladders",
-        subtitle = "Climb ladders, dodge snakes, land exactly on 64",
+        subtitle = "Climb ladders, dodge snakes, land exactly on 100",
         statusLabel = if (game.over) "winner" else "turn",
         status =
             when {

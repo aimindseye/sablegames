@@ -19,7 +19,7 @@ internal data class SnakesMove(
     val walk: List<Int> get() = if (land > from) (from + 1..land).toList() else emptyList()
 }
 
-/** Snakes & Ladders on an 8 x 8 board, two to four players; you are player 0. Roll a six and roll again. */
+/** Snakes & Ladders on a 10 x 10 board, two to four players; you are player 0. Roll a six and roll again. */
 internal data class SnakesGame(
     val names: List<String>,
     val pos: List<Int>,
@@ -74,10 +74,12 @@ internal data class SnakesGame(
 
     companion object {
         const val HUMAN = 0
-        const val SIDE = 8
+        const val SIDE = 10
         const val LAST = SIDE * SIDE
-        val LADDERS = mapOf(4 to 25, 14 to 45, 33 to 56, 40 to 60)
-        val SNAKES = mapOf(58 to 19, 47 to 26, 37 to 8)
+
+        /** Eight ladders and eight snakes on the classic 100-square board (owner, 2026-11-14). */
+        val LADDERS = mapOf(3 to 22, 8 to 30, 28 to 55, 36 to 44, 51 to 67, 58 to 77, 71 to 92, 80 to 99)
+        val SNAKES = mapOf(97 to 78, 95 to 56, 88 to 24, 74 to 53, 62 to 18, 48 to 26, 32 to 10, 17 to 4)
         private val JUMPS = LADDERS + SNAKES
 
         fun start(names: List<String>): SnakesGame = SnakesGame(names, List(names.size) { 0 })

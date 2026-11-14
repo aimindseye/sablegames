@@ -17,16 +17,16 @@ class BoardTableTest {
 
     @Test
     fun snakesRecordsTheWalkAndTheLadder() {
-        val g = SnakesGame.start(names.take(2)).copy(pos = listOf(1, 0))
+        val g = SnakesGame.start(names.take(2)).copy(pos = listOf(5, 0))
         val up = g.move(3)
-        assertEquals(SnakesMove(0, 3, 1, 4, 25, overshot = false), up.last)
-        assertEquals(listOf(2, 3, 4), up.last!!.walk)
-        assertEquals("You rolled 3 and climbed a ladder: 4 to 25", up.note)
+        assertEquals(SnakesMove(0, 3, 5, 8, 30, overshot = false), up.last)
+        assertEquals(listOf(6, 7, 8), up.last!!.walk)
+        assertEquals("You rolled 3 and climbed a ladder: 8 to 30", up.note)
     }
 
     @Test
     fun snakesRecordsAnOvershootAndASix() {
-        val close = SnakesGame.start(names.take(2)).copy(pos = listOf(62, 0))
+        val close = SnakesGame.start(names.take(2)).copy(pos = listOf(98, 0))
         val over = close.move(5)
         assertTrue(over.last!!.overshot)
         assertTrue(over.last!!.walk.isEmpty())
@@ -37,8 +37,20 @@ class BoardTableTest {
     }
 
     @Test
+    fun theBoardHasEightLaddersAndEightSnakesThatNeverShareASquare() {
+        assertEquals(100, SnakesGame.LAST)
+        assertEquals(8, SnakesGame.LADDERS.size)
+        assertEquals(8, SnakesGame.SNAKES.size)
+        SnakesGame.LADDERS.forEach { (from, to) -> assertTrue(to > from) }
+        SnakesGame.SNAKES.forEach { (from, to) -> assertTrue(to < from) }
+        val ends = SnakesGame.LADDERS.flatMap { listOf(it.key, it.value) } + SnakesGame.SNAKES.flatMap { listOf(it.key, it.value) }
+        assertEquals(ends.size, ends.toSet().size)
+        assertFalse(SnakesGame.LAST in SnakesGame.SNAKES || 1 in SnakesGame.LADDERS)
+    }
+
+    @Test
     fun snakesStandingsPutTheWinnerFirst() {
-        val g = SnakesGame.start(names.take(3)).copy(pos = listOf(10, 62, 30))
+        val g = SnakesGame.start(names.take(3)).copy(pos = listOf(10, 98, 30))
         val won = g.copy(turn = 1).move(2)
         assertEquals(listOf(1, 2, 0), won.standings)
     }
