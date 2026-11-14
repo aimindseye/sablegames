@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -214,53 +216,53 @@ internal fun BoardSeat(
 ) {
     val color = TOKEN_COLORS[player]
     val scheme = MaterialTheme.colorScheme
+    // One line, so a large font size on the Titan 2 cannot cut the detail off (owner photo, 2026-11-14).
     Row(
         modifier
-            .height(34.dp)
+            .heightIn(min = 30.dp)
             .background(color.copy(alpha = if (active) 0.22f else 0.08f), RoundedCornerShape(8.dp))
             .border(
                 if (active) 2.dp else 1.dp,
                 if (active) color else scheme.outline.copy(alpha = 0.3f),
                 RoundedCornerShape(8.dp),
-            ).padding(horizontal = 4.dp),
+            ).padding(horizontal = 4.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Canvas(Modifier.size(16.dp)) { drawToken(center, size.width * 0.42f, color, you = player == 0) }
-        Column {
-            Text(
-                name,
-                fontSize = 12.sp,
-                fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-                color = scheme.onSurface.copy(alpha = if (active) 1f else 0.7f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                detail,
-                fontSize = 10.sp,
-                color = scheme.onSurface.copy(alpha = if (active) 0.85f else 0.55f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(
+            "$name · $detail",
+            fontSize = 12.sp,
+            lineHeight = 14.sp,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+            color = scheme.onSurface.copy(alpha = if (active) 1f else 0.7f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
-/** The last two things that happened, the older one faded, each in its player's colour. */
+/**
+ * The last two things that happened, the older one faded, each in its player's colour (lightened on a
+ * dark theme so blue stays readable). Each line has its own fixed height, so neither is cut off.
+ */
 @Composable
 internal fun MoveLines(
     lines: List<MoveLine>,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier.fillMaxWidth().height(32.dp), verticalArrangement = Arrangement.Bottom) {
-        lines.forEachIndexed { i, line ->
-            val newest = i == lines.lastIndex
+    val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        List(2) { lines.getOrNull(lines.size - 2 + it) }.forEachIndexed { i, line ->
+            val newest = i == 1
+            val color = TOKEN_COLORS[line?.player ?: 0].let { if (dark) lighten(it, 0.3f) else darken(it, 0.1f) }
             Text(
-                line.text,
+                line?.text ?: "",
+                modifier = Modifier.height(if (newest) 20.dp else 18.dp),
                 fontSize = if (newest) 13.sp else 11.sp,
+                lineHeight = if (newest) 16.sp else 14.sp,
                 fontWeight = if (newest) FontWeight.Medium else FontWeight.Normal,
-                color = darken(TOKEN_COLORS[line.player], 0.1f).copy(alpha = if (newest) 1f else 0.55f),
+                color = color.copy(alpha = if (newest) 1f else 0.6f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

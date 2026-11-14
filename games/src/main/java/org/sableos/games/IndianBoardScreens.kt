@@ -3,10 +3,13 @@ package org.sableos.games
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +30,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -43,8 +45,40 @@ import kotlin.math.hypot
 import kotlin.math.sin
 import kotlin.random.Random
 
-private val SEATS_HEIGHT = 36.dp
-private val LINES_HEIGHT = 34.dp
+private val SEATS_HEIGHT = 34.dp
+private val LINES_HEIGHT = 44.dp
+
+/** Ludo is drawn on a classic light board in both themes, so the track always shows. */
+private val LUDO_BOARD = Color(0xFFFBF7EC)
+private val LUDO_LINE = Color(0xFFCBBFA6)
+private val LUDO_INK = Color(0xFF3A3326)
+
+/**
+ * The board column: [side] wide, with [extra] height for the seats and move lines. On a square phone
+ * (the Q25's 720 x 720, the Titan 2) the frame gives the board a width-limited square, so the column uses
+ * the height left beside the rail and the board keeps nearly the full width; in a scrolling tall layout
+ * the board is [side] less [extra].
+ */
+@Composable
+private fun BoardRoom(
+    side: Dp,
+    extra: Dp,
+    content: @Composable (boardSide: Dp) -> Unit,
+) {
+    BoxWithConstraints(Modifier.width(side)) {
+        val boardSide = boardSideFor(side, if (constraints.hasBoundedHeight) maxHeight else null, extra)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            content(boardSide)
+        }
+    }
+}
+
+/** The board's side in a column [side] wide with [room] height (null: as tall as needed) and [extra] for the rest. */
+internal fun boardSideFor(
+    side: Dp,
+    room: Dp?,
+    extra: Dp,
+): Dp = minOf(side, (room ?: side) - extra).coerceAtLeast(side / 2)
 
 /** A token part way between two places, [t] from 0 to 1. */
 private data class Glide<T>(
@@ -81,7 +115,8 @@ private fun snakeCentre(
     n: Int,
     cell: Float,
 ): Offset {
-    if (n <= 0) return Offset(cell * -0.05f, cell * (SnakesGame.SIDE - 0.5f))
+    // Before the first roll the tokens wait on the START square.
+    if (n <= 0) return snakeCentre(1, cell)
     val row = (n - 1) / SnakesGame.SIDE
     val col = if (row % 2 == 0) (n - 1) % SnakesGame.SIDE else SnakesGame.SIDE - 1 - (n - 1) % SnakesGame.SIDE
     return Offset((col + 0.5f) * cell, (SnakesGame.SIDE - 1 - row + 0.5f) * cell)
@@ -192,9 +227,9 @@ internal fun SnakesScreen(random: Random) {
                 GameAction("Players $players", "2 3 4") { restart(if (players == 4) 2 else players + 1) },
             ),
     ) { side ->
-        Column(Modifier.size(side), horizontalAlignment = Alignment.CenterHorizontally) {
+        BoardRoom(side, SEATS_HEIGHT + LINES_HEIGHT) { boardSide ->
             Row(
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().height(SEATS_HEIGHT),
                 horizontalArrangement = Arrangement.spacedBy(3.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -205,16 +240,14 @@ internal fun SnakesScreen(random: Random) {
                             game.over && place == 1 -> "Winner"
                             game.over -> ordinal(place)
                             p == game.turn && game.rollsAgain && !busy -> "Roll again"
-                            else -> "square ${game.pos[p]}"
+                            else -> "${game.pos[p]}"
                         }
                     val active = if (game.over) place == 1 else (if (busy) diceBy else game.turn) == p
                     BoardSeat(p, game.names[p], detail, active, Modifier.weight(1f))
                 }
                 DiceFace(dice, TOKEN_COLORS[diceBy], 30.dp)
             }
-            Box(Modifier.size(side - SEATS_HEIGHT - LINES_HEIGHT), contentAlignment = Alignment.Center) {
-                SnakesBoard(game, glide, shake, trail, side - SEATS_HEIGHT - LINES_HEIGHT)
-            }
+            SnakesBoard(game, glide, shake, trail, boardSide)
             MoveLines(lines)
         }
     }
@@ -228,8 +261,8 @@ private fun SnakesBoard(
     trail: Pair<Int, List<Int>>?,
     side: Dp,
 ) {
-    val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val palette = remember(dark) { SnakesPalette(dark) }
+    // The paper board in both themes, as approved (owner, 2026-11-14): the walnut one was too dark on the Titan 2.
+    val palette = remember { SnakesPalette(dark = false) }
     val measurer = rememberTextMeasurer()
     Canvas(Modifier.size(side)) {
         val pad = size.width * 0.03f
@@ -259,7 +292,7 @@ private fun SnakesBoard(
                     if (n == 1) "1 START" else n.toString(),
                     Offset(c.x - cell / 2 + cell * 0.07f, c.y - cell / 2 + cell * 0.03f),
                     TextStyle(
-                        fontSize = (cell / 5.4f / density).sp,
+                        fontSize = (cell / 4.4f / density).sp,
                         color = palette.number,
                         fontWeight = FontWeight.Medium,
                     ),
@@ -593,8 +626,8 @@ internal fun LudoScreen(random: Random) {
                 GameAction("New", "N") { newGame() },
             ),
     ) { side ->
-        Column(Modifier.size(side), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(side - LINES_HEIGHT), contentAlignment = Alignment.Center) {
+        BoardRoom(side, LINES_HEIGHT) { boardSide ->
+            Box(Modifier.size(boardSide), contentAlignment = Alignment.Center) {
                 LudoBoard(
                     game = game,
                     choice = choice,
@@ -604,7 +637,7 @@ internal fun LudoScreen(random: Random) {
                     dice = dice,
                     diceBy = diceBy,
                     busy = busy,
-                    side = side - LINES_HEIGHT,
+                    side = boardSide,
                 )
             }
             MoveLines(lines)
@@ -624,10 +657,9 @@ private fun LudoBoard(
     busy: Boolean,
     side: Dp,
 ) {
-    val colors = MaterialTheme.colorScheme
-    val boardLight = colors.surface
-    val line = colors.outline
-    val ink = colors.onSurface
+    val boardLight = LUDO_BOARD
+    val line = LUDO_LINE
+    val ink = LUDO_INK
     val measurer = rememberTextMeasurer()
     Canvas(Modifier.size(side)) {
         val cell = size.width / 15f
