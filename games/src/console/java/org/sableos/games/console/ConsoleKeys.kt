@@ -35,6 +35,12 @@ object ConsoleKeys {
         )
 
     /** The key's meaning while a game runs; [tiltGame] makes W A S D and P controls, not letters. */
+    /**
+     * Whether a key event goes straight to the showing screen's key handler. Back does not: it reaches
+     * the screen through the back dispatcher, once a press.
+     */
+    fun toScreen(keyCode: Int): Boolean = keyCode != KeyEvent.KEYCODE_BACK
+
     fun inGame(
         keyCode: Int,
         char: Char?,

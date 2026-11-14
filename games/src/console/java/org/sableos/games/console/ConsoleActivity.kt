@@ -52,6 +52,10 @@ class ConsoleActivity : ComponentActivity() {
     // ComponentActivity.dispatchKeyEvent is a public framework override; lint flags it as androidx-restricted.
     @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // A Back key (the Titan 2's own key) goes only to the back dispatcher, which hands it to the
+        // screen once (ConsoleApp's BackHandler). Given to the screen here as well, one press went
+        // back twice: Details to the library, then out of the app.
+        if (!ConsoleKeys.toScreen(event.keyCode)) return super.dispatchKeyEvent(event)
         val taken =
             when (event.action) {
                 KeyEvent.ACTION_DOWN -> {

@@ -2,7 +2,9 @@ package org.sableos.games.console
 
 import android.view.KeyEvent
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ConsoleKeysTest {
@@ -41,5 +43,13 @@ class ConsoleKeysTest {
         assertEquals(1.0 to 0.0, ConsoleKeys.heldLean(setOf(KeyEvent.KEYCODE_D), tiltGame = true))
         assertNull(ConsoleKeys.heldLean(setOf(KeyEvent.KEYCODE_D), tiltGame = false))
         assertNull(ConsoleKeys.heldLean(emptySet(), tiltGame = true))
+    }
+
+    @Test
+    fun backReachesTheScreenOnlyThroughTheBackDispatcher() {
+        // The Titan 2's Back key went back twice: once as a key, once from the back dispatcher.
+        assertFalse(ConsoleKeys.toScreen(KeyEvent.KEYCODE_BACK))
+        assertTrue(ConsoleKeys.toScreen(KeyEvent.KEYCODE_ESCAPE))
+        assertTrue(ConsoleKeys.toScreen(KeyEvent.KEYCODE_SPACE))
     }
 }
