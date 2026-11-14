@@ -9,16 +9,15 @@ Sable Games uses the same key as TenSeven Launcher, whose certificate (SHA-256 `
 No password is ever stored. Gradle builds unsigned release APKs (as CI does), and `tools/build-release.sh` signs each one with `apksigner`, the same way as TenSeven Launcher. It asks for the keystore password once and gives it to `apksigner` only through its own environment while it runs:
 
 ```
-bash tools/build-release.sh                              # ~/tenseven-release-2.jks, alias tenseven
-bash tools/build-release.sh /path/to/key.jks myalias     # another keystore or alias
+bash tools/build-release.sh /path/to/key.jks KEY_ALIAS
 ```
 
-`SABLEGAMES_KEYSTORE` and `SABLEGAMES_KEY_ALIAS` set the defaults instead. The key password is taken to be the keystore password, as for the TenSeven key. The script looks for `apksigner` in the newest build-tools under `ANDROID_HOME` (or `~/Library/Android/sdk` on a Mac).
+The keystore and alias are required, as arguments or as `SABLEGAMES_KEYSTORE` and `SABLEGAMES_KEY_ALIAS`; the repository names no keystore. The key password is taken to be the keystore password, as for the TenSeven key. The script looks for `apksigner` in the newest build-tools under `ANDROID_HOME` (or `~/Library/Android/sdk` on a Mac).
 
 ## Making a release
 
 1. Raise `versionCode` and `versionName` in `games/build.gradle.kts`, merge to `main` and pull it.
-2. Run `bash tools/build-release.sh` and type the keystore password. With clean sources, it runs the unit tests, builds every app's release APK, signs each with `apksigner`, checks each one's package name, that it asks for no permissions and that all are signed with the registered key (`tools/check-apks.sh --signed`), then writes the APKs, `SHA256SUMS.txt` and `SOURCE_COMMIT.txt` to `~/Downloads/sablegames-release/<version>/` (`SABLEGAMES_RELEASE_DIR` overrides it).
+2. Run `bash tools/build-release.sh /path/to/key.jks KEY_ALIAS` and type the keystore password. With clean sources, it runs the unit tests, builds every app's release APK, signs each with `apksigner`, checks each one's package name, that it asks for no permissions and that all are signed with the registered key (`tools/check-apks.sh --signed`), then writes the APKs, `SHA256SUMS.txt` and `SOURCE_COMMIT.txt` to `~/Downloads/sablegames-release/<version>/` (`SABLEGAMES_RELEASE_DIR` overrides it).
 3. Install one APK on a phone and play it.
 4. Publish: the script prints the `gh release create` command, which tags `v<version>` and uploads the APKs and `SHA256SUMS.txt`.
 

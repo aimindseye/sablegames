@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 # Build, sign and package a Sable Games release on the owner's computer (docs/RELEASING.md).
 #
-#   bash tools/build-release.sh [KEYSTORE [ALIAS]]
+#   bash tools/build-release.sh KEYSTORE ALIAS
 #
-# KEYSTORE defaults to $SABLEGAMES_KEYSTORE, then ~/tenseven-release-2.jks; ALIAS to
-# $SABLEGAMES_KEY_ALIAS, then tenseven. Gradle builds unsigned release APKs, then apksigner signs each
+# KEYSTORE and ALIAS are required: as arguments, or as $SABLEGAMES_KEYSTORE and $SABLEGAMES_KEY_ALIAS.
+# The repository names no keystore. Gradle builds unsigned release APKs, then apksigner signs each
 # one, as for TenSeven Launcher. The password is asked once and is never written to disk: it lives
 # only in this script's environment while apksigner runs. CI never gets the key.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-keystore="${1:-${SABLEGAMES_KEYSTORE:-$HOME/tenseven-release-2.jks}}"
-alias_name="${2:-${SABLEGAMES_KEY_ALIAS:-tenseven}}"
-[[ -f "$keystore" ]] || { echo "ERROR: keystore not found: $keystore (pass it as the first argument)" >&2; exit 2; }
+usage="usage: bash tools/build-release.sh KEYSTORE ALIAS (or set SABLEGAMES_KEYSTORE and SABLEGAMES_KEY_ALIAS)"
+keystore="${1:-${SABLEGAMES_KEYSTORE:-}}"
+alias_name="${2:-${SABLEGAMES_KEY_ALIAS:-}}"
+[[ -n "$keystore" && -n "$alias_name" ]] || { echo "ERROR: $usage" >&2; exit 2; }
+[[ -f "$keystore" ]] || { echo "ERROR: keystore not found: $keystore" >&2; exit 2; }
 if ! git diff --quiet || ! git diff --cached --quiet; then
     echo "ERROR: commit tracked source changes before packaging a release." >&2
     exit 2
