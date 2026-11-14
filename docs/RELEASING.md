@@ -49,4 +49,6 @@ io.github.aimindseye.sablegames.mahjong
 io.github.aimindseye.sablegames.words
 ```
 
+Registered so far (2026-11-13): console, cards, snakesladders, ludo, sudoku, minesweeper, game2048, bricks, snake and blocks. The console stopped after ten that day; reversi, solitaire, mahjong and words are still to register. Until then those four still install over USB with `adb install`.
+
 Planned, not built yet: `io.github.aimindseye.sablegames.installer`.
