@@ -1,0 +1,64 @@
+# Sable Games
+
+Keyboard-first games for BlackBerry-style Android phones: the Zinwa Q25 and the Unihertz Titan 2, and any other phone with a hardware keyboard. They play from the keys and the trackpad, and also by touch. They were first written for [SableOS](https://github.com/aimindseye/zinwaq25-sableos) and live here so they install on stock firmware too, with no SableOS and no Sable launcher.
+
+## The apps
+
+Each game is its own app, so you install only the ones you want.
+
+| App | Package | What it is |
+| --- | --- | --- |
+| Sable Games Console | `io.github.aimindseye.sablegames.console` | Plays games written as small Lua scripts, so new games can be added without a new build. Ships with eight tilt games |
+| Sable Sudoku | `io.github.aimindseye.sablegames.sudoku` | Fill the 9 x 9 grid |
+| Sable Minesweeper | `io.github.aimindseye.sablegames.minesweeper` | Clear the field without hitting a mine |
+| Sable 2048 | `io.github.aimindseye.sablegames.game2048` | Slide tiles to merge them up to 2048 |
+| Sable Bricks | `io.github.aimindseye.sablegames.bricks` | Break the wall with the ball |
+| Sable Snake | `io.github.aimindseye.sablegames.snake` | Eat to grow; don't hit a wall or yourself |
+| Sable Blocks | `io.github.aimindseye.sablegames.blocks` | Falling blocks: fill whole rows to clear them |
+| Sable Reversi | `io.github.aimindseye.sablegames.reversi` | Play dark against the phone |
+| Sable Solitaire | `io.github.aimindseye.sablegames.solitaire` | Klondike, one card at a time |
+| Sable Mahjong | `io.github.aimindseye.sablegames.mahjong` | Remove matching free tiles in pairs |
+| Sable Words | `io.github.aimindseye.sablegames.words` | Guess the five-letter word in six tries |
+
+Coming next: Sable Card Games (Indian card games in one app), Snakes and Ladders and Ludo, moved here from SableOS once they're finished there; a device profile so each game fits the Q25 and the Titan 2 keyboards; and an installer that sets up the games you pick in one go.
+
+## Install
+
+Download the APKs from [Releases](https://github.com/aimindseye/sablegames/releases) and open each one on the phone, or install them from a computer with `adb install <file>.apk`. Each release lists the SHA-256 of every APK in `SHA256SUMS.txt`.
+
+The games need Android 11 or later. They ask for no permissions (only the app-private one AndroidX adds for its own receivers): no internet, no storage, no location. The console reads only the folder you pick when you add Lua games.
+
+## Lua games are sandboxed
+
+A console game is a folder with a `game.toml` and one `.lua` script (and up to 32 PNG pictures). Games run with Lua's basic, text, table and maths libraries only. They can't read or write files, use the network, run other programs or see your data. A game stuck in a loop, a runaway text search or one that eats memory is stopped with a message, and one game can't change another. The rules are tested in `games/src/testConsole`.
+
+## Documentation
+
+- [User Guide](docs/USER_GUIDE.md): installing, and how to play every game, with its keys.
+- [Writing a Lua game: tutorial](docs/GAMES_CONSOLE_TUTORIAL.md), including what a game can and can't do to the phone.
+- [Games Console reference](docs/GAMES_CONSOLE.md): every call a game can make.
+- [Releasing](docs/RELEASING.md): the signing key, tags and package names.
+
+## Build
+
+You need JDK 17 and the Android SDK (platform 36). Then:
+
+```
+./gradlew :games:assembleSudokuRelease          # one game
+./gradlew assembleRelease                        # every game
+./gradlew :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest
+```
+
+Release APKs are unsigned unless the signing variables are set; see [docs/RELEASING.md](docs/RELEASING.md). Dependencies are pinned with Gradle lockfiles and `gradle/verification-metadata.xml`.
+
+## Layout
+
+| Path | What's there |
+| --- | --- |
+| `games/` | One Gradle module, one product flavor per app. `src/main` is shared; `src/<flavor>` holds each app's icon, and `src/console` the Lua console and its games |
+| `design/` | The Sable look: colours, type, list keys and the shared components |
+| `.github/workflows/` | Build and test, security scans and SonarQube Cloud |
+
+## Licence
+
+Apache-2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). LuaJ and the Phosphor icon glyphs are MIT; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
