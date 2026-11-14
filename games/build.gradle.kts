@@ -1,8 +1,33 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+// Release signing, done on the owner's computer (docs/RELEASING.md). The key never lives in this
+// repository: either keystore.properties at the repository root (git-ignored) with storeFile,
+// storePassword, keyAlias and keyPassword, or the environment variables SABLEGAMES_KEYSTORE,
+// SABLEGAMES_KEYSTORE_PASSWORD, SABLEGAMES_KEY_ALIAS and SABLEGAMES_KEY_PASSWORD. With neither, the
+// release APKs are unsigned, as in CI.
+val keystoreProperties =
+    Properties().apply {
+        val file = rootProject.file("keystore.properties")
+        if (file.isFile) file.inputStream().use { load(it) }
+    }
+
+fun signingValue(
+    property: String,
+    variable: String,
+): String? = (keystoreProperties.getProperty(property) ?: System.getenv(variable))?.takeIf { it.isNotBlank() }
+
+val releaseStoreFile = signingValue("storeFile", "SABLEGAMES_KEYSTORE")
+val releaseStorePassword = signingValue("storePassword", "SABLEGAMES_KEYSTORE_PASSWORD")
+val releaseKeyAlias = signingValue("keyAlias", "SABLEGAMES_KEY_ALIAS")
+val releaseKeyPassword = signingValue("keyPassword", "SABLEGAMES_KEY_PASSWORD")
+val releaseSigned =
+    releaseStoreFile != null && releaseStorePassword != null && releaseKeyAlias != null && releaseKeyPassword != null
 
 android {
     namespace = "org.sableos.games"
@@ -86,16 +111,13 @@ android {
         }
     }
 
-    // Release signing comes from the environment (CI secrets, docs/RELEASING.md). Without it the
-    // release APKs are built unsigned, as SableOS takes them (its image build signs them).
-    val releaseKeystore = System.getenv("SABLEGAMES_KEYSTORE_FILE")
     signingConfigs {
-        if (releaseKeystore != null) {
+        if (releaseSigned) {
             create("release") {
-                storeFile = file(releaseKeystore)
-                storePassword = System.getenv("SABLEGAMES_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("SABLEGAMES_KEY_ALIAS")
-                keyPassword = System.getenv("SABLEGAMES_KEY_PASSWORD")
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -103,7 +125,7 @@ android {
     buildTypes {
         // Release variants are shrunk: the debug APKs are about 29 MB each.
         release {
-            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
+            if (releaseSigned) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

@@ -1,35 +1,32 @@
 # Releasing Sable Games
 
-A release is a git tag `vX.Y.Z` on `main`. The **Release** workflow builds every app's release APK, signs it with the Sable Games key, and publishes a GitHub release with the APKs and `SHA256SUMS.txt`.
+Releases are built and signed on the owner's computer, the same way as TenSeven Launcher. CI never gets the key: it builds unsigned APKs only, and those are not published.
 
-## The signing key (once)
+## The signing key
 
-Every update of an app must be signed with the same key, and Android's developer verification registers each package name against it, so make the key once and keep it safe.
+Every update of an app must be signed with the same key, and Android's developer verification registers each package name against that key's certificate. Keep the keystore and its passwords in a password manager with an offline backup, and never commit them. A new key makes the apps new apps: phones can't update from the old ones.
 
-1. Make the key on your computer (never in the repository):
+Give the build the key in either of two ways:
 
-   ```
-   keytool -genkeypair -v -keystore sablegames-release.jks -alias sablegames \
-     -keyalg RSA -keysize 4096 -validity 10000
-   ```
+- a file `keystore.properties` at the repository root (git-ignored), with absolute paths:
 
-2. Keep `sablegames-release.jks` and its passwords in a password manager, with an offline backup. Losing it means the apps can't be updated; a new key makes them new apps.
-3. Add four repository secrets (Settings > Secrets and variables > Actions):
+  ```properties
+  storeFile=/Users/you/sablegames-release.jks
+  storePassword=...
+  keyAlias=...
+  keyPassword=...
+  ```
 
-   | Secret | Value |
-   | --- | --- |
-   | `SABLEGAMES_KEYSTORE_BASE64` | `base64 -w0 sablegames-release.jks` |
-   | `SABLEGAMES_KEYSTORE_PASSWORD` | The keystore password |
-   | `SABLEGAMES_KEY_ALIAS` | `sablegames` |
-   | `SABLEGAMES_KEY_PASSWORD` | The key password |
+- or the environment variables `SABLEGAMES_KEYSTORE`, `SABLEGAMES_KEYSTORE_PASSWORD`, `SABLEGAMES_KEY_ALIAS` and `SABLEGAMES_KEY_PASSWORD`.
 
-Without these secrets the Release workflow stops before publishing, and the Android workflow builds unsigned APKs only.
+With neither, `assembleRelease` still succeeds and writes `*-release-unsigned.apk`, as in CI.
 
 ## Making a release
 
-1. Raise `versionCode` and `versionName` in `games/build.gradle.kts`.
-2. Merge to `main`, then tag: `git tag v0.2.0 && git push origin v0.2.0`.
-3. The Release workflow publishes the release. Check that `SHA256SUMS.txt` is there and that one APK installs on a phone.
+1. Raise `versionCode` and `versionName` in `games/build.gradle.kts`, merge to `main` and pull it.
+2. Run `bash tools/build-release.sh`. With clean sources and the key configured, it runs the unit tests, builds every app's release APK, checks each one's package name, that it asks for no permissions and that all are signed with one key (`tools/check-apks.sh --signed`), then writes the APKs, `SHA256SUMS.txt` and `SOURCE_COMMIT.txt` to `~/Downloads/sablegames-release/<version>/` (`SABLEGAMES_RELEASE_DIR` overrides it).
+3. Install one APK on a phone and play it.
+4. Publish: the script prints the `gh release create` command, which tags `v<version>` and uploads the APKs and `SHA256SUMS.txt`.
 
 ## Package names
 

@@ -1,7 +1,8 @@
 name: Android
 
 # Builds every app's release APK and runs the unit tests, Android Lint, detekt and ktlint.
-# Release APKs here are unsigned; the Release workflow signs them.
+# Release APKs here are unsigned and never published; releases are signed on the owner's computer
+# with tools/build-release.sh (docs/RELEASING.md).
 on:
   pull_request:
   push:
@@ -44,7 +45,7 @@ jobs:
           :design:lintDebug :games:lintSudokuDebug :games:lintConsoleDebug
           :design:detekt :games:detekt :design:ktlintCheck :games:ktlintCheck
       - name: Every app has its package name and asks for no permissions
-        run: bash scripts/check-apks.sh games/build/outputs/apk
+        run: bash tools/check-apks.sh games/build/outputs/apk
       - name: Upload APKs
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

@@ -37,7 +37,7 @@ A console game is a folder with a `game.toml` and one `.lua` script (and up to 3
 - [User Guide](docs/USER_GUIDE.md): installing, and how to play every game, with its keys.
 - [Writing a Lua game: tutorial](docs/GAMES_CONSOLE_TUTORIAL.md), including what a game can and can't do to the phone.
 - [Games Console reference](docs/GAMES_CONSOLE.md): every call a game can make.
-- [Releasing](docs/RELEASING.md): the signing key, tags and package names.
+- [Releasing](docs/RELEASING.md): signing on your computer, publishing, and the package names.
 
 ## Build
 
@@ -49,7 +49,7 @@ You need JDK 17 and the Android SDK (platform 36). Then:
 ./gradlew :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest
 ```
 
-Release APKs are unsigned unless the signing variables are set; see [docs/RELEASING.md](docs/RELEASING.md). Dependencies are pinned with Gradle lockfiles and `gradle/verification-metadata.xml`.
+Release APKs are unsigned unless a signing key is configured; releases are signed on the owner's computer with `tools/build-release.sh` (see [docs/RELEASING.md](docs/RELEASING.md)). Dependencies are pinned with Gradle lockfiles and `gradle/verification-metadata.xml`.
 
 ## Layout
 
@@ -58,6 +58,7 @@ Release APKs are unsigned unless the signing variables are set; see [docs/RELEAS
 | `games/` | One Gradle module, one product flavor per app. `src/main` is shared; `src/<flavor>` holds each app's icon, and `src/console` the Lua console and its games |
 | `design/` | The Sable look: colours, type, list keys and the shared components |
 | `.github/workflows/` | Build and test, security scans and SonarQube Cloud |
+| `tools/` | `build-release.sh` (signed release on your computer) and `check-apks.sh` |
 
 ## Licence
 
