@@ -3,10 +3,21 @@ name: Android
 # Builds every app's release APK and runs the unit tests, Android Lint, detekt and ktlint.
 # Release APKs here are unsigned and never published; releases are signed on the owner's computer
 # with tools/build-release.sh (docs/RELEASING.md).
+# Documentation-only changes skip the build (security.yml still scans them).
 on:
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - 'LICENSE'
+      - 'NOTICE'
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - 'LICENSE'
+      - 'NOTICE'
   workflow_dispatch:
 
 permissions:
