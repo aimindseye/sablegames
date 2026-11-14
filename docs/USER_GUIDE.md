@@ -69,9 +69,11 @@ Every game plays from the keyboard or the trackpad (which sends arrow keys), and
 
 Sable Card Games opens on a menu of ten Indian card games. Arrows or the trackpad choose a game, Enter opens it and Back returns to the menu. In every game the arrows move, Enter confirms, Space selects, Del cancels and N starts over; touch works too. You play against phone players, and their names are drawn from names all over the world. Teen Patti uses practice chips only: they can't be bought, sold or won as anything else.
 
+The players sit round a table, as people do: you at the bottom with your hand under the table, the others round the edge in the order they play. Each card lands in front of the player who played it and slides in from their seat, and the phone players take a moment over each card so you can follow them. In the trick games the trick just won stays on the table, dimmed, until the next card is played. Play goes clockwise (the next player sits on your left); press D on the menu, or tap the line under the title, to make it anticlockwise. The phone keeps your choice.
+
 | Game | How to play | Keys |
 | --- | --- | --- |
-| Teen Patti | Three-card brag against three phone players, with practice chips only: they cannot be bought, sold or won as anything else. Play blind or look; chaal, raise, pack, or ask for a show | Left/Right and Enter choose; C chaal, R raise, T show, P pack, L look |
+| Teen Patti | Three-card brag against three phone players, with practice chips only: they cannot be bought, sold or won as anything else. Play blind or look; chaal, raise, pack, or ask for a show | Left/Right and Enter choose; C chaal, R raise, T show, P pack, L or S look |
 | Indian Rummy | 13 cards, two decks, a wild joker for the round. Declare with two sequences (one pure) and the rest in sets or sequences; a wrong declaration costs 80 points | Z draws from the stock, X takes the open card; Space picks a card up, then arrows move it; Enter throws; M declares; G groups your melds; O sorts |
 | Filmi Rummy | The same rules as Indian Rummy with an original film theme: four invented roles in place of the suits and "plot twist" jokers. No real people or films | As Indian Rummy |
 | Mendicot | Four players in partnerships, hidden trump (shown when someone cannot follow suit); win the tens | Left/Right choose a card; Enter plays |

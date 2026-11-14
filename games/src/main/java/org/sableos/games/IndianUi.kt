@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -378,6 +379,8 @@ internal fun GameMenu(
     chips: Int?,
     tab: Int = 0,
     onSwitch: (() -> Unit)? = null,
+    clockwise: Boolean? = null,
+    onDirection: () -> Unit = {},
     onOpen: (String) -> Unit,
 ) {
     var cursor by remember(tab) { mutableIntStateOf(0) }
@@ -392,12 +395,10 @@ internal fun GameMenu(
             }
 
             is GameCommand.Letter -> {
-                if (command.value == 'T' &&
-                    onSwitch != null
-                ) {
-                    onSwitch()
-                } else {
-                    return@GameKeyHandler false
+                when {
+                    command.value == 'T' && onSwitch != null -> onSwitch()
+                    command.value == 'D' && clockwise != null -> onDirection()
+                    else -> return@GameKeyHandler false
                 }
             }
 
@@ -420,6 +421,14 @@ internal fun GameMenu(
             }
             if (onSwitch != null) {
                 ChoiceRow(listOf("Card games", "Board games"), tab) { if (it != tab) onSwitch() }
+            }
+            if (clockwise != null && tab == 0) {
+                Text(
+                    "Play goes ${if (clockwise) "clockwise" else "anticlockwise"} round the table · D changes",
+                    modifier = Modifier.fillMaxWidth().clickable(onClick = onDirection),
+                    fontSize = 12.sp,
+                    color = colors.onSurfaceVariant,
+                )
             }
             val rows = (games.size + 1) / 2
             for (r in 0 until rows) {
@@ -527,25 +536,48 @@ internal fun IndianGamesApp(
     var tab by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
     var chips by remember { mutableIntStateOf(ChipBank.load(context)) }
+    var clockwise by remember { mutableStateOf(TableDirection.load(context)) }
     val id = open
     BackHandler(enabled = id != null) { open = null }
     val random = remember { Random(System.nanoTime()) }
-    when (id) {
-        null -> {
+    CompositionLocalProvider(LocalTableClockwise provides clockwise) {
+        IndianGame(id, random, chips, onChips = {
+            chips = it
+            ChipBank.save(context, it)
+        }, onClose = { open = null }) {
             GameMenu(
                 title,
                 if (tab == 0) cardGames else boardGames,
                 chips,
                 tab,
                 if (boardGames.isEmpty()) null else ({ tab = 1 - tab }),
+                clockwise = clockwise,
+                onDirection = {
+                    clockwise = !clockwise
+                    TableDirection.save(context, clockwise)
+                },
             ) { open = it }
+        }
+    }
+}
+
+/** The open game, or the [menu] when none is open. */
+@Composable
+private fun IndianGame(
+    id: String?,
+    random: Random,
+    chips: Int,
+    onChips: (Int) -> Unit,
+    onClose: () -> Unit,
+    menu: @Composable () -> Unit,
+) {
+    when (id) {
+        null -> {
+            menu()
         }
 
         "teenpatti" -> {
-            TeenPattiScreen(random, chips) {
-                chips = it
-                ChipBank.save(context, it)
-            }
+            TeenPattiScreen(random, chips, onChips)
         }
 
         "rummy" -> {
@@ -593,7 +625,7 @@ internal fun IndianGamesApp(
         }
 
         else -> {
-            open = null
+            onClose()
         }
     }
 }

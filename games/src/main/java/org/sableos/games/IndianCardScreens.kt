@@ -1,6 +1,9 @@
 package org.sableos.games
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -98,11 +101,16 @@ internal fun TeenPattiScreen(
             is GameCommand.Letter -> {
                 when (command.value) {
                     'C' -> run(0)
+
                     'R' -> run(1)
+
                     'T' -> run(2)
+
                     'P' -> run(3)
+
                     // S too: on a phone without arrows L moves the cursor (DeviceProfile.letterMoves).
                     'L', 'S' -> game = game.see()
+
                     else -> return@GameKeyHandler false
                 }
             }
@@ -133,43 +141,46 @@ internal fun TeenPattiScreen(
         TableSurface(side) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 NoteLine("Practice chips only: no real value, nothing to buy or win", bold = true)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    for (p in 1..3) {
-                        SeatLabel(
-                            names[p],
-                            "${game.chips[p]} · " +
-                                if (game.packed[p]) {
-                                    "packed"
-                                } else if (game.seen[p]) {
-                                    "seen"
-                                } else {
-                                    "blind"
-                                },
-                            game.turn == p && !game.over,
-                            Modifier.weight(1f),
-                        )
-                    }
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    for (p in 1..3) {
-                        Row(horizontalArrangement = Arrangement.spacedBy((-cw / 2))) {
-                            game.hands[p].forEach {
-                                PlayingCard(
-                                    it,
-                                    cw * 0.7f,
-                                    ch * 0.7f,
-                                    faceDown =
-                                        !(
-                                            game.revealed &&
-                                                !game.packed[p]
-                                        ),
-                                )
+                RoundTable(
+                    players = 4,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    seatHeight = 38.dp + ch * 0.6f,
+                    seat = { p, width ->
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            SeatLabel(
+                                names[p],
+                                "${game.chips[p]} · " +
+                                    if (game.packed[p]) {
+                                        "packed"
+                                    } else if (game.seen[p]) {
+                                        "seen"
+                                    } else {
+                                        "blind"
+                                    },
+                                game.turn == p && !game.over,
+                                Modifier.width(width),
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy((-cw / 2))) {
+                                game.hands[p].forEach {
+                                    PlayingCard(
+                                        it,
+                                        cw * 0.6f,
+                                        ch * 0.6f,
+                                        faceDown = !(game.revealed && !game.packed[p]),
+                                    )
+                                }
                             }
                         }
-                    }
+                    },
+                ) {
+                    Text(
+                        "Pot ${game.pot}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
                 }
-                Spacer(Modifier.weight(1f))
-                NoteLine("Pot ${game.pot} · stake ${game.stake} · you pay ${game.cost(0)}", bold = true)
+                NoteLine("Stake ${game.stake} · you pay ${game.cost(0)}", bold = true)
                 NoteLine(game.note)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     game.hands[0].forEach {
@@ -335,32 +346,35 @@ internal fun RummyScreen(
         val (cw, ch) = cardSize(side)
         TableSurface(side) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    for (p in 1..2) {
+                RoundTable(
+                    players = 3,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    seat = { p, width ->
                         SeatLabel(
                             names[p],
                             "${game.hands[p].size} cards",
                             game.turn == p && !game.over,
-                            Modifier.weight(1f),
+                            Modifier.width(width),
                         )
-                    }
-                }
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.Bottom,
+                    },
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        PlayingCard(PlayCard(1, 0), cw * 1.1f, ch * 1.1f, faceDown = true)
-                        NoteLine("Stock ${game.stock.size}")
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        PlayingCard(game.top, cw * 1.1f, ch * 1.1f, style = style)
-                        NoteLine("Open")
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        PlayingCard(PlayCard(game.wild, 0), cw * 1.1f, ch * 1.1f, style = style)
-                        NoteLine("Wild rank")
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            PlayingCard(PlayCard(1, 0), cw * 1.1f, ch * 1.1f, faceDown = true)
+                            NoteLine("Stock ${game.stock.size}")
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            PlayingCard(game.top, cw * 1.1f, ch * 1.1f, style = style)
+                            NoteLine("Open")
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            PlayingCard(PlayCard(game.wild, 0), cw * 1.1f, ch * 1.1f, style = style)
+                            NoteLine("Wild rank")
+                        }
                     }
                 }
                 NoteLine(
@@ -393,7 +407,6 @@ internal fun RummyScreen(
                     },
                     bold = true,
                 )
-                Spacer(Modifier.weight(1f))
                 if (hand.isNotEmpty()) NoteLine(style.describe(hand[cursor.coerceIn(0, hand.lastIndex)]))
                 HandRow(
                     cards = hand,
@@ -428,7 +441,13 @@ internal fun TrickScreen(
 
     LaunchedEffect(game) {
         if (game.needsStep) {
-            delay(if (game.trick.size == n) 1000L else 650L)
+            delay(
+                when {
+                    game.trick.size == n -> IndianPace.TRICK_HOLD_MS
+                    game.phase == TrickPhase.Play -> IndianPace.CARD_MS
+                    else -> IndianPace.BID_MS
+                },
+            )
             game = game.step(random)
         }
     }
@@ -529,31 +548,6 @@ internal fun TrickScreen(
         val (cw, ch) = cardSize(side)
         TableSurface(side) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    for (p in 1 until n) {
-                        val detail =
-                            when (variant) {
-                                TrickVariant.Mendicot -> {
-                                    "${if (p % 2 == 0) "partner" else "rival"} · ${game.tricks[p]} won"
-                                }
-
-                                TrickVariant.TwoThreeFive -> {
-                                    "aims ${game.target(p)} · won ${game.tricks[p]}"
-                                }
-
-                                else -> {
-                                    if (game.bids[p] >=
-                                        0
-                                    ) {
-                                        "bid ${game.bids[p]} · won ${game.tricks[p]}"
-                                    } else {
-                                        "bidding"
-                                    }
-                                }
-                            }
-                        SeatLabel(names[p], detail, game.turn == p && !game.roundOver, Modifier.weight(1f))
-                    }
-                }
                 NoteLine(
                     buildString {
                         append(
@@ -590,10 +584,32 @@ internal fun TrickScreen(
                     },
                     bold = true,
                 )
-                Row(
-                    Modifier.fillMaxWidth().weight(1f),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically,
+                RoundTable(
+                    players = n,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    seat = { p, width ->
+                        val detail =
+                            when (variant) {
+                                TrickVariant.Mendicot -> {
+                                    "${if (p % 2 == 0) "partner" else "rival"} · ${game.tricks[p]} won"
+                                }
+
+                                TrickVariant.TwoThreeFive -> {
+                                    "aims ${game.target(p)} · won ${game.tricks[p]}"
+                                }
+
+                                else -> {
+                                    if (game.bids[p] >=
+                                        0
+                                    ) {
+                                        "bid ${game.bids[p]} · won ${game.tricks[p]}"
+                                    } else {
+                                        "bidding"
+                                    }
+                                }
+                            }
+                        SeatLabel(names[p], detail, game.turn == p && !game.roundOver, Modifier.width(width))
+                    },
                 ) {
                     when (game.phase) {
                         TrickPhase.Bid -> {
@@ -637,11 +653,14 @@ internal fun TrickScreen(
                         }
 
                         TrickPhase.Play -> {
-                            game.trick.forEach { (who, card) ->
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    PlayingCard(card, cw * 1.2f, ch * 1.2f)
-                                    NoteLine(names[who])
+                            if (game.trick.isEmpty() && game.lastTrick.isNotEmpty()) {
+                                // The trick just won stays on view, dimmed, until the next card is played.
+                                Box(Modifier.fillMaxSize().alpha(0.55f)) {
+                                    TableCards(game.lastTrick, n, names, cw, ch, keyBase = -100)
                                 }
+                                NoteLine("Last trick", Modifier.align(Alignment.TopCenter))
+                            } else {
+                                TableCards(game.trick, n, names, cw, ch, keyBase = game.round * 1000 + game.tricks.sum() * 10)
                             }
                         }
                     }
@@ -673,7 +692,7 @@ internal fun BluffScreen(random: Random) {
     var picked by remember { mutableStateOf(emptySet<Int>()) }
     LaunchedEffect(game) {
         if (game.needsStep) {
-            delay(900)
+            delay(IndianPace.CARD_MS)
             game = game.step(random)
         }
     }
@@ -760,29 +779,29 @@ internal fun BluffScreen(random: Random) {
         val (cw, ch) = cardSize(side)
         TableSurface(side) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    for (p in 1..3) {
+                RoundTable(
+                    players = 4,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    seat = { p, width ->
                         SeatLabel(
                             names[p],
                             "${game.hands[p].size} cards",
                             game.turn == p && !game.over,
-                            Modifier.weight(1f),
+                            Modifier.width(width),
                         )
-                    }
-                }
-                Row(
-                    Modifier.fillMaxWidth().weight(1f),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically,
+                    },
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         PlayingCard(PlayCard(1, 0), cw * 1.2f, ch * 1.2f, faceDown = game.pile.isNotEmpty())
-                        NoteLine("Pile: ${game.pile.size}")
-                    }
-                    if (game.reveal.isNotEmpty()) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        ) { game.reveal.forEach { PlayingCard(it, cw, ch) } }
+                        Text("Pile: ${game.pile.size}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                        if (game.reveal.isNotEmpty()) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            ) { game.reveal.forEach { PlayingCard(it, cw, ch) } }
+                        }
                     }
                 }
                 NoteLine(
@@ -906,8 +925,10 @@ internal fun DonkeyScreen(random: Random) {
         val (cw, ch) = cardSize(side)
         TableSurface(side) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    for (p in 1..3) {
+                RoundTable(
+                    players = 4,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    seat = { p, width ->
                         SeatLabel(
                             names[p],
                             game.lettersOf(p).ifEmpty { "no letters" } +
@@ -919,22 +940,19 @@ internal fun DonkeyScreen(random: Random) {
                                     ""
                                 },
                             false,
-                            Modifier.weight(1f),
+                            Modifier.width(width),
                         )
-                    }
-                }
-                Row(
-                    Modifier.fillMaxWidth().weight(1f),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically,
+                    },
                 ) {
-                    repeat(3) { i ->
-                        val taken = i < game.grabbed.size
-                        Text(
-                            if (taken) "● taken" else "○ spoon",
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        repeat(3) { i ->
+                            val taken = i < game.grabbed.size
+                            Text(
+                                if (taken) "● taken" else "○ spoon",
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                     }
                 }
                 NoteLine(
@@ -973,7 +991,7 @@ internal fun GulamChoorScreen(random: Random) {
     var cursor by remember { mutableIntStateOf(0) }
     LaunchedEffect(game) {
         if (game.needsStep) {
-            delay(800)
+            delay(IndianPace.CARD_MS)
             game = game.step(random)
         }
     }
@@ -1031,30 +1049,34 @@ internal fun GulamChoorScreen(random: Random) {
         val (cw, ch) = cardSize(side)
         TableSurface(side) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    for (p in 1..3) {
+                RoundTable(
+                    players = 4,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    seat = { p, width ->
                         SeatLabel(
                             names[p],
                             if (game.hands[p].isEmpty()) "safe" else "${game.hands[p].size} cards",
                             game.turn == p && !game.over,
-                            Modifier.weight(1f),
+                            Modifier.width(width),
+                        )
+                    },
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        NoteLine(if (game.over) "" else "Take from ${names[victim]}:", bold = true)
+                        HandRow(
+                            cards = game.hands[victim],
+                            cursor = cursor.coerceIn(0, (victimSize - 1).coerceAtLeast(0)),
+                            cardWidth = cw * 0.8f,
+                            cardHeight = ch * 0.8f,
+                            showCursor = game.turn == 0 && !game.over,
+                            faceDown = true,
+                            onClick = {
+                                cursor = it
+                                take()
+                            },
                         )
                     }
                 }
-                NoteLine(if (game.over) "" else "Take from ${names[victim]}:", bold = true)
-                HandRow(
-                    cards = game.hands[victim],
-                    cursor = cursor.coerceIn(0, (victimSize - 1).coerceAtLeast(0)),
-                    cardWidth = cw,
-                    cardHeight = ch,
-                    showCursor = game.turn == 0 && !game.over,
-                    faceDown = true,
-                    onClick = {
-                        cursor = it
-                        take()
-                    },
-                )
-                Spacer(Modifier.weight(1f))
                 NoteLine(
                     when {
                         game.over && game.loser == 0 -> "You are the Gulam Choor! N plays again"
