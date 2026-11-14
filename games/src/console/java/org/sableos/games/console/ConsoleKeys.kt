@@ -34,13 +34,13 @@ object ConsoleKeys {
             KeyEvent.KEYCODE_S to TiltStep.Down,
         )
 
-    /** The key's meaning while a game runs; [tiltGame] makes W A S D and P controls, not letters. */
     /**
      * Whether a key event goes straight to the showing screen's key handler. Back does not: it reaches
      * the screen through the back dispatcher, once a press.
      */
     fun toScreen(keyCode: Int): Boolean = keyCode != KeyEvent.KEYCODE_BACK
 
+    /** The key's meaning while a game runs; [tiltGame] makes W A S D and P controls, not letters. */
     fun inGame(
         keyCode: Int,
         char: Char?,

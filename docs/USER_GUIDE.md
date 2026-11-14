@@ -93,6 +93,8 @@ Each is an app of its own and opens straight into the game. Back leaves the app.
 | Snakes & Ladders | 8 x 8 board, two to four players, exact finish | Space rolls; 2, 3, 4 set the number of players |
 | Ludo | Four colours (you are red): a six brings a token out; capture, sixes and reaching home roll again | Space rolls and moves; Left/Right choose a token |
 
+You can follow every turn. The phone players take about 1.2 seconds to roll, the dice tumbles before it shows the number, and each token walks square by square. Ladders climb, snakes slide, and captured Ludo tokens go back to their yard. Your tokens carry a white star. Each player's name and colour are shown: in Snakes & Ladders in a row of seats above the board with their square, and in Ludo on their yard with how many tokens are home. The player whose turn it is is outlined. Under the board, the last two moves are written out in the mover's colour, and the token that moved last keeps a soft halo and a faint trail. In Ludo, when you can move more than one token, a faint ghost shows where each would land.
+
 
 ## Sable Games Console
 
