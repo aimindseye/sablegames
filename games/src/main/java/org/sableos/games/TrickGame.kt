@@ -39,6 +39,8 @@ internal data class TrickGame(
     val note: String = "",
     val summary: String = "",
     val dealt: Int = 0,
+    /** The trick collected last, with who played each card, so it stays on view after it is won. */
+    val lastTrick: List<Pair<Int, PlayCard>> = emptyList(),
 ) {
     private val n: Int get() = variant.players
 
@@ -207,6 +209,7 @@ internal data class TrickGame(
         val next =
             copy(
                 trick = emptyList(),
+                lastTrick = trick,
                 tricks = nextTricks,
                 tens = nextTens,
                 turn = winner,
