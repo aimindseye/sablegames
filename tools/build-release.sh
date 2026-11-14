@@ -18,7 +18,7 @@ version="$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' games/build.gradle.kts | he
 [[ -n "$version" ]] || { echo "ERROR: no versionName in games/build.gradle.kts" >&2; exit 2; }
 
 ./gradlew --no-daemon clean assembleRelease \
-    :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest
+    :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest :games:testCardsDebugUnitTest
 bash tools/check-apks.sh --signed games/build/outputs/apk
 
 out="${SABLEGAMES_RELEASE_DIR:-$HOME/Downloads/sablegames-release/$version}"

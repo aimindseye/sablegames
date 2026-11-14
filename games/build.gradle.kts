@@ -102,6 +102,25 @@ android {
             resValue("string", "app_name", "Sable Words")
             buildConfigField("String", "SABLE_GAME", "\"words\"")
         }
+        // Sable Card Games: ten Indian card games in one app, with a game menu.
+        create("cards") {
+            dimension = "game"
+            applicationId = "io.github.aimindseye.sablegames.cards"
+            resValue("string", "app_name", "Sable Card Games")
+            buildConfigField("String", "SABLE_GAME", "\"cards\"")
+        }
+        create("snakesladders") {
+            dimension = "game"
+            applicationId = "io.github.aimindseye.sablegames.snakesladders"
+            resValue("string", "app_name", "Sable Snakes & Ladders")
+            buildConfigField("String", "SABLE_GAME", "\"snakesladders\"")
+        }
+        create("ludo") {
+            dimension = "game"
+            applicationId = "io.github.aimindseye.sablegames.ludo"
+            resValue("string", "app_name", "Sable Ludo")
+            buildConfigField("String", "SABLE_GAME", "\"ludo\"")
+        }
         // Sable Games Console: games written in Lua, added from a folder without rebuilding the app.
         create("console") {
             dimension = "game"

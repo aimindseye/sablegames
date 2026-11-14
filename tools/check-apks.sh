@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Checks each release APK under DIR (games/build/outputs/apk): one per app, with the app's
 # io.github.aimindseye.sablegames.* package name, and no Android permissions requested.
-# With --signed (tools/build-release.sh), every APK must also be signed, all with one key.
+# With --signed (tools/build-release.sh), every APK must also be signed with the registered key: the
+# owner's TenSeven Launcher key, whose certificate is registered in the Android Developer Console.
+# SABLEGAMES_EXPECTED_CERT overrides the expected certificate SHA-256.
 set -euo pipefail
 
 signed=no
+expected_cert="${SABLEGAMES_EXPECTED_CERT:-9b2047390e5aa77537b8e8875cdfd3c2c72d0a0715e172a7f77457fc4300f292}"
 if [[ "${1:-}" == "--signed" ]]; then signed=yes; shift; fi
 dir="${1:?usage: tools/check-apks.sh [--signed] APK_DIR}"
 sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
@@ -15,6 +18,7 @@ declare -A expected=(
     [console]=console [sudoku]=sudoku [minesweeper]=minesweeper [game2048]=game2048
     [bricks]=bricks [snake]=snake [blocks]=blocks [reversi]=reversi
     [solitaire]=solitaire [mahjong]=mahjong [words]=words
+    [cards]=cards [snakesladders]=snakesladders [ludo]=ludo
 )
 apksigner="$(dirname "$aapt2")/apksigner"
 certs=()
@@ -45,6 +49,8 @@ done
 if [[ "$signed" == yes && "$fail" == 0 ]]; then
     mapfile -t distinct < <(printf '%s\n' "${certs[@]}" | sort -u)
     if [[ "${#distinct[@]}" != 1 ]]; then echo "FAIL the APKs are signed with ${#distinct[@]} different keys"; fail=1
-    else echo "PASS every APK signed with certificate SHA-256 ${distinct[0]}"; fi
+    elif [[ "${distinct[0]}" != "$expected_cert" ]]; then
+        echo "FAIL the APKs are signed with ${distinct[0]}, not the registered certificate $expected_cert"; fail=1
+    else echo "PASS every APK signed with the registered certificate ${distinct[0]}"; fi
 fi
 exit "$fail"

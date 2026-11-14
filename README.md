@@ -9,6 +9,9 @@ Each game is its own app, so you install only the ones you want.
 | App | Package | What it is |
 | --- | --- | --- |
 | Sable Games Console | `io.github.aimindseye.sablegames.console` | Plays games written as small Lua scripts, so new games can be added without a new build. Ships with eight tilt games |
+| Sable Card Games | `io.github.aimindseye.sablegames.cards` | Ten Indian card games in one app: Teen Patti (practice chips only), Indian Rummy, Mendicot, Callbreak, Judgement, 2-3-5, Bluff, Donkey, Gulam Choor and Filmi Rummy |
+| Sable Snakes & Ladders | `io.github.aimindseye.sablegames.snakesladders` | Two to four players, exact finish |
+| Sable Ludo | `io.github.aimindseye.sablegames.ludo` | Four colours: bring your tokens home |
 | Sable Sudoku | `io.github.aimindseye.sablegames.sudoku` | Fill the 9 x 9 grid |
 | Sable Minesweeper | `io.github.aimindseye.sablegames.minesweeper` | Clear the field without hitting a mine |
 | Sable 2048 | `io.github.aimindseye.sablegames.game2048` | Slide tiles to merge them up to 2048 |
@@ -20,7 +23,7 @@ Each game is its own app, so you install only the ones you want.
 | Sable Mahjong | `io.github.aimindseye.sablegames.mahjong` | Remove matching free tiles in pairs |
 | Sable Words | `io.github.aimindseye.sablegames.words` | Guess the five-letter word in six tries |
 
-Coming next: Sable Card Games (Indian card games in one app), Snakes and Ladders and Ludo, moved here from SableOS once they're finished there; a device profile so each game fits the Q25 and the Titan 2 keyboards; and an installer that sets up the games you pick in one go.
+Coming next: a device profile so each game fits the Q25 and the Titan 2 keyboards, and an installer that sets up the games you pick in one go.
 
 ## Install
 

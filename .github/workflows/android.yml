@@ -41,8 +41,8 @@ jobs:
         run: >-
           ./gradlew --no-daemon --console=plain --continue
           assembleRelease
-          :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest
-          :design:lintDebug :games:lintSudokuDebug :games:lintConsoleDebug
+          :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest :games:testCardsDebugUnitTest
+          :design:lintDebug :games:lintSudokuDebug :games:lintConsoleDebug :games:lintCardsDebug
           :design:detekt :games:detekt :design:ktlintCheck :games:ktlintCheck
       - name: Every app has its package name and asks for no permissions
         run: bash tools/check-apks.sh games/build/outputs/apk

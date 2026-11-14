@@ -44,6 +44,12 @@ class MainActivity : ComponentActivity() {
 
                         "words" -> WordsScreen()
 
+                        "cards" -> IndianGamesApp("Sable Card Games", CARD_GAMES, emptyList())
+
+                        "snakesladders" -> BoardGameApp("snakes")
+
+                        "ludo" -> BoardGameApp("ludo")
+
                         // The console flavor starts org.sableos.games.console.ConsoleActivity instead.
                         else -> error("Unsupported Sable game flavor: ${BuildConfig.SABLE_GAME}")
                     }
