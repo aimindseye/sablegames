@@ -59,7 +59,7 @@ You need JDK 17 and the Android SDK (platform 36). Then:
 ./gradlew :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest
 ```
 
-Release APKs are unsigned unless a signing key is configured; releases are signed on the owner's computer with `tools/build-release.sh` (see [docs/RELEASING.md](docs/RELEASING.md)). Dependencies are pinned with Gradle lockfiles and `gradle/verification-metadata.xml`.
+Release APKs build unsigned; releases are signed on the owner's computer with `tools/build-release.sh`, which asks for the keystore password and stores it nowhere (see [docs/RELEASING.md](docs/RELEASING.md)). Dependencies are pinned with Gradle lockfiles and `gradle/verification-metadata.xml`.
 
 ## Layout
 

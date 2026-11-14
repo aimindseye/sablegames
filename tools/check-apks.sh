@@ -14,23 +14,21 @@ sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
 aapt2="$(find "$sdk/build-tools" -maxdepth 2 -name aapt2 -type f 2>/dev/null | LC_ALL=C sort | tail -n1)"
 [[ -x "$aapt2" ]] || { echo "aapt2 not found under $sdk/build-tools"; exit 1; }
 
-declare -A expected=(
-    [console]=console [sudoku]=sudoku [minesweeper]=minesweeper [game2048]=game2048
-    [bricks]=bricks [snake]=snake [blocks]=blocks [reversi]=reversi
-    [solitaire]=solitaire [mahjong]=mahjong [words]=words
-    [cards]=cards [snakesladders]=snakesladders [ludo]=ludo
-)
+# Each flavor's package is io.github.aimindseye.sablegames.<flavor>. Plain arrays only: macOS ships
+# bash 3.2, which has no associative arrays and no mapfile.
+flavors=(console sudoku minesweeper game2048 bricks snake blocks reversi solitaire mahjong words cards snakesladders ludo)
 apksigner="$(dirname "$aapt2")/apksigner"
 certs=()
 fail=0
-for flavor in "${!expected[@]}"; do
-    mapfile -t apks < <(compgen -G "$dir/$flavor/release/*.apk" || true)
+for flavor in "${flavors[@]}"; do
+    apks=()
+    for apk in "$dir/$flavor/release/"*.apk; do [[ -f "$apk" ]] && apks+=("$apk"); done
     if [[ "${#apks[@]}" != 1 ]]; then
         echo "FAIL $flavor: expected one release APK, found ${#apks[@]}"; fail=1; continue
     fi
     badging="$("$aapt2" dump badging "${apks[0]}")"
     package="$(sed -n "s/^package: name='\([^']*\)'.*/\1/p" <<< "$badging")"
-    want="io.github.aimindseye.sablegames.${expected[$flavor]}"
+    want="io.github.aimindseye.sablegames.$flavor"
     if [[ "$package" != "$want" ]]; then
         echo "FAIL $flavor: package $package, expected $want"; fail=1
     fi
@@ -47,10 +45,11 @@ for flavor in "${!expected[@]}"; do
     [[ "$fail" == 1 ]] || echo "PASS $flavor $package"
 done
 if [[ "$signed" == yes && "$fail" == 0 ]]; then
-    mapfile -t distinct < <(printf '%s\n' "${certs[@]}" | sort -u)
-    if [[ "${#distinct[@]}" != 1 ]]; then echo "FAIL the APKs are signed with ${#distinct[@]} different keys"; fail=1
-    elif [[ "${distinct[0]}" != "$expected_cert" ]]; then
-        echo "FAIL the APKs are signed with ${distinct[0]}, not the registered certificate $expected_cert"; fail=1
-    else echo "PASS every APK signed with the registered certificate ${distinct[0]}"; fi
+    distinct="$(printf '%s\n' "${certs[@]}" | sort -u)"
+    count="$(printf '%s\n' "$distinct" | wc -l | tr -d ' ')"
+    if [[ "$count" != 1 ]]; then echo "FAIL the APKs are signed with $count different keys"; fail=1
+    elif [[ "$distinct" != "$expected_cert" ]]; then
+        echo "FAIL the APKs are signed with $distinct, not the registered certificate $expected_cert"; fail=1
+    else echo "PASS every APK signed with the registered certificate $distinct"; fi
 fi
 exit "$fail"

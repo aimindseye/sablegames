@@ -1,34 +1,11 @@
-import java.util.Properties
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-// Release signing, done on the owner's computer (docs/RELEASING.md). The key never lives in this
-// repository: either keystore.properties at the repository root (git-ignored) with storeFile,
-// storePassword, keyAlias and keyPassword, or the environment variables SABLEGAMES_KEYSTORE,
-// SABLEGAMES_KEYSTORE_PASSWORD, SABLEGAMES_KEY_ALIAS and SABLEGAMES_KEY_PASSWORD. With neither, the
-// release APKs are unsigned, as in CI.
-val keystoreProperties =
-    Properties().apply {
-        val file = rootProject.file("keystore.properties")
-        if (file.isFile) file.inputStream().use { load(it) }
-    }
-
-fun signingValue(
-    property: String,
-    variable: String,
-): String? = (keystoreProperties.getProperty(property) ?: System.getenv(variable))?.takeIf { it.isNotBlank() }
-
-val releaseStoreFile = signingValue("storeFile", "SABLEGAMES_KEYSTORE")
-val releaseStorePassword = signingValue("storePassword", "SABLEGAMES_KEYSTORE_PASSWORD")
-val releaseKeyAlias = signingValue("keyAlias", "SABLEGAMES_KEY_ALIAS")
-val releaseKeyPassword = signingValue("keyPassword", "SABLEGAMES_KEY_PASSWORD")
-val releaseSigned =
-    releaseStoreFile != null && releaseStorePassword != null && releaseKeyAlias != null && releaseKeyPassword != null
-
+// Release APKs are always unsigned here; tools/build-release.sh signs them with apksigner on the
+// owner's computer and asks for the password, so no password is ever stored (docs/RELEASING.md).
 android {
     namespace = "org.sableos.games"
     compileSdk = 36
@@ -130,21 +107,9 @@ android {
         }
     }
 
-    signingConfigs {
-        if (releaseSigned) {
-            create("release") {
-                storeFile = file(releaseStoreFile!!)
-                storePassword = releaseStorePassword
-                keyAlias = releaseKeyAlias
-                keyPassword = releaseKeyPassword
-            }
-        }
-    }
-
     buildTypes {
         // Release variants are shrunk: the debug APKs are about 29 MB each.
         release {
-            if (releaseSigned) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
