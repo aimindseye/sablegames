@@ -1,0 +1,13 @@
+.gradle/
+**/build/
+.kotlin/
+
+# Android Studio / local SDK state
+.idea/
+local.properties
+*.iml
+
+# Signing material never goes in the repository (docs/RELEASING.md).
+*.jks
+*.keystore
+keystore.properties
