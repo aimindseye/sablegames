@@ -566,7 +566,7 @@ internal class ScaffoldWorld(
         const val THROW_ANIM = 0.4f
         private const val MAX_STEP = 1f / 120f
         private const val OFFSCREEN = 30f
-        private const val PICKUP_REACH = 18f
+        private const val PICKUP_REACH = 22f
         private const val GOAL_REACH = 26f
         private const val HIT_SHRINK = 2f
         private const val JUMP_SCORE_REACH = 10f

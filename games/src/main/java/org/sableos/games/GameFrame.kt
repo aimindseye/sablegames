@@ -64,7 +64,8 @@ internal object GameLayout {
     fun squareBoardSide(
         width: Dp,
         height: Dp,
-    ): Dp = min(height - Edge * 2, width - Edge * 2 - RailWidth - Gap)
+        railWidth: Dp = RailWidth,
+    ): Dp = min(height - Edge * 2, width - Edge * 2 - railWidth - Gap)
 
     /** The board's side in a tall window: the width, at most 60 % of the height. */
     fun tallBoardSide(
@@ -82,6 +83,7 @@ internal fun GameFrame(
     status: String,
     hint: String,
     actions: List<GameAction>,
+    railWidth: Dp = GameLayout.RailWidth,
     tallExtras: @Composable ColumnScope.() -> Unit = {},
     board: @Composable (side: Dp) -> Unit,
 ) {
@@ -98,7 +100,8 @@ internal fun GameFrame(
                     statusLabel = statusLabel,
                     status = status,
                     actions = actions,
-                    side = GameLayout.squareBoardSide(width, height),
+                    side = GameLayout.squareBoardSide(width, height, railWidth),
+                    railWidth = railWidth,
                     board = board,
                 )
             } else {
@@ -145,6 +148,7 @@ private fun SquareGame(
     status: String,
     actions: List<GameAction>,
     side: Dp,
+    railWidth: Dp,
     board: @Composable (side: Dp) -> Unit,
 ) {
     Row(
@@ -154,7 +158,7 @@ private fun SquareGame(
     ) {
         board(side)
         Column(
-            modifier = Modifier.width(GameLayout.RailWidth).fillMaxHeight(),
+            modifier = Modifier.width(railWidth).fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(SableSpacing.Xs),
         ) {
             Text(
