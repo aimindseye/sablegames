@@ -172,6 +172,12 @@ private fun DrawScope.drawHud(
     drawText(score, topLeft = Offset(ScaffoldField.WIDTH - 14f - score.size.width, 14f))
 }
 
+private const val PIP_SCALE = 1.1f
+private const val JUNO_SCALE = 1.4f
+private const val CLUNK_SCALE = 1.3f
+private const val HAZARD_SCALE = 1.5f
+private const val BOLT_SCALE = 1.8f
+
 /** [size] is in field units, which are pixels before the board's scale is applied. */
 private fun DrawScope.textUnits(size: Float) = size.toSp()
 
@@ -197,10 +203,16 @@ private fun DrawScope.drawField(
     level.lifts.forEachIndexed { i, lift -> drawLift(lift, world.liftY[i]) }
     level.ladders.forEach { drawLadder(it) }
     level.bolts.forEachIndexed { i, b -> if (!world.boltTaken[i]) drawBolt(b.x, b.y) }
-    level.hats.forEachIndexed { i, h -> if (!world.hatTaken[i]) drawHat(h.x, h.y, 1.2f) }
+    level.hats.forEachIndexed { i, h -> if (!world.hatTaken[i]) drawHat(h.x, h.y, 1.9f) }
     drawJuno(level, world, hud, measurer)
     drawClunk(level, world)
-    world.hazards.forEach { drawHazard(it) }
+    world.hazards.forEach { h ->
+        if (h.kind == HazardKind.Brick) {
+            drawHazard(h)
+        } else {
+            withTransform({ scale(HAZARD_SCALE, HAZARD_SCALE, Offset(h.x, h.y)) }) { drawHazard(h) }
+        }
+    }
     level.pendulum?.let { drawBall(it, world) }
     val flicker = world.invulnerable > 0f && (world.time * 14f).toInt() % 2 == 0
     if (!flicker) drawPip(world)
@@ -360,6 +372,13 @@ private fun DrawScope.drawBolt(
     x: Float,
     y: Float,
 ) {
+    withTransform({ scale(BOLT_SCALE, BOLT_SCALE, Offset(x, y)) }) { drawBoltShape(x, y) }
+}
+
+private fun DrawScope.drawBoltShape(
+    x: Float,
+    y: Float,
+) {
     val hex = Path()
     hex.moveTo(x, y - 7f)
     hex.lineTo(x + 6f, y - 3.5f)
@@ -400,7 +419,7 @@ private fun DrawScope.drawPip(world: ScaffoldWorld) {
     val climbing = world.ladder != null
     withTransform({
         translate(world.heroX, world.heroY)
-        scale(0.75f * world.facing, 0.75f, Offset.Zero)
+        scale(PIP_SCALE * world.facing, PIP_SCALE, Offset.Zero)
     }) {
         val legShift = if (moving && !climbing) (if (steps == 0) 2f else -2f) else 0f
         val navy = Color(0xFF2A3B7A)
@@ -464,7 +483,10 @@ private fun DrawScope.drawJuno(
     measurer: TextMeasurer,
 ) {
     val wave = sin(world.time * 6f) * 3f
-    withTransform({ translate(level.juno.x, level.juno.y) }) {
+    withTransform({
+        translate(level.juno.x, level.juno.y)
+        scale(JUNO_SCALE, JUNO_SCALE, Offset.Zero)
+    }) {
         val pants = Color(0xFF3A3F66)
         drawRect(pants, Offset(-6f, -14f), Size(5f, 14f))
         drawRect(pants, Offset(1f, -14f), Size(5f, 14f))
@@ -488,13 +510,13 @@ private fun DrawScope.drawJuno(
         val text =
             measurer.measure(
                 hud.help,
-                TextStyle(color = ScaffoldColors.HazardDark, fontSize = textUnits(15f), fontWeight = FontWeight.Bold),
+                TextStyle(color = ScaffoldColors.HazardDark, fontSize = textUnits(19f), fontWeight = FontWeight.Bold),
             )
-        val w = text.size.width + 20f
+        val w = text.size.width + 24f
         val x = (level.juno.x - w / 2).coerceIn(2f, ScaffoldField.WIDTH - w - 2f)
-        drawRoundRect(ScaffoldColors.White, Offset(x, level.juno.y - 84f), Size(w, 28f), CornerRadius(10f))
-        drawBubbleTip(level.juno.x, level.juno.y - 56f)
-        drawText(text, topLeft = Offset(x + 10f, level.juno.y - 84f + (28f - text.size.height) / 2))
+        drawRoundRect(ScaffoldColors.White, Offset(x, level.juno.y - 112f), Size(w, 34f), CornerRadius(12f))
+        drawBubbleTip(level.juno.x, level.juno.y - 79f)
+        drawText(text, topLeft = Offset(x + 12f, level.juno.y - 112f + (34f - text.size.height) / 2))
     }
 }
 
@@ -518,7 +540,7 @@ private fun DrawScope.drawClunk(
     val raised = world.throwAnim > 0f
     withTransform({
         translate(level.clunk.x, level.clunk.y)
-        scale(flip, 1f, Offset.Zero)
+        scale(flip * CLUNK_SCALE, CLUNK_SCALE, Offset.Zero)
     }) {
         val dark = Color(0xFF2B3150)
         drawRoundRect(dark, Offset(-26f, -8f), Size(52f, 8f), CornerRadius(4f))
@@ -607,6 +629,7 @@ private fun DrawScope.drawBrick(h: Hazard) {
     }
     withTransform({
         translate(h.x, h.y - 6f)
+        scale(HAZARD_SCALE, HAZARD_SCALE, Offset.Zero)
         rotate(-14f, Offset.Zero)
     }) {
         drawRoundRect(Color(0xFFC4553A), Offset(-10f, -5.5f), Size(20f, 11f), CornerRadius(2f))
