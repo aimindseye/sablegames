@@ -19,6 +19,7 @@ Each game is its own app, so you install only the ones you want.
 | Sable Card Games | `io.github.aimindseye.sablegames.cards` | Ten Indian card games in one app: Teen Patti (practice chips only), Indian Rummy, Mendicot, Callbreak, Judgement, 2-3-5, Bluff, Donkey, Gulam Choor and Filmi Rummy |
 | Sable Snakes & Ladders | `io.github.aimindseye.sablegames.snakesladders` | Two to four players, exact finish |
 | Sable Ludo | `io.github.aimindseye.sablegames.ludo` | Four colours: bring your tokens home |
+| Sable Scaffold | `io.github.aimindseye.sablegames.scaffold` | Climb the site, dodge rolling hazards, rescue Juno |
 | Sable Sudoku | `io.github.aimindseye.sablegames.sudoku` | Fill the 9 x 9 grid |
 | Sable Minesweeper | `io.github.aimindseye.sablegames.minesweeper` | Clear the field without hitting a mine |
 | Sable 2048 | `io.github.aimindseye.sablegames.game2048` | Slide tiles to merge them up to 2048 |

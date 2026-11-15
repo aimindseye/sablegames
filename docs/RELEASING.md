@@ -30,6 +30,7 @@ io.github.aimindseye.sablegames.console
 io.github.aimindseye.sablegames.cards
 io.github.aimindseye.sablegames.snakesladders
 io.github.aimindseye.sablegames.ludo
+io.github.aimindseye.sablegames.scaffold
 io.github.aimindseye.sablegames.sudoku
 io.github.aimindseye.sablegames.minesweeper
 io.github.aimindseye.sablegames.game2048
