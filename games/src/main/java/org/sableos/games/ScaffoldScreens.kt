@@ -3,6 +3,7 @@ package org.sableos.games
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -653,7 +654,7 @@ private fun PlayScreen(
     }
 
     // The activity's own pause (a call, the app switcher) pauses the game and lets go of every key.
-    val activity = LocalContext.current as? ComponentActivity
+    val activity = LocalActivity.current as? ComponentActivity
     DisposableEffect(activity) {
         val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_PAUSE) pause(true) }
         activity?.lifecycle?.addObserver(observer)
