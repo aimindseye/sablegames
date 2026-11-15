@@ -253,6 +253,9 @@ internal object GameKeymap {
 /** Set by the current game screen; [MainActivity] offers it every key-down first. */
 internal class GameKeyHost {
     var handler: ((GameKeyPress) -> Boolean)? = null
+
+    /** Offered every key-up, for games that need to know when a held key lets go. */
+    var upHandler: ((GameKeyPress) -> Unit)? = null
 }
 
 internal fun KeyEvent.toGameKeyPress(): GameKeyPress {

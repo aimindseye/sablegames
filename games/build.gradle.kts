@@ -98,6 +98,12 @@ android {
             resValue("string", "app_name", "Sable Ludo")
             buildConfigField("String", "SABLE_GAME", "\"ludo\"")
         }
+        create("scaffold") {
+            dimension = "game"
+            applicationId = "io.github.aimindseye.sablegames.scaffold"
+            resValue("string", "app_name", "Sable Scaffold")
+            buildConfigField("String", "SABLE_GAME", "\"scaffold\"")
+        }
         // Sable Games Console: games written in Lua, added from a folder without rebuilding the app.
         create("console") {
             dimension = "game"

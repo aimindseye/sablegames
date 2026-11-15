@@ -53,6 +53,8 @@ class MainActivity : ComponentActivity() {
 
                         "ludo" -> BoardGameApp("ludo")
 
+                        "scaffold" -> ScaffoldApp()
+
                         // The console flavor starts org.sableos.games.console.ConsoleActivity instead.
                         else -> error("Unsupported Sable game flavor: ${BuildConfig.SABLE_GAME}")
                     }
@@ -73,6 +75,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 KeyEvent.ACTION_UP -> {
+                    keyHost.upHandler?.invoke(event.toGameKeyPress())
                     consumedKeyCodes.remove(event.keyCode)
                 }
 
