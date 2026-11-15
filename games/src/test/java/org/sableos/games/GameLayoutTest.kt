@@ -28,4 +28,9 @@ class GameLayoutTest {
         assertEquals(363.dp, GameLayout.tallBoardSide(width = 411.dp, height = 900.dp))
         assertEquals(300.dp, GameLayout.tallBoardSide(width = 411.dp, height = 500.dp))
     }
+
+    @Test
+    fun narrowerRailGivesTheBoardMoreWidth() {
+        assertEquals(323.dp, GameLayout.squareBoardSide(width = 411.dp, height = 387.dp, railWidth = 64.dp))
+    }
 }

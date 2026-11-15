@@ -176,7 +176,7 @@ private const val PIP_SCALE = 1.1f
 private const val JUNO_SCALE = 1.4f
 private const val CLUNK_SCALE = 1.3f
 private const val HAZARD_SCALE = 1.5f
-private const val BOLT_SCALE = 1.8f
+private const val BOLT_SCALE = 2.6f
 
 /** [size] is in field units, which are pixels before the board's scale is applied. */
 private fun DrawScope.textUnits(size: Float) = size.toSp()
@@ -388,7 +388,9 @@ private fun DrawScope.drawBoltShape(
     hex.lineTo(x - 6f, y - 3.5f)
     hex.close()
     drawPath(hex, ScaffoldColors.Hazard)
-    drawPath(hex, Color(0xFFE09A00), style = Stroke(1.5f))
+    drawPath(hex, Color(0xFF8A5A00), style = Stroke(1.6f))
+    drawCircle(Color(0xFF8A5A00), 2.6f, Offset(x, y))
+    drawCircle(Color(0xFFFFE9A0), 1.2f, Offset(x - 1.6f, y - 3.4f))
 }
 
 /** A teal hard hat with its brim at [y]; [size] 1 is the HUD size. */

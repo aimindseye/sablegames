@@ -755,6 +755,7 @@ private fun PlayScreen(
         statusLabel = "level $level of ${ScaffoldLevels.COUNT}",
         status = status,
         hint = ScaffoldText.hint(keys, profile),
+        railWidth = 64.dp,
         actions =
             listOf(
                 GameAction(
