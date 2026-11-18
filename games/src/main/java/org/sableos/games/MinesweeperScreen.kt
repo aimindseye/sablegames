@@ -137,7 +137,7 @@ internal fun MinesweeperScreen() {
             listOf(
                 GameAction(label = t("reveal"), key = "Space", active = !flagMode, onClick = { flagMode = false }),
                 GameAction(label = t("flag"), key = "F", active = flagMode, onClick = { flagMode = true }),
-                GameAction(label = t("new_label"), key = "N", onClick = ::reset),
+                GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
             ),
     ) { side ->
         Surface(

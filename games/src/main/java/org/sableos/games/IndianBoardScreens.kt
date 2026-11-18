@@ -131,9 +131,11 @@ private fun snakeSpot(
 
 @Composable
 internal fun SnakesScreen(random: Random) {
-    var players by remember { mutableIntStateOf(3) }
+    // Players on the title menu: 2, 3 or 4.
+    val startPlayers = (LocalGameShell.current?.option ?: 1) + 2
+    var players by remember { mutableIntStateOf(startPlayers) }
     val names = remember { listOf("You") + PlayerNames.pick(random, 3) }
-    var game by remember { mutableStateOf(SnakesGame.start(names.take(3))) }
+    var game by remember { mutableStateOf(SnakesGame.start(names.take(startPlayers))) }
     var glide by remember { mutableStateOf<Pair<Int, Glide<Int>>?>(null) }
     var shake by remember { mutableStateOf<Pair<Int, Float>?>(null) }
     var trail by remember { mutableStateOf<Pair<Int, List<Int>>?>(null) }
@@ -198,7 +200,7 @@ internal fun SnakesScreen(random: Random) {
         }
     }
 
-    GameKeyHandler(GameKind.Indian) { command ->
+    GameKeyHandler(GameKind.Indian, GameCatalog.snakesLadders.controls.first()) { command ->
         when (command) {
             GameCommand.Primary, GameCommand.Select -> roll()
             GameCommand.NewGame -> restart(players)
@@ -570,7 +572,7 @@ internal fun LudoScreen(random: Random) {
         }
     }
 
-    GameKeyHandler(GameKind.Indian) { command ->
+    GameKeyHandler(GameKind.Indian, BoardRules.ludoControls) { command ->
         when (command) {
             GameCommand.Primary, GameCommand.Select -> {
                 act()
@@ -623,7 +625,7 @@ internal fun LudoScreen(random: Random) {
                     "Space",
                     active = yourTurn || game.over,
                 ) { act() },
-                GameAction("New", "N") { newGame() },
+                GameAction("New", "N", tab = true) { newGame() },
             ),
     ) { side ->
         BoardRoom(side, LINES_HEIGHT) { boardSide ->

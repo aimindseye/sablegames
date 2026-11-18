@@ -64,6 +64,7 @@ internal object ScaffoldText {
     const val PLAY = "Play"
     const val LEVELS = "Levels"
     const val CONTROLS = "Controls"
+    const val HOW_TO_PLAY = "How to play"
     const val RESUME = "Resume"
     const val RESTART = "Restart level"
     const val MENU = "Menu"
@@ -148,6 +149,8 @@ private sealed interface ScaffoldScreen {
 
     data object Controls : ScaffoldScreen
 
+    data object HowTo : ScaffoldScreen
+
     data class Play(
         val level: Int,
         val run: ScaffoldRun,
@@ -182,7 +185,19 @@ internal fun ScaffoldApp() {
                 onPlay = { screen = ScaffoldScreen.Play(1, ScaffoldRun(), serial++) },
                 onLevels = { screen = ScaffoldScreen.Levels },
                 onControls = { screen = ScaffoldScreen.Controls },
+                onHowTo = { screen = ScaffoldScreen.HowTo },
             )
+        }
+
+        ScaffoldScreen.HowTo -> {
+            MenuBackdrop {
+                ScaffoldHowTo(
+                    keys = keys,
+                    profile = profile,
+                    router = router,
+                    onBack = { screen = ScaffoldScreen.Title },
+                )
+            }
         }
 
         ScaffoldScreen.Levels -> {
@@ -317,9 +332,15 @@ private fun TitleScreen(
     onPlay: () -> Unit,
     onLevels: () -> Unit,
     onControls: () -> Unit,
+    onHowTo: () -> Unit,
 ) {
     val items =
-        listOf(ScaffoldText.PLAY to onPlay, ScaffoldText.LEVELS to onLevels, ScaffoldText.CONTROLS to onControls)
+        listOf(
+            ScaffoldText.PLAY to onPlay,
+            ScaffoldText.LEVELS to onLevels,
+            ScaffoldText.HOW_TO_PLAY to onHowTo,
+            ScaffoldText.CONTROLS to onControls,
+        )
     var selected by remember { mutableIntStateOf(0) }
     RouteKeys(router) { press ->
         when (menuKey(press, keys, profile)) {
@@ -640,6 +661,7 @@ private fun PlayScreen(
     var phase by remember(level, attempt) { mutableStateOf(Phase.Playing) }
     var newBest by remember(level, attempt) { mutableStateOf(false) }
     var touchMode by remember { mutableStateOf(false) }
+    var howTo by remember { mutableStateOf(false) }
     var shownScore by remember(level, attempt) { mutableIntStateOf(startRun.score) }
 
     fun pause(on: Boolean) {
@@ -707,6 +729,15 @@ private fun PlayScreen(
         val code = press.keyCode
         val overlay = paused || phase != Phase.Playing
         when {
+            howTo -> {
+                return@RouteKeys false
+            }
+
+            paused && code == KeyEvent.KEYCODE_H -> {
+                howTo = true
+                true
+            }
+
             overlay -> {
                 when {
                     code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_DPAD_CENTER ||
@@ -755,7 +786,6 @@ private fun PlayScreen(
         statusLabel = "level $level of ${ScaffoldLevels.COUNT}",
         status = status,
         hint = ScaffoldText.hint(keys, profile),
-        railWidth = 64.dp,
         actions =
             listOf(
                 GameAction(
@@ -789,7 +819,13 @@ private fun PlayScreen(
             },
             onMenu = onMenu,
             onResume = { pause(false) },
+            onHowTo = { howTo = true },
         )
+        if (howTo) {
+            Box(Modifier.size(side).background(Color(0xF00B0F1F))) {
+                ScaffoldHowTo(keys = keys, profile = profile, router = router, onBack = { howTo = false })
+            }
+        }
     }
 }
 
@@ -809,6 +845,7 @@ private fun ScaffoldBoard(
     onRestart: () -> Unit,
     onMenu: () -> Unit,
     onResume: () -> Unit,
+    onHowTo: () -> Unit,
 ) {
     val measurer = rememberTextMeasurer()
     val colors = MaterialTheme.colorScheme
@@ -865,6 +902,7 @@ private fun ScaffoldBoard(
                 onRestart = onRestart,
                 onMenu = onMenu,
                 onResume = onResume,
+                onHowTo = onHowTo,
             )
         }
     }
@@ -905,6 +943,7 @@ private fun Overlay(
     onRestart: () -> Unit,
     onMenu: () -> Unit,
     onResume: () -> Unit,
+    onHowTo: () -> Unit,
 ) {
     val u = side.value / 720f
     val title =
@@ -955,7 +994,66 @@ private fun Overlay(
                 false,
                 onRestart,
             )
+            if (paused) MenuButton("${ScaffoldText.HOW_TO_PLAY} · H", false, onHowTo)
             if (phase != Phase.Rescued) MenuButton("${ScaffoldText.MENU} · M", false, onMenu)
         }
+    }
+}
+
+/**
+ * How to play: the rules from [GameCatalog.scaffold] and the keys as the player set them. It takes the
+ * keys while shown (the play screen hands them over while it is open), and Back or Enter closes it.
+ */
+@Composable
+private fun ScaffoldHowTo(
+    keys: ScaffoldKeys,
+    profile: DeviceProfile,
+    router: ScaffoldKeyRouter,
+    onBack: () -> Unit,
+) {
+    val upstream = router.down
+    DisposableEffect(router) {
+        router.down = { press ->
+            when (menuKey(press, keys, profile)) {
+                MenuKey.Back, MenuKey.Confirm -> onBack()
+                else -> Unit
+            }
+            true
+        }
+        onDispose { router.down = upstream }
+    }
+    BackHandler(onBack = onBack)
+    val page = GameCatalog.scaffold.howTo.first()
+    val k = ScaffoldKeys.Companion::label
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+    ) {
+        Text(
+            ScaffoldText.HOW_TO_PLAY.uppercase(),
+            color = ScaffoldColors.Hazard,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 2.sp,
+        )
+        Text(page.title, color = MenuInk, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        page.rules.forEach { Text(it, color = MenuInk, fontSize = 14.sp) }
+        Text(
+            "KEYS (FROM CONTROLS)",
+            color = ScaffoldColors.Hazard,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 2.sp,
+        )
+        Text(
+            ScaffoldAction.entries.joinToString(" · ") { "${actionName(it)} ${k(keys.keyFor(it))}" } + " · Pause P",
+            color = MenuInk,
+            fontSize = 13.sp,
+        )
+        Text(
+            if (profile.letterMoves) "Enter or Back closes" else "Arrows and the trackpad work too · Enter or Back closes",
+            color = MenuMuted,
+            fontSize = 12.sp,
+        )
     }
 }

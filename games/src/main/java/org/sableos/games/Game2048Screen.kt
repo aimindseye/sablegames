@@ -83,7 +83,7 @@ internal fun Game2048Screen() {
         statusLabel = "score",
         status = score.toString(),
         hint = t("swipe_the_board_or_use"),
-        actions = listOf(GameAction(label = t("new_label"), key = "N", onClick = ::reset)),
+        actions = listOf(GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset)),
         tallExtras = {
             Text(
                 text = t("swipe_left_right_up_or"),

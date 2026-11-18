@@ -150,7 +150,7 @@ internal fun SudokuScreen() {
             listOf(
                 GameAction(label = t("undo"), key = "U", onClick = ::undo),
                 GameAction(label = t("erase"), key = "Del", onClick = ::erase),
-                GameAction(label = t("new_label"), key = "N", onClick = ::reset),
+                GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
             ),
         tallExtras = {
             Row(

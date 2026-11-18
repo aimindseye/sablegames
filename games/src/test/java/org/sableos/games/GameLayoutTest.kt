@@ -16,21 +16,16 @@ class GameLayoutTest {
     }
 
     @Test
-    fun theSquareBoardFillsTheWidthBesideTheRailAndNeverOverflowsTheHeight() {
-        // Q25: 411 dp wide, 387 dp under the status bar.
-        assertEquals(299.dp, GameLayout.squareBoardSide(width = 411.dp, height = 387.dp))
-        // Short window: the height limits the board.
-        assertEquals(184.dp, GameLayout.squareBoardSide(width = 411.dp, height = 200.dp))
+    fun theSquareBoardFillsTheScreenUnderTheBar() {
+        // Q25: 411 dp wide, 387 dp under the status bar; the 22 dp bar and 4 dp edges leave 357 dp.
+        assertEquals(357.dp, GameLayout.squareBoardSide(width = 411.dp, height = 387.dp))
+        // A narrow window: the width limits the board.
+        assertEquals(292.dp, GameLayout.squareBoardSide(width = 300.dp, height = 387.dp))
     }
 
     @Test
     fun theTallBoardKeepsRoomForTheControls() {
         assertEquals(363.dp, GameLayout.tallBoardSide(width = 411.dp, height = 900.dp))
-        assertEquals(300.dp, GameLayout.tallBoardSide(width = 411.dp, height = 500.dp))
-    }
-
-    @Test
-    fun narrowerRailGivesTheBoardMoreWidth() {
-        assertEquals(323.dp, GameLayout.squareBoardSide(width = 411.dp, height = 387.dp, railWidth = 64.dp))
+        assertEquals(360.dp, GameLayout.tallBoardSide(width = 411.dp, height = 500.dp))
     }
 }

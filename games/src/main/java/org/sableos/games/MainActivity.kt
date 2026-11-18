@@ -27,36 +27,68 @@ class MainActivity : ComponentActivity() {
                     LocalDeviceProfile provides DeviceProfile.current(resources.configuration),
                 ) {
                     when (BuildConfig.SABLE_GAME) {
-                        "sudoku" -> SudokuScreen()
+                        "sudoku" -> {
+                            GameShell(GameCatalog.sudoku) { SudokuScreen() }
+                        }
 
-                        "minesweeper" -> MinesweeperScreen()
+                        "minesweeper" -> {
+                            GameShell(GameCatalog.minesweeper) { MinesweeperScreen() }
+                        }
 
-                        "2048" -> Game2048Screen()
+                        "2048" -> {
+                            GameShell(GameCatalog.game2048) { Game2048Screen() }
+                        }
 
-                        "bricks" -> BricksScreen()
+                        "bricks" -> {
+                            GameShell(GameCatalog.bricks) { BricksScreen() }
+                        }
 
-                        "snake" -> SnakeScreen()
+                        "snake" -> {
+                            GameShell(GameCatalog.snake) { SnakeScreen() }
+                        }
 
-                        "blocks" -> BlocksScreen()
+                        "blocks" -> {
+                            GameShell(GameCatalog.blocks) { BlocksScreen() }
+                        }
 
-                        "reversi" -> ReversiScreen()
+                        "reversi" -> {
+                            GameShell(GameCatalog.reversi) { ReversiScreen() }
+                        }
 
-                        "solitaire" -> SolitaireScreen()
+                        "solitaire" -> {
+                            GameShell(GameCatalog.solitaire) { SolitaireScreen() }
+                        }
 
-                        "mahjong" -> MahjongScreen()
+                        "mahjong" -> {
+                            GameShell(GameCatalog.mahjong) { MahjongScreen() }
+                        }
 
-                        "words" -> WordsScreen()
+                        "words" -> {
+                            GameShell(GameCatalog.words) { WordsScreen() }
+                        }
 
-                        "cards" -> IndianGamesApp("Sable Card Games", CARD_GAMES, emptyList())
+                        "cards" -> {
+                            GameShell(
+                                GameCatalog.cards,
+                            ) { IndianGamesApp("Sable Card Games", CARD_GAMES, emptyList()) }
+                        }
 
-                        "snakesladders" -> BoardGameApp("snakes")
+                        "snakesladders" -> {
+                            GameShell(GameCatalog.snakesLadders) { BoardGameApp("snakes") }
+                        }
 
-                        "ludo" -> BoardGameApp("ludo")
+                        "ludo" -> {
+                            GameShell(GameCatalog.ludo) { BoardGameApp("ludo") }
+                        }
 
-                        "scaffold" -> ScaffoldApp()
+                        "scaffold" -> {
+                            ScaffoldApp()
+                        }
 
                         // The console flavor starts org.sableos.games.console.ConsoleActivity instead.
-                        else -> error("Unsupported Sable game flavor: ${BuildConfig.SABLE_GAME}")
+                        else -> {
+                            error("Unsupported Sable game flavor: ${BuildConfig.SABLE_GAME}")
+                        }
                     }
                 }
             }
@@ -69,7 +101,8 @@ class MainActivity : ComponentActivity() {
         val taken =
             when (event.action) {
                 KeyEvent.ACTION_DOWN -> {
-                    (keyHost.handler?.invoke(event.toGameKeyPress()) == true).also { taken ->
+                    val press = event.toGameKeyPress()
+                    (keyHost.gate?.invoke(press) ?: (keyHost.handler?.invoke(press) == true)).also { taken ->
                         if (taken) consumedKeyCodes += event.keyCode
                     }
                 }

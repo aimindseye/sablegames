@@ -71,9 +71,17 @@ internal object GameKeymap {
         game: GameKind,
         press: GameKeyPress,
         profile: DeviceProfile = DeviceProfile.Other,
+        bound: BoundKeys? = null,
     ): GameCommand? {
         if (press.ctrl) return null
         move(press.keyCode)?.let { return it }
+        if (bound != null && !press.alt) {
+            // The player's keys come first. A default key they moved to another action stops working.
+            bound.bindings.commandFor(press.keyCode, bound.controls)?.let {
+                return if (press.repeatCount > 0 && it !is GameCommand.Move) null else it
+            }
+            if (press.keyCode in bound.controls.defaultKeys(profile)) return null
+        }
         if (profile.letterMoves && game != GameKind.Words && !press.alt) {
             DeviceProfile.LETTER_MOVES[press.keyCode]?.let { return it }
         }
@@ -250,12 +258,27 @@ internal object GameKeymap {
         }
 }
 
+/** A game's rebindable actions and the keys the player gave them. */
+internal data class BoundKeys(
+    val controls: GameControls,
+    val bindings: KeyBindings,
+)
+
 /** Set by the current game screen; [MainActivity] offers it every key-down first. */
 internal class GameKeyHost {
     var handler: ((GameKeyPress) -> Boolean)? = null
 
     /** Offered every key-up, for games that need to know when a held key lets go. */
     var upHandler: ((GameKeyPress) -> Unit)? = null
+
+    /**
+     * Set by the game shell ([GameShell]); offered every key-down before [handler]. It answers true
+     * (taken), false (left to the system) or null (passed on to the game).
+     */
+    var gate: ((GameKeyPress) -> Boolean?)? = null
+
+    /** The game's own handling of a command, for the shell's New tab. */
+    var commandHandler: ((GameCommand) -> Boolean)? = null
 }
 
 internal fun KeyEvent.toGameKeyPress(): GameKeyPress {

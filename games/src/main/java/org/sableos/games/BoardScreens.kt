@@ -128,7 +128,7 @@ internal fun ReversiScreen() {
                 else -> t("the_phone_is_thinking")
             },
         hint = t("arrows_move_enter_or_space"),
-        actions = listOf(GameAction(label = t("new_label"), key = "N") { game = ReversiGame() }),
+        actions = listOf(GameAction(tab = true, label = t("new_label"), key = "N") { game = ReversiGame() }),
     ) { side ->
         val legal = if (game.turn == ReversiGame.DARK) game.legalMoves(ReversiGame.DARK).toSet() else emptySet()
         val colors = MaterialTheme.colorScheme
@@ -309,7 +309,7 @@ internal fun SolitaireScreen() {
         actions =
             listOf(
                 GameAction(label = t("turn"), key = "Space") { choose(SolitaireGame.STOCK) },
-                GameAction(label = t("new_label"), key = "N", onClick = ::reset),
+                GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
             ),
     ) { side ->
         val colors = MaterialTheme.colorScheme
@@ -543,7 +543,7 @@ internal fun MahjongScreen() {
         actions =
             listOf(
                 GameAction(label = t("hint"), key = "H") { hint = game.hint() },
-                GameAction(label = t("new_label"), key = "N", onClick = ::reset),
+                GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
             ),
     ) { side ->
         val colors = MaterialTheme.colorScheme
@@ -658,7 +658,7 @@ internal fun WordsScreen() {
                 else -> t("type_a_word_enter_guesses")
             },
         hint = t("green_right_place_amber_in"),
-        actions = listOf(GameAction(label = t("new_label"), key = "Enter", onClick = ::reset)),
+        actions = listOf(GameAction(tab = true, label = t("new_label"), key = "Enter", onClick = ::reset)),
     ) { side ->
         val colors = MaterialTheme.colorScheme
         BoardSurface(side) {
