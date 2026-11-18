@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">Spel kan inte använda internet, dina filer eller andra appar</string>
     <string name="console_no_sensor">Telefonen har ingen rörelsesensor, så du spelar med tangenterna.</string>
     <string name="console_settings_title">inställningar</string>
+    <string name="console_how_to_play">Så spelar du</string>
+    <string name="console_no_instructions">Det här spelet har inga instruktioner.</string>
 </resources>

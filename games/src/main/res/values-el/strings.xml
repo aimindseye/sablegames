@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">Τα παιχνίδια δεν έχουν πρόσβαση στο internet, στα αρχεία σου ή σε άλλες εφαρμογές</string>
     <string name="console_no_sensor">Αυτό το τηλέφωνο δεν έχει αισθητήρα κίνησης, οπότε παίζεις με τα πλήκτρα.</string>
     <string name="console_settings_title">ρυθμίσεις</string>
+    <string name="console_how_to_play">Πώς παίζεται</string>
+    <string name="console_no_instructions">Αυτό το παιχνίδι δεν έχει οδηγίες.</string>
 </resources>

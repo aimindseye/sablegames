@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,7 +72,6 @@ internal fun ColumnScope.DetailsScreen(
     ) {
         GameTile(m, side = 64)
         Column {
-            Text(m.summary, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 3)
             Text(
                 GamesText.t(if (game.builtIn) "console_from_sable" else "console_from_folder") + " · " + m.version,
                 fontSize = 14.sp,
@@ -78,14 +79,24 @@ internal fun ColumnScope.DetailsScreen(
             )
         }
     }
-    Column(modifier = Modifier.weight(1f)) {
-        ConsoleSection(GamesText.t("console_controls"))
-        Text(
-            m.controls,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-            maxLines = 3,
-        )
+    Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+        // How to play comes from the game's own game.toml: plain text, never styled or run.
+        ConsoleSection(GamesText.t("console_how_to_play"))
+        howToPlay(m.summary, m.controls)?.let {
+            Text(
+                it.ifEmpty { GamesText.t("console_no_instructions") },
+                fontSize = 14.sp,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            )
+        }
+        if (m.controls.isNotBlank()) {
+            ConsoleSection(GamesText.t("console_controls"))
+            Text(
+                m.controls,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            )
+        }
         ConsoleSection(GamesText.t("console_progress"))
         ConsoleRow(GamesText.t("console_progress"), trail = {
             Text(
@@ -214,3 +225,19 @@ private fun WideButton(
         )
     }
 }
+
+/**
+ * A game's How to play text: its summary, cut at [MAX_HOW_TO] characters; empty when its game.toml has
+ * neither summary nor controls (the screen then says so); null when only the controls are given.
+ */
+internal fun howToPlay(
+    summary: String,
+    controls: String,
+): String? =
+    when {
+        summary.isNotBlank() -> summary.take(MAX_HOW_TO)
+        controls.isNotBlank() -> null
+        else -> ""
+    }
+
+private const val MAX_HOW_TO = 600

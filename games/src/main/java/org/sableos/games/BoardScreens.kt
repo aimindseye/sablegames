@@ -39,14 +39,31 @@ import kotlinx.coroutines.delay
 import org.sableos.games.GamesText.t
 import kotlin.random.Random
 
-private val CardRed = Color(0xFF1F6E96)
-private val CardBlack = Color(0xFF12171C)
-private val CardFace = Color(0xFFF7F9FC)
-private val TileFace = Color(0xFFEDEDED)
-private val SuitColors = listOf(Color(0xFF1F6E96), Color(0xFF262626), Color(0xFF6B6B6B))
+private val CardRed = Color(0xFFD6304A)
+private val CardBlack = Color(0xFF1B1F2E)
+private val CardFace = Color(0xFFFFFFFF)
+private val TileFace = Color(0xFFFBF6EA)
+private val SuitColors = listOf(Color(0xFF2F6FE0), Color(0xFF1F9A5C), Color(0xFFD6304A))
+private val Gold = Color(0xFFFFC72C)
+private val Teal = Color(0xFF2FD0B5)
+private val ReversiBaize = Color(0xFF1F7A5C)
+private val ReversiLines = Color(0xFF155A44)
+private val ReversiDark = Color(0xFF1B1F2E)
+private val ReversiLight = Color(0xFFF4F0E6)
+private val ReversiEdge = Color(0xFFC9C2B0)
+private val Felt = Color(0xFF17654A)
+private val FeltLine = Color(0xFF3F8F6E)
+private val CardBack = Color(0xFF2D4A8A)
+private val MahjongField = Color(0xFF3A1E30)
+private val TileEdge = Color(0xFFD8CCB2)
+private val TileShadow = Color(0xFFB89A70)
+private val WordsField = Color(0xFF141428)
+private val WordsTile = Color(0xFF262B4A)
+private val WordsEdge = Color(0xFF33407A)
+private val MarkAbsent = Color(0xFF3A4560)
 private val SuitMarks = listOf("●", "▮", "✦")
-private val MarkRight = Color(0xFF2E9BD6)
-private val MarkElsewhere = Color(0xFFA6A6A6)
+private val MarkRight = Color(0xFF2FD0B5)
+private val MarkElsewhere = Color(0xFFFF8A3D)
 private const val PHONE_THINK_MS = 450L
 private const val BLOCKED_ALPHA = 0.55f
 
@@ -54,13 +71,14 @@ private const val BLOCKED_ALPHA = 0.55f
 @Composable
 private fun BoardSurface(
     side: Dp,
+    color: Color,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Surface(
         modifier = Modifier.size(side),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = color,
+        border = BorderStroke(1.dp, color.copy(alpha = 0.6f)),
         tonalElevation = 0.dp,
     ) {
         Box(Modifier.fillMaxSize().padding(4.dp)) { content() }
@@ -132,7 +150,7 @@ internal fun ReversiScreen() {
     ) { side ->
         val legal = if (game.turn == ReversiGame.DARK) game.legalMoves(ReversiGame.DARK).toSet() else emptySet()
         val colors = MaterialTheme.colorScheme
-        BoardSurface(side) {
+        BoardSurface(side, ReversiLines) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 repeat(ReversiGame.SIZE) { row ->
                     Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -143,7 +161,7 @@ internal fun ReversiScreen() {
                                     Modifier
                                         .weight(1f)
                                         .fillMaxSize()
-                                        .background(colors.surfaceVariant, RoundedCornerShape(4.dp))
+                                        .background(ReversiBaize, RoundedCornerShape(4.dp))
                                         .border(
                                             if (index ==
                                                 cursor
@@ -155,7 +173,7 @@ internal fun ReversiScreen() {
                                             if (index ==
                                                 cursor
                                             ) {
-                                                colors.primary
+                                                Gold
                                             } else {
                                                 Color.Transparent
                                             },
@@ -165,18 +183,18 @@ internal fun ReversiScreen() {
                             ) {
                                 when (game.cells[index]) {
                                     ReversiGame.DARK -> {
-                                        Disc(CardBlack, colors.outline)
+                                        Disc(ReversiDark, ReversiLines)
                                     }
 
                                     ReversiGame.LIGHT -> {
-                                        Disc(CardFace, colors.outline)
+                                        Disc(ReversiLight, ReversiEdge)
                                     }
 
                                     else -> {
                                         if (index in
                                             legal
                                         ) {
-                                            Box(Modifier.size(6.dp).background(colors.primary, CircleShape))
+                                            Box(Modifier.size(8.dp).background(Gold, CircleShape))
                                         }
                                     }
                                 }
@@ -316,7 +334,7 @@ internal fun SolitaireScreen() {
         val cardW = (side - 8.dp - 12.dp) / 7
         val cardH = cardW * 1.3f
         val cursorPile = solitairePileAt(row, col)
-        BoardSurface(side) {
+        BoardSurface(side, Felt) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     (0 until 7).forEach { c ->
@@ -401,12 +419,13 @@ private fun CardSlot(
     empty: String,
     onClick: () -> Unit,
 ) {
-    val colors = MaterialTheme.colorScheme
+    // The picked card has a gold outline, the cursor a teal one; backs are Sable blue.
     val edge =
         when {
-            picked -> colors.primary
-            cursor -> colors.primary
-            else -> colors.outlineVariant
+            picked -> Gold
+            cursor -> Teal
+            card != null && !card.up -> Color.White
+            else -> FeltLine
         }
     Surface(
         onClick = onClick,
@@ -414,9 +433,9 @@ private fun CardSlot(
         shape = RoundedCornerShape(4.dp),
         color =
             when {
-                card == null -> colors.surfaceVariant
-                !card.up -> colors.primary.copy(alpha = 0.55f)
-                picked -> colors.primary.copy(alpha = 0.25f).compositeOverFace()
+                card == null -> Felt
+                !card.up -> CardBack
+                picked -> Gold.copy(alpha = 0.25f).compositeOverFace()
                 else -> CardFace
             },
         border = BorderStroke(if (cursor || picked) 2.dp else 1.dp, edge),
@@ -427,8 +446,8 @@ private fun CardSlot(
                     Text(
                         empty,
                         Modifier.align(Alignment.Center),
-                        color = colors.onSurfaceVariant,
-                        fontSize = 12.sp,
+                        color = FeltLine,
+                        fontSize = 14.sp,
                     )
                 }
 
@@ -436,7 +455,7 @@ private fun CardSlot(
                     Text(
                         card.label,
                         color = if (card.red) CardRed else CardBlack,
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                     )
@@ -547,7 +566,7 @@ internal fun MahjongScreen() {
             ),
     ) { side ->
         val colors = MaterialTheme.colorScheme
-        BoardSurface(side) {
+        BoardSurface(side, MahjongField) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 repeat(MahjongGame.ROWS) { r ->
                     Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -567,7 +586,7 @@ internal fun MahjongScreen() {
                                     MahjongTile(face, spot.layer, game.isFree(spot), isPicked, isHint)
                                 }
                                 if (isCursor) {
-                                    Box(Modifier.fillMaxSize().border(2.dp, colors.primary, RoundedCornerShape(5.dp)))
+                                    Box(Modifier.fillMaxSize().border(3.dp, Gold, RoundedCornerShape(5.dp)))
                                 }
                             }
                         }
@@ -592,7 +611,7 @@ private fun MahjongTile(
         Modifier
             .fillMaxSize()
             .alpha(if (free) 1f else BLOCKED_ALPHA)
-            .background(if (picked) colors.primary else TileFace, RoundedCornerShape(5.dp))
+            .background(if (picked) Gold else TileFace, RoundedCornerShape(5.dp))
             .border(
                 if (layer >
                     0
@@ -601,7 +620,7 @@ private fun MahjongTile(
                 } else {
                     1.dp
                 },
-                if (hinted) MarkElsewhere else Color(0xFF8C8C8C),
+                if (hinted) Teal else if (layer > 0) TileShadow else TileEdge,
                 RoundedCornerShape(5.dp),
             ),
         contentAlignment = Alignment.Center,
@@ -609,11 +628,11 @@ private fun MahjongTile(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 (face % 6 + 1).toString(),
-                color = if (picked) colors.onPrimary else SuitColors[suit],
+                color = if (picked) CardBlack else SuitColors[suit],
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
             )
-            Text(SuitMarks[suit], color = if (picked) colors.onPrimary else SuitColors[suit], fontSize = 10.sp)
+            Text(SuitMarks[suit], color = if (picked) CardBlack else SuitColors[suit], fontSize = 12.sp)
         }
     }
 }
@@ -661,7 +680,7 @@ internal fun WordsScreen() {
         actions = listOf(GameAction(tab = true, label = t("new_label"), key = "Enter", onClick = ::reset)),
     ) { side ->
         val colors = MaterialTheme.colorScheme
-        BoardSurface(side) {
+        BoardSurface(side, WordsField) {
             Column(
                 Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
@@ -670,6 +689,8 @@ internal fun WordsScreen() {
                     val guess = game.guesses.getOrNull(r)
                     val text = guess ?: if (r == game.guesses.size) game.typing else ""
                     val rowMarks = guess?.let { WordsGame.marks(it, game.answer) }
+                    // The next empty tile in the row being typed gets a gold outline.
+                    val next = if (r == game.guesses.size && !game.over) game.typing.length else -1
                     Row(
                         Modifier.weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
@@ -680,15 +701,23 @@ internal fun WordsScreen() {
                                 when (mark) {
                                     LetterMark.Right -> MarkRight
                                     LetterMark.Elsewhere -> MarkElsewhere
-                                    LetterMark.Absent -> colors.surfaceVariant
-                                    null -> colors.surface
+                                    LetterMark.Absent -> MarkAbsent
+                                    null -> WordsTile
                                 }
                             Box(
                                 Modifier
                                     .weight(1f)
                                     .fillMaxSize()
                                     .background(fill, RoundedCornerShape(4.dp))
-                                    .border(1.dp, if (mark == null) colors.outline else fill, RoundedCornerShape(4.dp)),
+                                    .border(
+                                        if (next == i) 3.dp else 1.dp,
+                                        when {
+                                            next == i -> Gold
+                                            mark == null -> WordsEdge
+                                            else -> fill
+                                        },
+                                        RoundedCornerShape(4.dp),
+                                    ),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
@@ -697,9 +726,9 @@ internal fun WordsScreen() {
                                         if (mark == LetterMark.Right ||
                                             mark == LetterMark.Elsewhere
                                         ) {
-                                            Color.White
+                                            WordsField
                                         } else {
-                                            colors.onSurface
+                                            Color.White
                                         },
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 22.sp,

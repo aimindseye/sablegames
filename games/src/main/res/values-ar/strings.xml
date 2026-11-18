@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">لا تستطيع الألعاب استخدام الإنترنت أو ملفاتك أو التطبيقات الأخرى</string>
     <string name="console_no_sensor">لا يحوي هذا الهاتف مستشعر حركة، لذا يكون اللعب بالمفاتيح.</string>
     <string name="console_settings_title">الإعدادات</string>
+    <string name="console_how_to_play">طريقة اللعب</string>
+    <string name="console_no_instructions">لم تتضمن هذه اللعبة تعليمات.</string>
 </resources>

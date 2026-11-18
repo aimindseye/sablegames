@@ -24,11 +24,16 @@ import org.sableos.games.GamesText.t
 
 private const val MINE_FIELD_SIZE = 9
 
-private val MineOne = Color(0xFF2E9BD6)
-private val MineTwo = Color(0xFF7D7D7D)
-private val MineThree = Color(0xFF1F6E96)
-private val MineFour = Color(0xFFB0B0B0)
-private val MineFive = Color(0xFF8C8C8C)
+private val MineHidden = Color(0xFF3A4A80)
+private val MineEdge = Color(0xFF5266A8)
+private val MineOpen = Color(0xFF0F1528)
+private val MineFlag = Color(0xFFFF8A3D)
+private val MineCursor = Color(0xFFFFC72C)
+private val MineOne = Color(0xFF7AA2FF)
+private val MineTwo = Color(0xFF8BE04E)
+private val MineThree = Color(0xFFFF7A6B)
+private val MineFour = Color(0xFFC58BFF)
+private val MineFive = Color(0xFFFFC72C)
 
 @Composable
 internal fun MinesweeperScreen() {
@@ -188,16 +193,17 @@ private fun MinesweeperCell(
 
     val container =
         when {
-            flagged -> MaterialTheme.colorScheme.primary
-            mine -> MaterialTheme.colorScheme.error
-            hidden -> MaterialTheme.colorScheme.surfaceVariant
-            else -> MaterialTheme.colorScheme.surface
+            // Hidden cells are raised blue tiles; opened ones sink to the dark field. Flags are orange.
+            flagged -> MineFlag
+            mine -> MineThree
+            hidden -> MineHidden
+            else -> MineOpen
         }
 
     val content =
         when {
-            flagged -> MaterialTheme.colorScheme.onPrimary
-            mine -> MaterialTheme.colorScheme.onError
+            flagged -> MineOpen
+            mine -> Color.White
             else -> minesweeperNumberColor(cell)
         }
 
@@ -212,16 +218,14 @@ private fun MinesweeperCell(
         border =
             BorderStroke(
                 when {
-                    cursor -> 2.dp
+                    cursor -> 3.dp
                     hidden || flagged -> 1.dp
                     else -> 0.5.dp
                 },
-                if (cursor) {
-                    MaterialTheme.colorScheme.primary
-                } else if (hidden || flagged) {
-                    MaterialTheme.colorScheme.outline
-                } else {
-                    MaterialTheme.colorScheme.outlineVariant
+                when {
+                    cursor -> MineCursor
+                    hidden || flagged -> MineEdge
+                    else -> MineHidden
                 },
             ),
         tonalElevation = 0.dp,
@@ -246,7 +250,7 @@ private fun minesweeperNumberColor(cell: Char): Color =
         '3' -> MineThree
         '4' -> MineFour
         '5', '6', '7', '8' -> MineFive
-        else -> MaterialTheme.colorScheme.onSurface
+        else -> Color.White
     }
 
 private fun cellLabel(cell: Char): String =

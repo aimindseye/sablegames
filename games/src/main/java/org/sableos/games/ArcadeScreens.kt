@@ -133,7 +133,6 @@ internal fun SnakeScreen() {
                 GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
             ),
     ) { side ->
-        val colors = MaterialTheme.colorScheme
         ArcadeBoard(
             side = side,
             modifier =
@@ -152,6 +151,16 @@ internal fun SnakeScreen() {
                 },
         ) {
             val cell = size.width / game.size
+            // Two-tone grass, so cells can be counted.
+            for (y in 0 until game.size) {
+                for (x in 0 until game.size) {
+                    drawRect(
+                        if ((x + y) % 2 == 0) SnakeGrassA else SnakeGrassB,
+                        Offset(x * cell, y * cell),
+                        Size(cell, cell),
+                    )
+                }
+            }
 
             fun square(
                 at: Cell,
@@ -162,22 +171,37 @@ internal fun SnakeScreen() {
                 size = Size(cell - 2f, cell - 2f),
                 cornerRadius = CornerRadius(cell / 4),
             )
-            square(game.food, PieceColors[4])
-            game.body.forEachIndexed { index, part ->
-                square(
-                    part,
-                    if (index ==
-                        0
-                    ) {
-                        colors.primary
-                    } else {
-                        colors.primary.copy(alpha = 0.6f)
-                    },
+            drawCircle(SnakeApple, cell * 0.42f, Offset((game.food.x + 0.5f) * cell, (game.food.y + 0.5f) * cell))
+            game.body.drop(1).forEach { part ->
+                square(part, SnakeBody)
+                drawRect(
+                    SnakeBelly,
+                    Offset(part.x * cell + cell * 0.3f, part.y * cell + cell * 0.42f),
+                    Size(cell * 0.4f, cell * 0.16f),
                 )
+            }
+            val head = game.body.first()
+            square(head, SnakeHead)
+            // Eyes, set towards the way it is heading.
+            val dir = game.pending
+            val cx = (head.x + 0.5f + dir.x * 0.15f) * cell
+            val cy = (head.y + 0.5f + dir.y * 0.15f) * cell
+            val side = Offset(-dir.y * cell * 0.2f, dir.x * cell * 0.2f)
+            listOf(Offset(cx, cy) + side, Offset(cx, cy) - side).forEach {
+                drawCircle(Color.White, cell * 0.12f, it)
+                drawCircle(SnakeField, cell * 0.06f, it + Offset(dir.x * cell * 0.04f, dir.y * cell * 0.04f))
             }
         }
     }
 }
+
+private val SnakeField = Color(0xFF0D2418)
+private val SnakeGrassA = Color(0xFF10301F)
+private val SnakeGrassB = Color(0xFF143B27)
+private val SnakeBody = Color(0xFF2E9E4C)
+private val SnakeBelly = Color(0xFF3FBF5F)
+private val SnakeHead = Color(0xFF8BE04E)
+private val SnakeApple = Color(0xFFFF5A4E)
 
 @Composable
 internal fun BlocksScreen() {
@@ -244,7 +268,6 @@ internal fun BlocksScreen() {
                 GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
             ),
     ) { side ->
-        val colors = MaterialTheme.colorScheme
         ArcadeBoard(
             side = side,
             modifier =
@@ -362,7 +385,7 @@ internal fun BricksScreen() {
     GameFrame(
         title = t("bricks"),
         subtitle = t("keep_the_ball_in_play"),
-        statusLabel = t("score_lives_level", game.lives, game.level),
+        statusLabel = "♥".repeat(game.lives.coerceAtLeast(0)) + " · level ${game.level}",
         status =
             when {
                 game.over -> t("game_over_space_plays_again")
@@ -380,7 +403,6 @@ internal fun BricksScreen() {
                 GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
             ),
     ) { side ->
-        val colors = MaterialTheme.colorScheme
         ArcadeBoard(
             side = side,
             modifier =
@@ -399,20 +421,40 @@ internal fun BricksScreen() {
                 val row = index / BricksGame.COLUMNS
                 val col = index % BricksGame.COLUMNS
                 drawRoundRect(
-                    PieceColors[row % PieceColors.size],
+                    BrickRows[row % BrickRows.size],
                     Offset(col * brickW + gap, w * BricksGame.WALL_TOP + row * brickH + gap),
                     Size(brickW - gap * 2, brickH - gap * 2),
                     CornerRadius(4f),
                 )
             }
             val paddleW = w * BricksGame.PADDLE_WIDTH
+            drawRect(BricksField)
             drawRoundRect(
-                colors.primary,
+                BricksPaddle,
                 Offset(game.paddleX * w - paddleW / 2, w * BricksGame.PADDLE_Y),
                 Size(paddleW, w * BricksGame.PADDLE_HEIGHT),
                 CornerRadius(w * BricksGame.PADDLE_HEIGHT / 2),
             )
-            drawCircle(colors.onSurface, w * BricksGame.BALL_RADIUS, Offset(game.ballX * w, game.ballY * w))
+            // A faint trail behind the ball, so it never gets lost against a brick.
+            drawCircle(
+                Color.White.copy(alpha = 0.25f),
+                w * BricksGame.BALL_RADIUS * 1.6f,
+                Offset(game.ballX * w, game.ballY * w),
+            )
+            drawCircle(Color.White, w * BricksGame.BALL_RADIUS, Offset(game.ballX * w, game.ballY * w))
         }
     }
 }
+
+/** Brick rows from rose at the top to blue at the bottom, on a deep violet field. */
+private val BrickRows =
+    listOf(
+        Color(0xFFFF5A8A),
+        Color(0xFFFF8A3D),
+        Color(0xFFFFC72C),
+        Color(0xFF8BE04E),
+        Color(0xFF2FD0B5),
+        Color(0xFF7AA2FF),
+    )
+private val BricksField = Color(0xFF1D1540)
+private val BricksPaddle = Color(0xFF2FD0B5)

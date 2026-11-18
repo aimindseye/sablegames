@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">Games kunnen het internet, je bestanden en andere apps niet gebruiken</string>
     <string name="console_no_sensor">Deze telefoon heeft geen bewegingssensor, dus je speelt met de toetsen.</string>
     <string name="console_settings_title">instellingen</string>
+    <string name="console_how_to_play">Zo speel je</string>
+    <string name="console_no_instructions">Dit spel heeft geen uitleg.</string>
 </resources>

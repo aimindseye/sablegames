@@ -38,6 +38,7 @@ class GameControlsTest {
         assertEquals(start, start.bind("up", KeyEvent.KEYCODE_ENTER))
         assertEquals(start, start.bind("up", KeyEvent.KEYCODE_DPAD_UP))
         assertEquals(start, start.bind("up", KeyEvent.KEYCODE_BACK))
+        assertEquals(start, start.bind("up", KeyEvent.KEYCODE_VOLUME_UP))
     }
 
     @Test

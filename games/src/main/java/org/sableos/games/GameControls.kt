@@ -56,7 +56,7 @@ internal data class KeyBindings(
         actionId: String,
         keyCode: Int,
     ): KeyBindings {
-        if (keyCode in RESERVED) return this
+        if (keyCode in RESERVED || keyCode in SYSTEM) return this
         val old = keysFor(actionId)
         val next = keys.mapValues { (id, list) -> if (id == actionId) list else list - keyCode }.toMutableMap()
         next.keys.filter { it != actionId && next.getValue(it).isEmpty() && keyCode in keysFor(it) }.forEach {
@@ -88,6 +88,20 @@ internal data class KeyBindings(
                 KeyEvent.KEYCODE_CTRL_LEFT,
                 KeyEvent.KEYCODE_CTRL_RIGHT,
                 KeyEvent.KEYCODE_SYM,
+            )
+
+        /** Keys the phone itself uses; they are never bound and pass through every menu. */
+        val SYSTEM: Set<Int> =
+            setOf(
+                KeyEvent.KEYCODE_VOLUME_UP,
+                KeyEvent.KEYCODE_VOLUME_DOWN,
+                KeyEvent.KEYCODE_VOLUME_MUTE,
+                KeyEvent.KEYCODE_POWER,
+                KeyEvent.KEYCODE_HOME,
+                KeyEvent.KEYCODE_APP_SWITCH,
+                KeyEvent.KEYCODE_CALL,
+                KeyEvent.KEYCODE_ENDCALL,
+                KeyEvent.KEYCODE_CAMERA,
             )
 
         /** Reads what [encode] wrote over [defaults]; an action missing or unreadable keeps its default. */

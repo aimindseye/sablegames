@@ -160,6 +160,8 @@ object GamesText {
             "console_sandbox_note" to "Games can't use the internet, your files or other apps",
             "console_no_sensor" to "This phone has no motion sensor, so the keys play instead.",
             "console_settings_title" to "settings",
+            "console_how_to_play" to "How to play",
+            "console_no_instructions" to "This game didn't include instructions.",
         )
 
     val t = SableTexts(EN)

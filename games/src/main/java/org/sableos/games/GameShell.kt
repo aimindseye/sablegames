@@ -22,11 +22,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -39,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -190,7 +194,7 @@ internal fun GameShell(
     }
     val latestPlaying by rememberUpdatedState(playing)
     val latestPauseKeys by rememberUpdatedState(pauseKeys)
-    host.gate = { press ->
+    val gate: (GameKeyPress) -> Boolean? = { press ->
         if (latestPlaying) {
             when {
                 press.keyCode == KeyEvent.KEYCODE_BACK || press.keyCode == KeyEvent.KEYCODE_ESCAPE -> {
@@ -209,9 +213,11 @@ internal fun GameShell(
                 }
             }
         } else {
-            menuHandler.handler?.invoke(press) ?: true
+            // A menu takes the keys it uses; the rest (volume...) go on to the system, not the game.
+            menuHandler.handler?.invoke(press) ?: false
         }
     }
+    SideEffect { host.gate = gate }
     BackHandler(enabled = screen == ShellScreen.Play || paused || screen != ShellScreen.Title) {
         when {
             paused -> paused = false
@@ -235,8 +241,11 @@ internal fun GameShell(
     val palette = spec.palette
     Box(Modifier.fillMaxSize().background(palette.field)) {
         if (started) {
-            CompositionLocalProvider(LocalGameShell provides shell, LocalKeyBindings provides bindingsFor) {
-                key(serial) { content() }
+            // The game draws in its own palette: a dark scheme in its colours, whatever the phone's theme.
+            MaterialTheme(colorScheme = palette.scheme()) {
+                CompositionLocalProvider(LocalGameShell provides shell, LocalKeyBindings provides bindingsFor) {
+                    key(serial) { content() }
+                }
             }
         }
         when (screen) {
@@ -478,7 +487,10 @@ private fun PauseMenu(
             ShellMenuKey.Down, ShellMenuKey.Right -> selected = (selected + 1).coerceAtMost(items.lastIndex)
             ShellMenuKey.Confirm -> items[selected].second()
             ShellMenuKey.Back -> onResume()
-            null -> if (press.keyCode == KeyEvent.KEYCODE_P || press.keyCode == KeyEvent.KEYCODE_MENU) onResume()
+            null -> {
+                if (press.keyCode != KeyEvent.KEYCODE_P && press.keyCode != KeyEvent.KEYCODE_MENU) return@MenuKeys false
+                onResume()
+            }
         }
         true
     }
@@ -601,6 +613,10 @@ private fun ControlsScreen(
                     listening = false
                 }
 
+                in KeyBindings.SYSTEM -> {
+                    return@MenuKeys false
+                }
+
                 in KeyBindings.RESERVED -> {
                     refused = true
                 }
@@ -710,3 +726,18 @@ private fun ControlsScreen(
         }
     }
 }
+
+/** A dark Material scheme in the game's colours, for the parts of a game drawn with theme colours. */
+internal fun GamePalette.scheme() =
+    darkColorScheme(
+        primary = accent,
+        onPrimary = bar,
+        background = field,
+        onBackground = ink,
+        surface = bar,
+        onSurface = ink,
+        surfaceVariant = lerp(field, ink, 0.12f),
+        onSurfaceVariant = muted,
+        outline = lerp(field, accent, 0.6f),
+        outlineVariant = lerp(field, ink, 0.25f),
+    )
