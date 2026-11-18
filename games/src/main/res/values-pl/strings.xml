@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">Gry nie mają dostępu do internetu, twoich plików ani innych aplikacji</string>
     <string name="console_no_sensor">Ten telefon nie ma czujnika ruchu, więc gra się klawiszami.</string>
     <string name="console_settings_title">ustawienia</string>
+    <string name="console_how_to_play">Jak grać</string>
+    <string name="console_no_instructions">Ta gra nie ma instrukcji.</string>
 </resources>

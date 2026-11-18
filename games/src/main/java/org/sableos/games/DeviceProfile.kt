@@ -13,6 +13,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
  * - [Q25]: the trackpad gives arrows; Alt+W E R S D F Z X C are 1-9.
  * - [Titan2]: no arrows, trackpad or Menu key, so I J K L move (I up, J left, K down, L right);
  *   Alt+W E R S D F X C V are 1-9 and Alt+Q is 0.
+ * - [P26]: the Zinwa P26, built on the BlackBerry Passport's square screen and three-row keyboard.
+ *   It has no arrows or trackpad either, so I J K L move; Alt+W E R S D F Z X C are 1-9 as on the Q25.
  * - [KeyboardNoArrows]: another phone with a hardware keyboard and no arrows or trackpad; I J K L move.
  * - [Other]: a touch phone, or one whose arrows work; nothing changes.
  */
@@ -24,9 +26,21 @@ internal enum class DeviceProfile(
 ) {
     Q25(letterMoves = false, letterDigits = Digits.Q25),
     Titan2(letterMoves = true, letterDigits = Digits.TITAN2),
+    P26(letterMoves = true, letterDigits = Digits.Q25),
     KeyboardNoArrows(letterMoves = true, letterDigits = Digits.Q25),
     Other(letterMoves = false, letterDigits = Digits.Q25),
     ;
+
+    /** The name shown in Controls and How to play. */
+    val label: String
+        get() =
+            when (this) {
+                Q25 -> "Zinwa Q25"
+                Titan2 -> "Unihertz Titan 2"
+                P26 -> "Zinwa P26"
+                KeyboardNoArrows -> "Keyboard phone"
+                Other -> "This phone"
+            }
 
     private object Digits {
         val Q25 =
@@ -81,6 +95,7 @@ internal enum class DeviceProfile(
             return when {
                 names.any { "titan2" in it } -> Titan2
                 names.any { "q25" in it } -> Q25
+                names.any { "zinwap26" in it || it == "p26" || "passport" in it } -> P26
                 hasQwerty && !hasArrows -> KeyboardNoArrows
                 else -> Other
             }

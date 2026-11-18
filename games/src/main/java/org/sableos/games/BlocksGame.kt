@@ -13,7 +13,7 @@ internal data class FallingPiece(
 }
 
 /**
- * A falling-block puzzle on a [WIDTH] x [HEIGHT] well. Left/Right move the piece, Up rotates it
+ * A falling-block puzzle on a [WIDTH] x [HEIGHT] well, square so it fills the square screen. Left/Right move the piece, Up rotates it
  * (with a one-cell nudge off a wall), Down drops it a row, Space drops it to the floor. Full rows
  * clear; 1/2/3/4 rows score 100/300/500/800 times the level, and every 10 rows is a level.
  * [well] holds 0 for empty or shape index + 1.
@@ -87,8 +87,8 @@ internal data class BlocksGame(
     }
 
     companion object {
-        const val WIDTH = 10
-        const val HEIGHT = 20
+        const val WIDTH = 16
+        const val HEIGHT = 16
         private const val O_KIND = 1
         private const val LINES_PER_LEVEL = 10
         private const val START_FALL_MS = 700L

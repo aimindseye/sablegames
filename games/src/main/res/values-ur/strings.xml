@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">گیمز انٹرنیٹ، آپ کی فائلیں یا دوسری ایپس استعمال نہیں کر سکتے</string>
     <string name="console_no_sensor">اس فون میں موشن سینسر نہیں، اس لیے کلیدوں سے کھیلا جاتا ہے۔</string>
     <string name="console_settings_title">ترتیبات</string>
+    <string name="console_how_to_play">کیسے کھیلیں</string>
+    <string name="console_no_instructions">اس کھیل میں ہدایات شامل نہیں ہیں۔</string>
 </resources>

@@ -31,6 +31,11 @@ class DeviceProfileTest {
         assertEquals(DeviceProfile.Titan2, detect(device = "titan2", hasQwerty = true, hasArrows = true))
         assertEquals(DeviceProfile.Q25, detect("Zinwa", "Q25", hasQwerty = true, hasArrows = true))
         assertEquals(DeviceProfile.Q25, detect("ZINWA", "zinwa_q25"))
+        assertEquals(DeviceProfile.P26, detect("Zinwa", "P26", hasQwerty = true))
+        assertEquals(DeviceProfile.P26, detect("ZINWA", "Passport 2026"))
+        assertEquals(DeviceProfile.P26, detect(device = "p26"))
+        // A model number that only contains the letters is not the P26.
+        assertEquals(DeviceProfile.Other, detect("Samsung", "SM-P260"))
     }
 
     @Test

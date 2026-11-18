@@ -1,14 +1,13 @@
 package org.sableos.games
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.draw.alpha
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -76,7 +76,7 @@ internal fun TeenPattiScreen(
         game = if (game.over) TeenPattiGame.deal(random, names, game.chips) else game
     }
 
-    GameKeyHandler(GameKind.Indian) { command ->
+    GameKeyHandler(GameKind.Indian, CardRules.teenPatti) { command ->
         when (command) {
             is GameCommand.Move -> {
                 var i = choice
@@ -255,7 +255,7 @@ internal fun RummyScreen(
         gaps = emptySet()
     }
 
-    GameKeyHandler(GameKind.Indian) { command ->
+    GameKeyHandler(GameKind.Indian, CardRules.rummy) { command ->
         when (command) {
             is GameCommand.Move -> {
                 val p = picked
@@ -493,7 +493,7 @@ internal fun TrickScreen(
         }
     }
 
-    GameKeyHandler(GameKind.Indian) { command ->
+    GameKeyHandler(GameKind.Indian, CardRules.trick) { command ->
         when (command) {
             is GameCommand.Move -> {
                 when (game.phase) {
@@ -542,7 +542,7 @@ internal fun TrickScreen(
         actions =
             listOf(
                 GameAction(if (game.roundOver) "Next" else "Play", "Enter") { confirm() },
-                GameAction("New", "N") { game = TrickGame.newGame(variant, names, random) },
+                GameAction("New", "N", tab = true) { game = TrickGame.newGame(variant, names, random) },
             ),
     ) { side ->
         val (cw, ch) = cardSize(side)
@@ -660,7 +660,15 @@ internal fun TrickScreen(
                                 }
                                 NoteLine("Last trick", Modifier.align(Alignment.TopCenter))
                             } else {
-                                TableCards(game.trick, n, names, cw, ch, keyBase = game.round * 1000 + game.tricks.sum() * 10)
+                                TableCards(
+                                    game.trick,
+                                    n,
+                                    names,
+                                    cw,
+                                    ch,
+                                    keyBase =
+                                        game.round * 1000 + game.tricks.sum() * 10,
+                                )
                             }
                         }
                     }
@@ -711,7 +719,7 @@ internal fun BluffScreen(random: Random) {
         cursor = cursor.coerceIn(0, (game.hands[0].size - 1).coerceAtLeast(0))
     }
 
-    GameKeyHandler(GameKind.Indian) { command ->
+    GameKeyHandler(GameKind.Indian, CardRules.bluff) { command ->
         when (command) {
             is GameCommand.Move -> {
                 if (command.dx !=
@@ -773,7 +781,7 @@ internal fun BluffScreen(random: Random) {
             listOf(
                 GameAction("Put down", "Enter") { play() },
                 GameAction("Call", "B", active = game.canCall()) { call() },
-                GameAction("New", "N") { game = BluffGame.deal(random, names) },
+                GameAction("New", "N", tab = true) { game = BluffGame.deal(random, names) },
             ),
     ) { side ->
         val (cw, ch) = cardSize(side)
@@ -873,7 +881,7 @@ internal fun DonkeyScreen(random: Random) {
         cursor = cursor.coerceIn(0, 3)
     }
 
-    GameKeyHandler(GameKind.Indian) { command ->
+    GameKeyHandler(GameKind.Indian, CardRules.donkey) { command ->
         when (command) {
             is GameCommand.Move -> {
                 if (command.dx != 0) cursor = (cursor + command.dx).coerceIn(0, 3)
@@ -1005,7 +1013,7 @@ internal fun GulamChoorScreen(random: Random) {
         }
     }
 
-    GameKeyHandler(GameKind.Indian) { command ->
+    GameKeyHandler(GameKind.Indian, CardRules.gulam) { command ->
         when (command) {
             is GameCommand.Move -> {
                 if (command.dx !=
@@ -1040,7 +1048,7 @@ internal fun GulamChoorScreen(random: Random) {
         actions =
             listOf(
                 GameAction("Take", "Enter") { take() },
-                GameAction("New", "N") {
+                GameAction("New", "N", tab = true) {
                     game = GulamChoorGame.deal(random, names)
                     cursor = 0
                 },

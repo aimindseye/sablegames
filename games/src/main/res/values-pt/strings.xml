@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">Os jogos não podem usar a internet, os seus ficheiros nem outras apps</string>
     <string name="console_no_sensor">Este telefone não tem sensor de movimento, por isso joga-se com as teclas.</string>
     <string name="console_settings_title">definições</string>
+    <string name="console_how_to_play">Como jogar</string>
+    <string name="console_no_instructions">Este jogo não inclui instruções.</string>
 </resources>

@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">游戏无法使用互联网、你的文件或其他应用</string>
     <string name="console_no_sensor">这部手机没有运动传感器，所以改用按键来玩。</string>
     <string name="console_settings_title">设置</string>
+    <string name="console_how_to_play">玩法</string>
+    <string name="console_no_instructions">这个游戏没有附带说明。</string>
 </resources>

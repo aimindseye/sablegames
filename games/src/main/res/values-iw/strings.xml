@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">משחקים לא יכולים להשתמש באינטרנט, בקבצים שלך או באפליקציות אחרות</string>
     <string name="console_no_sensor">בטלפון הזה אין חיישן תנועה, לכן משחקים עם המקשים.</string>
     <string name="console_settings_title">הגדרות</string>
+    <string name="console_how_to_play">איך משחקים</string>
+    <string name="console_no_instructions">המשחק הזה לא כולל הוראות.</string>
 </resources>

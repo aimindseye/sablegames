@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">गेम इंटरनेट, आपकी फ़ाइलें या दूसरे ऐप इस्तेमाल नहीं कर सकते</string>
     <string name="console_no_sensor">इस फ़ोन में मोशन सेंसर नहीं है, इसलिए कुंजियों से खेला जाता है।</string>
     <string name="console_settings_title">सेटिंग</string>
+    <string name="console_how_to_play">कैसे खेलें</string>
+    <string name="console_no_instructions">इस खेल में निर्देश नहीं हैं।</string>
 </resources>

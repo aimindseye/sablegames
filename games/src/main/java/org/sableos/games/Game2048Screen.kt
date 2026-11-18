@@ -30,16 +30,19 @@ import org.sableos.design.SableSpacing
 import org.sableos.games.GamesText.t
 import kotlin.math.abs
 
-private val Tile2 = Color(0xFF333333)
-private val Tile4 = Color(0xFF404040)
-private val Tile8 = Color(0xFF4D4D4D)
-private val Tile16 = Color(0xFF5A5A5A)
-private val Tile32 = Color(0xFF676767)
-private val Tile64 = Color(0xFF747474)
-private val Tile128 = Color(0xFFB0B0B0)
-private val Tile256 = Color(0xFFC8C8C8)
-private val Tile512 = Color(0xFFE0E0E0)
-private val Tile1024 = Color(0xFF2E9BD6)
+private val Board2048 = Color(0xFF1C2147)
+private val Empty2048 = Color(0xFF262C58)
+private val Ink2048 = Color(0xFF121633)
+private val Tile2 = Color(0xFFDFE7FF)
+private val Tile4 = Color(0xFFB9CCFF)
+private val Tile8 = Color(0xFF7AA2FF)
+private val Tile16 = Color(0xFF2FD0B5)
+private val Tile32 = Color(0xFF8BE04E)
+private val Tile64 = Color(0xFFFFC72C)
+private val Tile128 = Color(0xFFFF8A3D)
+private val Tile256 = Color(0xFFFF5A8A)
+private val Tile512 = Color(0xFFC58BFF)
+private val Tile1024 = Color(0xFFE0C8FF)
 private val Tile2048 = Color(0xFFFFFFFF)
 
 @Composable
@@ -83,7 +86,7 @@ internal fun Game2048Screen() {
         statusLabel = "score",
         status = score.toString(),
         hint = t("swipe_the_board_or_use"),
-        actions = listOf(GameAction(label = t("new_label"), key = "N", onClick = ::reset)),
+        actions = listOf(GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset)),
         tallExtras = {
             Text(
                 text = t("swipe_left_right_up_or"),
@@ -141,12 +144,8 @@ private fun Game2048Board(
                     )
                 },
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
-        border =
-            BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outline,
-            ),
+        color = Board2048,
+        border = BorderStroke(1.dp, Empty2048),
         tonalElevation = 0.dp,
     ) {
         Column(
@@ -175,13 +174,10 @@ private fun Tile2048(
     value: Int,
     modifier: Modifier = Modifier,
 ) {
-    val container = if (value == 0) MaterialTheme.colorScheme.surfaceVariant else tileColor(value)
-    val content =
-        if (value >= 128) {
-            Color(0xFF071016)
-        } else {
-            Color.White
-        }
+    // Each value has its own colour, from pale blue up through teal, green, gold and coral to violet
+    // and white; the numbers are dark on every tile.
+    val container = if (value == 0) Empty2048 else tileColor(value)
+    val content = Ink2048
 
     Surface(
         modifier =
@@ -194,7 +190,7 @@ private fun Tile2048(
             BorderStroke(
                 1.dp,
                 if (value == 0) {
-                    MaterialTheme.colorScheme.outlineVariant
+                    Empty2048
                 } else {
                     container.copy(alpha = 0.9f)
                 },

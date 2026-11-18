@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">Играм недоступны интернет, ваши файлы и другие приложения</string>
     <string name="console_no_sensor">В этом телефоне нет датчика движения, поэтому играют клавишами.</string>
     <string name="console_settings_title">настройки</string>
+    <string name="console_how_to_play">Как играть</string>
+    <string name="console_no_instructions">В этой игре нет инструкций.</string>
 </resources>

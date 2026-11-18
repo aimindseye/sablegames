@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">ゲームはインターネット、ファイル、ほかのアプリを使えません</string>
     <string name="console_no_sensor">この電話にはモーションセンサーがないため、キーで遊びます。</string>
     <string name="console_settings_title">設定</string>
+    <string name="console_how_to_play">遊び方</string>
+    <string name="console_no_instructions">このゲームには説明がありません。</string>
 </resources>

@@ -131,4 +131,6 @@
     <string name="console_sandbox_note">Oyunlar interneti, dosyalarını ya da diğer uygulamaları kullanamaz</string>
     <string name="console_no_sensor">Bu telefonda hareket sensörü yok; bu yüzden tuşlarla oynanır.</string>
     <string name="console_settings_title">ayarlar</string>
+    <string name="console_how_to_play">Nasıl oynanır</string>
+    <string name="console_no_instructions">Bu oyunda talimat yok.</string>
 </resources>

@@ -132,4 +132,6 @@
     <string name="console_sandbox_note">Games can\'t use the internet, your files or other apps</string>
     <string name="console_no_sensor">This phone has no motion sensor, so the keys play instead.</string>
     <string name="console_settings_title">settings</string>
+    <string name="console_how_to_play">How to play</string>
+    <string name="console_no_instructions">This game didn\'t include instructions.</string>
 </resources>

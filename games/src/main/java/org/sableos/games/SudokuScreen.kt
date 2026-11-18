@@ -150,7 +150,7 @@ internal fun SudokuScreen() {
             listOf(
                 GameAction(label = t("undo"), key = "U", onClick = ::undo),
                 GameAction(label = t("erase"), key = "Del", onClick = ::erase),
-                GameAction(label = t("new_label"), key = "N", onClick = ::reset),
+                GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
             ),
         tallExtras = {
             Row(
@@ -195,12 +195,8 @@ private fun SudokuBoard(
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = RectangleShape,
-                        color = MaterialTheme.colorScheme.surface,
-                        border =
-                            BorderStroke(
-                                1.5.dp,
-                                MaterialTheme.colorScheme.outline,
-                            ),
+                        color = SudokuCellColor,
+                        border = BorderStroke(1.5.dp, SudokuBoxLine),
                     ) {
                         Column {
                             (0 until 3).forEach { innerRow ->
@@ -215,6 +211,7 @@ private fun SudokuBoard(
                                             col = col,
                                             cell = board[row * 9 + col],
                                             highlight = cellHighlight(row, col, selectedRow, selectedCol),
+                                            clash = clashes(board, row, col),
                                             onSelect = onSelect,
                                         )
                                     }
@@ -238,7 +235,8 @@ private fun cellHighlight(
 ): CellHighlight =
     when {
         row == selectedRow && col == selectedCol -> CellHighlight.SELECTED
-        row == selectedRow || col == selectedCol -> CellHighlight.PEER
+        row == selectedRow || col == selectedCol || (row / 3 == selectedRow / 3 && col / 3 == selectedCol / 3) ->
+            CellHighlight.PEER
         else -> CellHighlight.NONE
     }
 
@@ -248,38 +246,25 @@ private fun RowScope.SudokuCell(
     col: Int,
     cell: Char,
     highlight: CellHighlight,
+    clash: Boolean,
     onSelect: (Int, Int) -> Unit,
 ) {
     val given = isGiven(row, col)
     val selected = highlight == CellHighlight.SELECTED
+    // Clues white and bold, your digits light blue, a clash coral; the cursor is a thick gold outline
+    // and its row, column and box are tinted.
 
     val container =
         when {
-            selected -> {
-                MaterialTheme.colorScheme.primary
-            }
-
-            highlight == CellHighlight.PEER -> {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
-
-            else -> {
-                MaterialTheme.colorScheme.surface
-            }
+            clash -> SudokuClashFill
+            highlight == CellHighlight.NONE -> SudokuCellColor
+            else -> SudokuPeer
         }
     val content =
         when {
-            selected -> {
-                MaterialTheme.colorScheme.onPrimary
-            }
-
-            given -> {
-                MaterialTheme.colorScheme.onSurface
-            }
-
-            else -> {
-                MaterialTheme.colorScheme.primary
-            }
+            clash -> SudokuClash
+            given -> Color.White
+            else -> SudokuYours
         }
 
     Surface(
@@ -291,11 +276,7 @@ private fun RowScope.SudokuCell(
         shape = RectangleShape,
         color = container,
         contentColor = content,
-        border =
-            BorderStroke(
-                0.5.dp,
-                MaterialTheme.colorScheme.outlineVariant,
-            ),
+        border = if (selected) BorderStroke(3.dp, SudokuCursor) else BorderStroke(0.5.dp, SudokuCellLine),
         tonalElevation = 0.dp,
     ) {
         Box(
@@ -345,6 +326,32 @@ private fun SudokuNumberKey(
         }
     }
 }
+
+/** True when the digit at [row], [col] is also in its row, column or box. */
+internal fun clashes(
+    board: String,
+    row: Int,
+    col: Int,
+): Boolean {
+    val v = board[row * 9 + col]
+    if (v == '0') return false
+    return (0 until 9).any { i ->
+        val boxRow = row / 3 * 3 + i / 3
+        val boxCol = col / 3 * 3 + i % 3
+        (i != col && board[row * 9 + i] == v) ||
+            (i != row && board[i * 9 + col] == v) ||
+            ((boxRow != row || boxCol != col) && board[boxRow * 9 + boxCol] == v)
+    }
+}
+
+private val SudokuCellColor = Color(0xFF18223F)
+private val SudokuPeer = Color(0xFF22305A)
+private val SudokuCellLine = Color(0xFF2C3A66)
+private val SudokuBoxLine = Color(0xFF7A8BC0)
+private val SudokuYours = Color(0xFF7AD7FF)
+private val SudokuCursor = Color(0xFFFFC72C)
+private val SudokuClash = Color(0xFFFF7A6B)
+private val SudokuClashFill = Color(0xFF3A2430)
 
 private fun isGiven(
     row: Int,

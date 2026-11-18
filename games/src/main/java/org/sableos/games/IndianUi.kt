@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlin.random.Random
 
+private val TableFelt = Color(0xFF1F6B4F)
+private val TableBrass = Color(0xFFC9A14A)
 private val FaceColor = Color(0xFFF7F9FC)
 private val BlueSuit = Color(0xFF1F6E96)
 private val InkSuit = Color(0xFF12171C)
@@ -209,11 +211,13 @@ internal fun TableSurface(
     side: Dp,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    // In the games shell the card table is green felt with a brass rim; elsewhere it follows the theme.
+    val felt = LocalGameShell.current != null
     Surface(
         modifier = Modifier.size(side),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = if (felt) TableFelt else MaterialTheme.colorScheme.surface,
+        border = if (felt) BorderStroke(4.dp, TableBrass) else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         tonalElevation = 0.dp,
     ) {
         Box(Modifier.fillMaxSize().padding(6.dp)) { content() }
@@ -538,7 +542,8 @@ internal fun IndianGamesApp(
     var chips by remember { mutableIntStateOf(ChipBank.load(context)) }
     var clockwise by remember { mutableStateOf(TableDirection.load(context)) }
     val id = open
-    BackHandler(enabled = id != null) { open = null }
+    // Under the games shell, Back from a game goes to the shell's title, and its menus own Back.
+    BackHandler(enabled = id != null && LocalGameShell.current?.suspended != true) { open = null }
     val random = remember { Random(System.nanoTime()) }
     CompositionLocalProvider(LocalTableClockwise provides clockwise) {
         IndianGame(id, random, chips, onChips = {
