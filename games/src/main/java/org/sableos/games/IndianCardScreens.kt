@@ -69,7 +69,15 @@ internal fun TeenPattiScreen(
                 TeenPattiGame.Action.Show,
                 TeenPattiGame.Action.Pack,
             )[i]
-        game = game.act(action, random)
+        game = game.play(action)
+    }
+
+    // The phone players move one at a time, slowly enough to follow.
+    LaunchedEffect(game) {
+        if (game.needsStep) {
+            delay(IndianPace.CARD_MS)
+            game = game.step(random)
+        }
     }
 
     fun next() {
@@ -173,12 +181,33 @@ internal fun TeenPattiScreen(
                         }
                     },
                 ) {
-                    Text(
-                        "Pot ${game.pot}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "Pot ${game.pot}",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        // What each player did last, so the round can be followed.
+                        (1 until names.size).forEach { p ->
+                            game.moves[p]?.let {
+                                Text(
+                                    "${names[p]}: $it",
+                                    fontSize = 12.sp,
+                                    fontWeight = if (game.turn == p) FontWeight.Bold else FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                )
+                            }
+                        }
+                        if (game.needsStep) {
+                            Text(
+                                "${names[game.turn]} is thinking…",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
                 NoteLine("Stake ${game.stake} · you pay ${game.cost(0)}", bold = true)
                 NoteLine(game.note)
@@ -231,7 +260,16 @@ internal fun RummyScreen(
     var cursor by remember { mutableIntStateOf(0) }
     var picked by remember { mutableStateOf<Int?>(null) }
     var gaps by remember { mutableStateOf(emptySet<Int>()) }
+    var hint by remember { mutableStateOf<String?>(null) }
     val hand = game.hands[0]
+    LaunchedEffect(hand, game.drawn) { hint = null }
+    // The phone players move one at a time, slowly enough to see what each throws.
+    LaunchedEffect(game) {
+        if (game.needsStep) {
+            delay(IndianPace.CARD_MS)
+            game = game.step(random)
+        }
+    }
     val status =
         remember(hand, game.wild) {
             val a = RummyMelds.analyse(hand, game.wild)
@@ -239,13 +277,25 @@ internal fun RummyScreen(
             a.dead((1 shl hand.size) - 1) to ready
         }
 
-    fun setHand(h: List<PlayCard>) {
+    fun setHand(
+        h: List<PlayCard>,
+        keepGroups: Boolean = false,
+    ) {
         game = game.copy(hands = listOf(h) + game.hands.drop(1))
-        gaps = emptySet()
+        if (!keepGroups) gaps = emptySet()
     }
 
     fun clampCursor() {
         cursor = cursor.coerceIn(0, (game.hands[0].size - 1).coerceAtLeast(0))
+    }
+
+    fun throwCard() {
+        if (game.turn != 0 || !game.drawn) return
+        val at = cursor
+        game = game.discard(at)
+        picked = null
+        gaps = gaps.filter { it != at }.map { if (it > at) it - 1 else it }.toSet()
+        clampCursor()
     }
 
     fun newDeal() {
@@ -264,7 +314,8 @@ internal fun RummyScreen(
                     if (p != null && to != cursor) {
                         val h = hand.toMutableList()
                         h.add(to, h.removeAt(cursor))
-                        setHand(h)
+                        // The card moves into whichever group it lands in; the groups stay.
+                        setHand(h, keepGroups = true)
                         picked = to
                     }
                     cursor = to
@@ -276,10 +327,7 @@ internal fun RummyScreen(
             }
 
             GameCommand.Primary -> {
-                game = game.discard(cursor, random)
-                picked = null
-                gaps = emptySet()
-                clampCursor()
+                throwCard()
             }
 
             GameCommand.NewGame -> {
@@ -313,6 +361,17 @@ internal fun RummyScreen(
                         setHand(IndianCards.sorted(hand))
                     }
 
+                    // V starts or ends a group after the cursor's card, so you make your own melds.
+                    'V' -> {
+                        if (cursor < hand.lastIndex) gaps = if (cursor in gaps) gaps - cursor else gaps + cursor
+                    }
+
+                    'H' -> {
+                        if (game.turn == 0 && !game.over) {
+                            hint = RummyMelds.hint(hand, game.wild, game.drawn, game.top)
+                        }
+                    }
+
                     else -> {
                         return@GameKeyHandler false
                     }
@@ -331,15 +390,15 @@ internal fun RummyScreen(
         subtitle = "Make two sequences, one pure, and sets with the rest",
         statusLabel = "points left",
         status = status.first.toString(),
-        hint = "Z stock · X open pile · Space picks a card up, then move it · Enter throws · M declares · G groups · O sorts · N new",
+        hint =
+            "Z stock · X open pile · Space picks a card up, then move it · V splits a group · Enter throws · " +
+                "M declares · G groups for you · H hints · O sorts · N new",
         actions =
             listOf(
                 GameAction("Stock", "Z") { game = game.drawFromStock(random).also { cursor = it.hands[0].lastIndex } },
                 GameAction("Open", "X") { game = game.drawFromOpen().also { cursor = it.hands[0].lastIndex } },
-                GameAction("Throw", "Enter") {
-                    game = game.discard(cursor, random)
-                    clampCursor()
-                },
+                GameAction("Throw", "Enter") { throwCard() },
+                GameAction("Hint", "H") { hint = RummyMelds.hint(hand, game.wild, game.drawn, game.top) },
                 GameAction("Declare", "M", active = status.second) { game = game.declare(cursor) },
             ),
     ) { side ->
@@ -358,22 +417,38 @@ internal fun RummyScreen(
                         )
                     },
                 ) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.Bottom,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            PlayingCard(PlayCard(1, 0), cw * 1.1f, ch * 1.1f, faceDown = true)
-                            NoteLine("Stock ${game.stock.size}")
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.Bottom,
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                PlayingCard(PlayCard(1, 0), cw * 0.9f, ch * 0.9f, faceDown = true)
+                                NoteLine("Stock ${game.stock.size}")
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                PlayingCard(game.top, cw * 0.9f, ch * 0.9f, style = style)
+                                NoteLine("Open")
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                PlayingCard(PlayCard(game.wild, 0), cw * 0.9f, ch * 0.9f, style = style)
+                                NoteLine("Wild rank")
+                            }
                         }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            PlayingCard(game.top, cw * 1.1f, ch * 1.1f, style = style)
-                            NoteLine("Open")
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            PlayingCard(PlayCard(game.wild, 0), cw * 1.1f, ch * 1.1f, style = style)
-                            NoteLine("Wild rank")
+                        // The card each phone player threw last, under their name.
+                        val theirs = game.thrown.filter { it.first != 0 }.sortedBy { it.first }
+                        if (theirs.isNotEmpty()) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                theirs.forEach { (p, card) ->
+                                    ArrivingCard(
+                                        key = card.hashCode() * 4 + p,
+                                        from = seatDirection(p, 3, LocalTableClockwise.current),
+                                    ) {
+                                        PlayedCard(card, "${names[p]} threw", cw * 0.75f, ch * 0.75f)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -385,12 +460,8 @@ internal fun RummyScreen(
                                 " · N deals again"
                         }
 
-                        game.note.isNotEmpty() -> {
-                            game.note
-                        }
-
                         game.turn != 0 -> {
-                            "Waiting"
+                            "${names[game.turn]} is thinking…"
                         }
 
                         !game.drawn -> {
@@ -407,7 +478,25 @@ internal fun RummyScreen(
                     },
                     bold = true,
                 )
-                if (hand.isNotEmpty()) NoteLine(style.describe(hand[cursor.coerceIn(0, hand.lastIndex)]))
+                if (!game.over && game.note.isNotEmpty()) NoteLine(game.note)
+                // Your groups as the rules see them, and what the hand still needs.
+                val groups = RummyMelds.groups(hand, gaps)
+                if (groups.size > 1) {
+                    val (pure, second) = RummyMelds.needs(groups, game.wild)
+                    NoteLine(
+                        groups.joinToString(" · ") { g -> RummyMelds.meldOf(g, game.wild).label } +
+                            " — pure sequence " + (if (pure) "✓" else "✗") + ", second sequence " +
+                            (if (second) "✓" else "✗"),
+                    )
+                } else {
+                    NoteLine("V splits your hand into groups after the cursor's card · G groups it for you")
+                }
+                hint?.let { NoteLine("Hint: $it", bold = true) }
+                if (hand.isNotEmpty() &&
+                    hint == null
+                ) {
+                    NoteLine(style.describe(hand[cursor.coerceIn(0, hand.lastIndex)]))
+                }
                 HandRow(
                     cards = hand,
                     cursor = cursor,

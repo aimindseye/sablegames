@@ -39,20 +39,21 @@ import kotlin.math.sin
 
 /**
  * How fast the phone players move in the card games: slow enough to follow each card as it lands
- * (owner request 2026-11-14: the earlier 650 ms per card and 1 s per trick were too quick to read).
+ * (owner requests: 2026-11-14 found 650 ms per card and 1 s per trick too quick, and 2026-11-20 found
+ * 1.2 s per card still too fast).
  */
 internal object IndianPace {
-    /** A phone player's card, or move in Bluff and Gulam Choor. */
-    const val CARD_MS = 1200L
+    /** A phone player's card, or move in Bluff, Gulam Choor, Rummy and Teen Patti. */
+    const val CARD_MS = 1800L
 
     /** A phone player's bid or trump choice. */
-    const val BID_MS = 900L
+    const val BID_MS = 1300L
 
     /** A full trick stays on the table this long before it is collected. */
-    const val TRICK_HOLD_MS = 2400L
+    const val TRICK_HOLD_MS = 3600L
 
     /** A played card slides onto the table over this time. */
-    const val SLIDE_MS = 450
+    const val SLIDE_MS = 550
 }
 
 /**
