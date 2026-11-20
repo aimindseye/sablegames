@@ -45,10 +45,13 @@ class IndianGamesTest {
             var game = TeenPattiGame.deal(random, NAMES4, List(4) { 1000 })
             val total = game.chips.sum() + game.pot
             var guard = 0
-            while (!game.over && guard++ < 100) {
+            while (!game.over && guard++ < 1000) {
+                if (game.needsStep) {
+                    game = game.step(random)
+                    continue
+                }
                 val action =
                     when {
-                        game.turn != 0 -> break
                         game.canShow(0) && random.nextBoolean() -> TeenPattiGame.Action.Show
                         game.canChaal(0) && random.nextInt(4) > 0 -> TeenPattiGame.Action.Chaal
                         game.raiseAllowed(0) && random.nextBoolean() -> TeenPattiGame.Action.Raise
@@ -168,6 +171,81 @@ class IndianGamesTest {
     }
 
     @Test
+    fun rummyGroupsAreCutAtThePlayersGapsAndLabelled() {
+        val hand = listOf(c(4, 1), c(5, 1), c(6, 1), c(9, 3), c(9, 2), c(9, 0), c(2, 0), c(7, 3))
+        val groups = RummyMelds.groups(hand, setOf(2, 5))
+        assertEquals(listOf(3, 3, 2), groups.map { it.size })
+        assertEquals(RummyMelds.Meld.Pure, RummyMelds.meldOf(groups[0], wild = 13))
+        assertEquals(RummyMelds.Meld.Set, RummyMelds.meldOf(groups[1], wild = 13))
+        assertEquals(RummyMelds.Meld.None, RummyMelds.meldOf(groups[2], wild = 13))
+        assertEquals(
+            RummyMelds.Meld.Sequence,
+            RummyMelds.meldOf(listOf(c(10, 0), jokerCard(), c(12, 0)), wild = 13),
+        )
+        assertEquals(true to false, RummyMelds.needs(groups, wild = 13))
+        val twoRuns = RummyMelds.groups(hand.take(3) + listOf(c(10, 0), c(11, 0), c(12, 0)), setOf(2))
+        assertEquals(true to true, RummyMelds.needs(twoRuns, wild = 13))
+        // No gaps: the whole hand is one group.
+        assertEquals(1, RummyMelds.groups(hand, emptySet()).size)
+    }
+
+    @Test
+    fun rummyHintsSayWhereToDrawWhatToThrowAndWhenToDeclare() {
+        val hand =
+            listOf(
+                c(4, 1),
+                c(5, 1),
+                c(6, 1),
+                c(10, 0),
+                c(11, 0),
+                c(9, 3),
+                c(9, 2),
+                c(9, 0),
+                c(2, 0),
+                c(2, 1),
+                c(2, 2),
+                c(9, 1),
+                c(7, 3),
+            )
+        val take = RummyMelds.hint(hand, wild = 8, drawn = false, openTop = c(12, 0))
+        assertTrue(take, take.startsWith("Take the Q♠"))
+        val draw = RummyMelds.hint(hand, wild = 8, drawn = false, openTop = c(3, 3))
+        assertTrue(draw, draw.startsWith("Draw from the stock"))
+        val declare = RummyMelds.hint(hand + c(12, 0), wild = 8, drawn = true, openTop = null)
+        assertTrue(declare, declare.startsWith("You can declare"))
+        val throwOne = RummyMelds.hint(hand + c(3, 3), wild = 8, drawn = true, openTop = null)
+        assertTrue(throwOne, throwOne.startsWith("Throw the "))
+    }
+
+    @Test
+    fun rummyRecordsWhatEachPlayerThrew() {
+        val random = Random(3)
+        var game = RummyGame.deal(random, listOf("You", "Maria", "Chen"))
+        while (game.needsStep) game = game.step(random)
+        game = game.drawFromStock(random)
+        val card = game.hands[0][0]
+        game = game.discard(0)
+        assertEquals(0 to card, game.thrown.first { it.first == 0 })
+        while (game.needsStep) game = game.step(random)
+        if (!game.over) assertTrue(game.thrown.any { it.first != 0 })
+    }
+
+    @Test
+    fun teenPattiPhonePlayersMoveOneStepAtATimeAndSayWhatTheyDid() {
+        repeat(20) { seed ->
+            val random = Random(seed)
+            var game = TeenPattiGame.deal(random, listOf("You", "Maria", "Chen", "Kofi"), List(4) { 1000 })
+            var guard = 0
+            while (game.needsStep && guard++ < 1000) {
+                val mover = game.turn
+                game = game.step(random)
+                assertNotNull(game.moves[mover])
+            }
+            assertTrue(game.over || game.turn == 0)
+        }
+    }
+
+    @Test
     fun rummyGamesPlayThroughWithoutGettingStuck() {
         repeat(40) { seed ->
             val random = Random(seed)
@@ -178,7 +256,8 @@ class IndianGamesTest {
                 game = if (random.nextBoolean()) game.drawFromStock(random) else game.drawFromOpen()
                 if (!game.drawn) continue
                 val win = game.hands[0].indices.firstOrNull { game.canDeclare(it) }
-                game = if (win != null) game.declare(win) else game.discard(random.nextInt(game.hands[0].size), random)
+                game = if (win != null) game.declare(win) else game.discard(random.nextInt(game.hands[0].size))
+                while (game.needsStep) game = game.step(random)
             }
             // Either someone declared or the game was still running when the cap was hit.
             if (game.over) {

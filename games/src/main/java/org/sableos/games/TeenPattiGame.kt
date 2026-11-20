@@ -23,6 +23,10 @@ internal data class TeenPattiGame(
     /** The winner once the round is over, with how they won; shown hands are revealed. */
     val winner: Int? = null,
     val revealed: Boolean = false,
+    /** What each player did last this round ("chaal 20", "packed"...), shown on the table. */
+    val moves: Map<Int, String> = emptyMap(),
+    /** Phone moves since your last one, so a raising war between them ends ([MAX_STEPS]). */
+    val phoneSteps: Int = 0,
 ) {
     enum class Action { Chaal, Raise, Pack, Show }
 
@@ -53,24 +57,33 @@ internal data class TeenPattiGame(
     fun act(
         action: Action,
         random: Random,
-    ): TeenPattiGame {
+    ): TeenPattiGame = play(action).runPhone(random)
+
+    /** Your action only; the screen then lets the phone players move one at a time ([step]). */
+    fun play(action: Action): TeenPattiGame {
         if (over || turn != HUMAN) return this
-        val next = apply(HUMAN, action) ?: return this
-        return next.runPhone(random)
+        return apply(HUMAN, action)?.copy(phoneSteps = 0) ?: this
+    }
+
+    /** Whether a phone player is to move. */
+    val needsStep: Boolean get() = !over && turn != HUMAN
+
+    /** One phone player's move. */
+    fun step(random: Random): TeenPattiGame {
+        if (!needsStep) return this
+        if (phoneSteps >= MAX_STEPS) {
+            // The phone players kept raising each other: the best hand takes the pot.
+            val best = active.maxByOrNull { handScore(hands[it]) }!!
+            return finish(best, reveal = true)
+        }
+        val action = choose(turn, random)
+        val next = apply(turn, action) ?: apply(turn, Action.Pack)!!
+        return next.copy(phoneSteps = phoneSteps + 1)
     }
 
     private fun runPhone(random: Random): TeenPattiGame {
         var game = this
-        var guard = 0
-        while (!game.over && game.turn != HUMAN && guard++ < MAX_STEPS) {
-            val action = game.choose(game.turn, random)
-            game = game.apply(game.turn, action) ?: game.apply(game.turn, Action.Pack)!!
-        }
-        if (!game.over && game.turn != HUMAN) {
-            // The phone players kept raising each other: the best hand takes the pot.
-            val best = game.active.maxByOrNull { handScore(game.hands[it]) }!!
-            return game.finish(best, reveal = true)
-        }
+        while (game.needsStep) game = game.step(random)
         return game
     }
 
@@ -102,28 +115,37 @@ internal data class TeenPattiGame(
         // A phone player who looks only when the stake grows is simplest: they look at once.
         val lookedAt = if (player != HUMAN) seen.toMutableList().also { it[player] = true } else seen
         val base = copy(seen = lookedAt)
-        return when (action) {
-            Action.Pack -> {
-                base.pack(player)
-            }
-
-            Action.Chaal -> {
-                if (base.canChaal(player)) base.pay(player, base.cost(player), base.stake) else null
-            }
-
-            Action.Raise -> {
-                if (!base.raiseAllowed(player)) {
-                    null
-                } else {
-                    val raised = base.copy(stake = base.stake * 2)
-                    raised.pay(player, raised.cost(player), raised.stake)
+        val done =
+            when (action) {
+                Action.Pack -> {
+                    base.pack(player)
                 }
-            }
 
-            Action.Show -> {
-                base.show(player)
+                Action.Chaal -> {
+                    if (base.canChaal(player)) base.pay(player, base.cost(player), base.stake) else null
+                }
+
+                Action.Raise -> {
+                    if (!base.raiseAllowed(player)) {
+                        null
+                    } else {
+                        val raised = base.copy(stake = base.stake * 2)
+                        raised.pay(player, raised.cost(player), raised.stake)
+                    }
+                }
+
+                Action.Show -> {
+                    base.show(player)
+                }
+            } ?: return null
+        val said =
+            when (action) {
+                Action.Pack -> "packed"
+                Action.Chaal -> "chaal ${base.cost(player)}"
+                Action.Raise -> "raise to ${done.stake}"
+                Action.Show -> "asked for a show"
             }
-        }
+        return done.copy(moves = moves + (player to said))
     }
 
     private fun pay(
@@ -192,7 +214,10 @@ internal data class TeenPattiGame(
         private const val MAX_STAKE_BOOTS = 32
         private const val MAX_STEPS = 200
 
-        /** Deals a round. [chips] carries the balances over; a broke phone player gets a fresh stack. */
+        /**
+         * Deals a round. [chips] carries the balances over; a broke phone player gets a fresh stack. When a
+         * phone player starts, the screen steps their moves ([step]) so each one can be seen.
+         */
         fun deal(
             random: Random,
             names: List<String>,
@@ -213,7 +238,7 @@ internal data class TeenPattiGame(
                 stake = boot,
                 turn = random.nextInt(PLAYERS),
                 boot = boot,
-            ).let { if (it.turn == HUMAN) it else it.runPhone(random) }
+            )
         }
 
         /** A rank that sorts the hands: trail, pure sequence, sequence, colour, pair, high card. */

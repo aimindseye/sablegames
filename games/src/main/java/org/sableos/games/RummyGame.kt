@@ -24,7 +24,15 @@ internal data class RummyGame(
     val winner: Int? = null,
     val points: List<Int> = List(hands.size) { 0 },
     val note: String = "",
+    /** Each player's last card thrown this deal, shown in the middle of the table. */
+    val thrown: List<Pair<Int, PlayCard>> = emptyList(),
 ) {
+    /** Whether a phone player is to move; the screen calls [step] for each move, so it can be followed. */
+    val needsStep: Boolean get() = !over && turn != HUMAN
+
+    /** One phone player's turn: draw, then throw or declare. */
+    fun step(random: Random): RummyGame = if (needsStep) phoneTurn(random) else this
+
     val top: PlayCard? get() = open.lastOrNull()
 
     fun drawFromStock(random: Random): RummyGame {
@@ -50,11 +58,8 @@ internal data class RummyGame(
         )
     }
 
-    /** Throws the card at [index] on the open pile; the phone players play until your turn comes back. */
-    fun discard(
-        index: Int,
-        random: Random,
-    ): RummyGame {
+    /** Throws the card at [index] on the open pile; the phone players then move ([step]). */
+    fun discard(index: Int): RummyGame {
         if (over || turn != HUMAN || !drawn || index !in hands[HUMAN].indices) return this
         val card = hands[HUMAN][index]
         val next =
@@ -64,9 +69,15 @@ internal data class RummyGame(
                 drawn = false,
                 turn = 1,
                 note = "",
+                thrown = thrown.threw(HUMAN, card),
             )
-        return next.runPhone(random)
+        return next
     }
+
+    private fun List<Pair<Int, PlayCard>>.threw(
+        player: Int,
+        card: PlayCard,
+    ) = filter { it.first != player } + (player to card)
 
     /** Whether discarding [index] would leave a winning hand. */
     fun canDeclare(index: Int): Boolean =
@@ -108,13 +119,6 @@ internal data class RummyGame(
         )
     }
 
-    private fun runPhone(random: Random): RummyGame {
-        var game = this
-        var guard = 0
-        while (!game.over && game.turn != HUMAN && guard++ < MAX_TURNS) game = game.phoneTurn(random)
-        return game
-    }
-
     private fun phoneTurn(random: Random): RummyGame {
         val p = turn
         val refilled = refill(random)
@@ -139,7 +143,11 @@ internal data class RummyGame(
             hands = after.hands.withHand(p, left),
             open = after.open + thrown,
             turn = (p + 1) % hands.size,
-            note = if (takeOpen) "${names[p]} took ${describe(drawnCard)}" else "",
+            note =
+                "${names[p]} " +
+                    (if (takeOpen) "took ${describe(drawnCard)} from the open pile" else "drew from the stock") +
+                    " and threw ${describe(thrown)}",
+            thrown = this.thrown.threw(p, thrown),
         )
     }
 
@@ -164,7 +172,6 @@ internal data class RummyGame(
         const val PLAYERS = 3
         const val HAND = 13
         const val PENALTY = 80
-        private const val MAX_TURNS = 20
 
         fun deal(
             random: Random,
@@ -281,6 +288,106 @@ internal object RummyMelds {
         hand: List<PlayCard>,
         wild: Int,
     ): Analysis = Analysis(hand, wild)
+
+    /** What a group of cards makes under the rules. */
+    enum class Meld(
+        val label: String,
+    ) {
+        Pure("pure sequence"),
+        Sequence("sequence"),
+        Set("set"),
+        None("not a meld yet"),
+    }
+
+    fun meldOf(
+        cards: List<PlayCard>,
+        wild: Int,
+    ): Meld =
+        when {
+            isSequence(cards, wild, pure = true) -> Meld.Pure
+            isSequence(cards, wild, pure = false) -> Meld.Sequence
+            isSet(cards, wild) -> Meld.Set
+            else -> Meld.None
+        }
+
+    /** The hand cut into the player's groups: a gap after index i ends a group there. */
+    fun groups(
+        hand: List<PlayCard>,
+        gaps: Set<Int>,
+    ): List<List<PlayCard>> {
+        val out = mutableListOf<List<PlayCard>>()
+        var start = 0
+        for (i in hand.indices) {
+            if (i in gaps || i == hand.lastIndex) {
+                out += hand.subList(start, i + 1)
+                start = i + 1
+            }
+        }
+        return out
+    }
+
+    /** Whether the groups hold a pure sequence and a second sequence, the two the rules require. */
+    fun needs(
+        groups: List<List<PlayCard>>,
+        wild: Int,
+    ): Pair<Boolean, Boolean> {
+        val melds = groups.map { meldOf(it, wild) }
+        val pure = Meld.Pure in melds
+        val sequences = melds.count { it == Meld.Pure || it == Meld.Sequence }
+        return pure to (sequences >= 2)
+    }
+
+    private fun name(card: PlayCard) = if (card.joker) "joker" else card.label
+
+    /**
+     * A hint for your turn: which pile to draw from, then which card to throw, or that you can declare.
+     * [openTop] is the open pile's top card; [drawn] whether you have drawn this turn.
+     */
+    fun hint(
+        hand: List<PlayCard>,
+        wild: Int,
+        drawn: Boolean,
+        openTop: PlayCard?,
+    ): String {
+        val a = analyse(hand, wild)
+        if (!drawn) {
+            val helps = openTop != null && joinsMeld(hand, openTop, wild, a.dead((1 shl hand.size) - 1))
+            return if (helps) {
+                "Take the ${name(openTop!!)} from the open pile (X): it fits a meld."
+            } else {
+                "Draw from the stock (Z): the open card doesn't fit your melds."
+            }
+        }
+        hand.indices.firstOrNull { a.declarable(it) }?.let {
+            return "You can declare: put the cursor on the ${name(hand[it])} and press M."
+        }
+        val full = (1 shl hand.size) - 1
+        val meld =
+            a
+                .partition(full)
+                .map { a.cardsOf(it) }
+                .sortedBy { meldOf(it, wild).ordinal }
+                .firstOrNull()
+        val (throwAt, _) = a.bestDiscard()
+        val keep =
+            meld?.let { " Keep " + it.joinToString(" ") { c -> name(c) } + " together: a ${meldOf(it, wild).label}." }
+        return "Throw the ${name(hand[throwAt])}: it fits no meld." + keep.orEmpty()
+    }
+
+    /** Whether taking [card] puts it in a meld and leaves fewer points than [now]. A lower loose card doesn't count. */
+    private fun joinsMeld(
+        hand: List<PlayCard>,
+        card: PlayCard,
+        wild: Int,
+        now: Int,
+    ): Boolean {
+        val with = analyse(hand + card, wild)
+        val (throwAt, left) = with.bestDiscard()
+        val at = hand.size
+        if (throwAt == at || left >= now) return false
+        val rest = ((1 shl (at + 1)) - 1) and (1 shl throwAt).inv()
+        return with.partition(rest).any { it shr at and 1 == 1 }
+    }
 
     private const val INF = 1_000_000
 
