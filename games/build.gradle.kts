@@ -13,8 +13,9 @@ android {
     defaultConfig {
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        // versionCode is major * 100 + minor * 10 + patch, so 1.0.0 is 100 and 1.2.3 is 123.
+        versionCode = 100
+        versionName = "1.0.0"
     }
 
     flavorDimensions += "game"

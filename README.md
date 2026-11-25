@@ -9,6 +9,8 @@
 
 Keyboard-first games for BlackBerry-style Android phones: the Zinwa Q25 and the Unihertz Titan 2, and any other phone with a hardware keyboard. They play from the keys and the trackpad, and also by touch. They were first written for [SableOS](https://github.com/aimindseye/zinwaq25-sableos) and live here so they install on stock firmware too, with no SableOS and no Sable launcher.
 
+**Latest release: [1.0.0](docs/releases/v1.0.0.md)**: sixteen apps, including the new Bitter Melons.
+
 ## The apps
 
 Each game is its own app, so you install only the ones you want.
@@ -50,6 +52,8 @@ A console game is a folder with a `game.toml` and one `.lua` script (and up to 3
 - [Writing a Lua game: tutorial](docs/GAMES_CONSOLE_TUTORIAL.md), including what a game can and can't do to the phone.
 - [Games Console reference](docs/GAMES_CONSOLE.md): every call a game can make.
 - [Releasing](docs/RELEASING.md): signing on your computer, publishing, and the package names.
+- [Release notes](docs/releases/): what changed in each version, starting with [1.0.0](docs/releases/v1.0.0.md).
+- [Phone checks](docs/PHONE_CHECKS.md): the checks run by hand on a phone.
 
 ## Build
 
@@ -58,7 +62,8 @@ You need JDK 17 and the Android SDK (platform 36). Then:
 ```
 ./gradlew :games:assembleSudokuRelease          # one game
 ./gradlew assembleRelease                        # every game
-./gradlew :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest
+./gradlew :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest \
+    :games:testCardsDebugUnitTest :games:testMelonsDebugUnitTest
 ```
 
 Release APKs build unsigned; releases are signed on the owner's computer with `tools/build-release.sh`, which asks for the keystore password and stores it nowhere (see [docs/RELEASING.md](docs/RELEASING.md)). Dependencies are pinned with Gradle lockfiles and `gradle/verification-metadata.xml`.
@@ -67,10 +72,11 @@ Release APKs build unsigned; releases are signed on the owner's computer with `t
 
 | Path | What's there |
 | --- | --- |
-| `games/` | One Gradle module, one product flavor per app. `src/main` is shared; `src/<flavor>` holds each app's icon, and `src/console` the Lua console and its games |
+| `games/` | One Gradle module, one product flavor per app. `src/main` is shared (including Bitter Melons' sprites in `res/drawable-nodpi`); `src/<flavor>` holds each app's icon, and `src/console` the Lua console and its games |
+| `docs/` | The guides, release notes, and Bitter Melons' level data (`docs/bitter-melons/levels.json`) |
 | `design/` | The Sable look: colours, type, list keys and the shared components |
 | `.github/workflows/` | Build and test, security scans and SonarQube Cloud |
-| `tools/` | `build-release.sh` (signed release on your computer) and `check-apks.sh` |
+| `tools/` | `build-release.sh` (signed release on your computer), `check-apks.sh`, and `melons/cut_sprites.py` (cuts Bitter Melons' sprites from the art sheets) |
 
 ## Licence
 

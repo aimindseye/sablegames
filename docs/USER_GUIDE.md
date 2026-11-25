@@ -4,7 +4,7 @@ How to install and play Sable Games on a keyboard phone such as the Zinwa Q25. W
 
 ## Install
 
-Download the APKs you want from [Releases](https://github.com/aimindseye/sablegames/releases). On the phone, open each one and allow your file manager or browser to install apps when Android asks. From a computer, `adb install sable-sudoku-v0.1.0.apk` does the same. `SHA256SUMS.txt` on the release page lists each file's SHA-256, so you can check a download with `sha256sum -c SHA256SUMS.txt`.
+Download the APKs you want from [Releases](https://github.com/aimindseye/sablegames/releases). On the phone, open each one and allow your file manager or browser to install apps when Android asks. From a computer, `adb install sable-sudoku-1.0.0.apk` does the same. `SHA256SUMS.txt` on the release page lists each file's SHA-256, so you can check a download with `sha256sum -c SHA256SUMS.txt`.
 
 The games need Android 11 or later and ask for no permissions. Each one is a separate app, so remove one from Settings > Apps like any other.
 
@@ -51,6 +51,8 @@ Every game plays from the keyboard or the trackpad (which sends arrow keys), and
 | Solitaire | Klondike, one card at a time | Arrows pick a pile; Enter picks up and puts down; Space turns the stock; A sends a card to its foundation; Del lets go |
 | Mahjong | Remove matching free tiles in pairs; every deal can be cleared | Arrows move; Space or Enter picks; H shows a pair |
 | Words | Guess the five-letter word in six tries: green is right, amber is in the word elsewhere | Type the letters; Del erases; Enter guesses |
+| Scaffold | Climb the building site to rescue Juno, jumping the pipes and rivets Clunk rolls down; three hearts, four levels | A left, K right, T up, V down, Space jumps (arrows and the trackpad too, where the phone has them); P pauses; keys can be changed |
+| Bitter Melons | Fling melons from the slingshot and break every piece of AI Slop; see [below](#bitter-melons) | Up/down aim; left/right set the power; Space fires, and again in the air for a Seed Burst; V looks ahead; R restarts the level; P pauses |
 
 <p>
 <img src="images/sudoku.png" alt="Sudoku" width="150">
@@ -64,6 +66,17 @@ Every game plays from the keyboard or the trackpad (which sends arrow keys), and
 <img src="images/mahjong.png" alt="Mahjong" width="150">
 <img src="images/words.png" alt="Words" width="150">
 </p>
+
+## Bitter Melons
+
+A slingshot physics game. AI Slop has taken over the hills, and every level is a structure of glass, wood and stone with Slop on and inside it. Break every piece of Slop to clear the level.
+
+- **Aim.** Up and down (W and S, or I and K on the Titan 2) set the angle, and left and right set the power. The dots show the start of the flight.
+- **Target window.** While the structure is off screen, a window in the top right shows it and how far away it is. The aim arc runs into the window, and a red ring marks where the melon will first touch the structure or the ground. A low shot can touch down early and still roll into the structure.
+- **Fire.** Space fires. Press Space again while the melon is in the air for a Seed Burst, three fast seeds in a spread.
+- **Look ahead.** V (or Tab) moves the camera to the structure and back. Each level also opens with a short pan over it, and your first key press skips the pan.
+- **Points.** A Slop App is worth 50, an AI Bot 100 and the gold Premium Ad-Slop 300. Breaking the gold one doubles block points for a few seconds. A red Overheated Battery blows up when hit, and its blast breaks what is near it. Each melon left over at the end is worth 500.
+- **Seeds.** A cleared level earns one to three seeds by score, and the next level opens. A panel shows the result: press Space or tap for Next level, or Try again if you ran out of melons. N (Levels) shows World 1's nine levels with the seeds won on each.
 
 ## Sable Card Games
 

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Build, sign and package a Sable Games release on the owner's computer (docs/RELEASING.md).
 #
-#   bash tools/build-release.sh KEYSTORE ALIAS
+#   bash tools/build-release.sh KEYSTORE ALIAS [VERSION]
 #
+# The version comes from versionName in games/build.gradle.kts. VERSION, if given (or
+# $SABLEGAMES_VERSION), must match it, so a release is never built from the wrong commit.
 # KEYSTORE and ALIAS are required: as arguments, or as $SABLEGAMES_KEYSTORE and $SABLEGAMES_KEY_ALIAS.
 # The repository names no keystore. Gradle builds unsigned release APKs, then apksigner signs each
 # one, as for TenSeven Launcher. The password is asked once and is never written to disk: it lives
@@ -11,9 +13,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-usage="usage: bash tools/build-release.sh KEYSTORE ALIAS (or set SABLEGAMES_KEYSTORE and SABLEGAMES_KEY_ALIAS)"
+usage="usage: bash tools/build-release.sh KEYSTORE ALIAS [VERSION] (or set SABLEGAMES_KEYSTORE, SABLEGAMES_KEY_ALIAS and SABLEGAMES_VERSION)"
 keystore="${1:-${SABLEGAMES_KEYSTORE:-}}"
 alias_name="${2:-${SABLEGAMES_KEY_ALIAS:-}}"
+want_version="${3:-${SABLEGAMES_VERSION:-}}"
 [[ -n "$keystore" && -n "$alias_name" ]] || { echo "ERROR: $usage" >&2; exit 2; }
 [[ -f "$keystore" ]] || { echo "ERROR: keystore not found: $keystore" >&2; exit 2; }
 if ! git diff --quiet || ! git diff --cached --quiet; then
@@ -28,6 +31,10 @@ apksigner="$bt/apksigner"
 
 version="$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' games/build.gradle.kts | head -n1)"
 [[ -n "$version" ]] || { echo "ERROR: no versionName in games/build.gradle.kts" >&2; exit 2; }
+if [[ -n "$want_version" && "${want_version#v}" != "$version" ]]; then
+    echo "ERROR: asked for $want_version but games/build.gradle.kts has versionName $version" >&2
+    exit 2
+fi
 
 read -rs -p "Password for $keystore ($alias_name): " SABLEGAMES_KS_PASS
 echo
@@ -36,7 +43,8 @@ trap 'unset SABLEGAMES_KS_PASS' EXIT
 
 # Gradle builds unsigned APKs and never sees the password.
 env -u SABLEGAMES_KS_PASS ./gradlew --no-daemon clean assembleRelease \
-    :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest :games:testCardsDebugUnitTest
+    :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest :games:testCardsDebugUnitTest \
+    :games:testMelonsDebugUnitTest
 
 out="${SABLEGAMES_RELEASE_DIR:-$HOME/Downloads/sablegames-release/$version}"
 mkdir -p "$out"
@@ -64,4 +72,6 @@ git rev-parse HEAD > "$out/SOURCE_COMMIT.txt"
 if command -v shasum >/dev/null 2>&1; then sum=(shasum -a 256); else sum=(sha256sum); fi
 (cd "$out" && "${sum[@]}" ./*.apk > SHA256SUMS.txt)
 printf 'Signed APKs and SHA256SUMS.txt: %s\nSource commit: %s\n' "$out" "$(git rev-parse HEAD)"
-echo "Publish with: gh release create v$version \"$out\"/*.apk \"$out\"/SHA256SUMS.txt --title \"Sable Games $version\" --generate-notes"
+notes="docs/releases/v$version.md"
+if [[ -f "$notes" ]]; then notes_arg="--notes-file $notes"; else notes_arg="--generate-notes"; fi
+echo "Publish with: gh release create v$version \"$out\"/*.apk \"$out\"/SHA256SUMS.txt --title \"Sable Games $version\" $notes_arg"
