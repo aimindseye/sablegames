@@ -18,13 +18,17 @@ class MainActivity : ComponentActivity() {
     /** Key codes whose key-down was taken by the game, so their key-up is swallowed too. */
     private val consumedKeyCodes = mutableSetOf<Int>()
 
+    private val profile by lazy { DeviceProfile.current(resources.configuration) }
+    private val pacer = TrackpadPacer()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        InputFeel.load(this)
         setContent {
             SableGlobalTheme(window = window) {
                 CompositionLocalProvider(
                     LocalGameKeyHost provides keyHost,
-                    LocalDeviceProfile provides DeviceProfile.current(resources.configuration),
+                    LocalDeviceProfile provides profile,
                 ) {
                     when (BuildConfig.SABLE_GAME) {
                         "sudoku" -> {
@@ -102,9 +106,18 @@ class MainActivity : ComponentActivity() {
             when (event.action) {
                 KeyEvent.ACTION_DOWN -> {
                     val press = event.toGameKeyPress()
-                    (keyHost.gate?.invoke(press) ?: (keyHost.handler?.invoke(press) == true)).also { taken ->
-                        if (taken) consumedKeyCodes += event.keyCode
+                    // Trackpad ticks go at the player's speed from Controls: some are swallowed, or repeated.
+                    val steps =
+                        if (InputFeel.fromTrackpad(event.keyCode, event.source, profile)) {
+                            pacer.steps(event.keyCode, event.eventTime, InputFeel.ticksPerStep())
+                        } else {
+                            1
+                        }
+                    var taken = steps == 0
+                    repeat(steps) {
+                        taken = (keyHost.gate?.invoke(press) ?: (keyHost.handler?.invoke(press) == true)) || taken
                     }
+                    taken.also { if (it) consumedKeyCodes += event.keyCode }
                 }
 
                 KeyEvent.ACTION_UP -> {

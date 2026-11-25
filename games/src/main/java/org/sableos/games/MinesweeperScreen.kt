@@ -21,8 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.sableos.games.GamesText.t
+import kotlin.random.Random
 
 private const val MINE_FIELD_SIZE = 9
+private const val MINE_COUNT = 10
+
+/** A new 9 × 9 field with its own mines: the seed changes every game. */
+private fun newMinefield(): String =
+    requireOk(GamesCore.minesweeperStart(MINE_FIELD_SIZE, MINE_FIELD_SIZE, MINE_COUNT, Random.nextLong(1, Long.MAX_VALUE)))
 
 private val MineHidden = Color(0xFF3A4A80)
 private val MineEdge = Color(0xFF5266A8)
@@ -37,18 +43,7 @@ private val MineFive = Color(0xFFFFC72C)
 
 @Composable
 internal fun MinesweeperScreen() {
-    var state by remember {
-        mutableStateOf(
-            requireOk(
-                GamesCore.minesweeperStart(
-                    9,
-                    9,
-                    10,
-                    1803L,
-                ),
-            ),
-        )
-    }
+    var state by remember { mutableStateOf(newMinefield()) }
     var view by remember {
         mutableStateOf(requireOk(GamesCore.minesweeperView(state)))
     }
@@ -58,15 +53,7 @@ internal fun MinesweeperScreen() {
     var status by remember { mutableStateOf(t("clear_the_field")) }
 
     fun reset() {
-        state =
-            requireOk(
-                GamesCore.minesweeperStart(
-                    9,
-                    9,
-                    10,
-                    1803L,
-                ),
-            )
+        state = newMinefield()
         view = requireOk(GamesCore.minesweeperView(state))
         flagMode = false
         status = t("new_field")
@@ -78,7 +65,15 @@ internal fun MinesweeperScreen() {
         if (fields.size >= 3 && fields[0] == "OK") {
             state = fields[1]
             view = requireOk(GamesCore.minesweeperView(state))
-            status = fields.drop(2).joinToString(" ")
+            status =
+                when (fields[2]) {
+                    "MINE" -> "Boom! That was a mine · N for a new field"
+                    "WON" -> "Cleared! · N for a new field"
+                    "IGNORED" -> status
+                    "FLAGGED" -> "Flagged"
+                    "HIDDEN" -> "Flag removed"
+                    else -> "Clear the field"
+                }
         } else {
             status = humanize(response)
         }
@@ -135,7 +130,9 @@ internal fun MinesweeperScreen() {
     GameFrame(
         title = "minesweeper",
         subtitle = t("clear_the_field_without_touching"),
-        statusLabel = if (flagMode) t("flag_mode") else t("reveal_mode"),
+        statusLabel =
+            (if (flagMode) t("flag_mode") else t("reveal_mode")) +
+                " · ${MINE_COUNT - view.count { it == 'F' }} mines left",
         status = status,
         hint = t("n9_9_field_10_mines"),
         actions =
@@ -203,7 +200,7 @@ private fun MinesweeperCell(
     val content =
         when {
             flagged -> MineOpen
-            mine -> Color.White
+            mine -> MineOpen
             else -> minesweeperNumberColor(cell)
         }
 

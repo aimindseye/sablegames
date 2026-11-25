@@ -49,7 +49,6 @@ private const val PADDLE_STEP = 0.06f
 
 /** How much longer (slow) or shorter (fast) each Snake step is than normal. */
 private val SNAKE_PACE = floatArrayOf(1.4f, 1f, 0.7f)
-private const val SWIPE_PX = 32f
 private const val NANOS_PER_SECOND = 1_000_000_000f
 private const val MAX_FRAME_SECONDS = 0.05f
 
@@ -141,9 +140,9 @@ internal fun SnakeScreen() {
                     detectDragGestures(
                         onDragStart = { drag = Offset.Zero },
                         onDragEnd = {
-                            if (abs(drag.x) > abs(drag.y) && abs(drag.x) > SWIPE_PX) {
+                            if (abs(drag.x) > abs(drag.y) && abs(drag.x) > InputFeel.swipePx(this)) {
                                 game = game.turn(if (drag.x > 0) 1 else -1, 0)
-                            } else if (abs(drag.y) > SWIPE_PX) {
+                            } else if (abs(drag.y) > InputFeel.swipePx(this)) {
                                 game = game.turn(0, if (drag.y > 0) 1 else -1)
                             }
                         },
@@ -274,34 +273,27 @@ internal fun BlocksScreen() {
                 Modifier
                     .pointerInput(Unit) { detectTapGestures { game = game.rotate() } }
                     .pointerInput(Unit) {
+                        // The piece follows the finger one column per column dragged; a swipe down drops it.
                         var drag = Offset.Zero
+                        var carried = 0f
                         detectDragGestures(
-                            onDragStart = { drag = Offset.Zero },
-                            onDragEnd = {
-                                game =
-                                    when {
-                                        abs(drag.x) > abs(drag.y) && abs(drag.x) > SWIPE_PX -> {
-                                            game.move(
-                                                if (drag.x >
-                                                    0
-                                                ) {
-                                                    1
-                                                } else {
-                                                    -1
-                                                },
-                                            )
-                                        }
-
-                                        drag.y > SWIPE_PX -> {
-                                            game.drop(random)
-                                        }
-
-                                        else -> {
-                                            game
-                                        }
-                                    }
+                            onDragStart = {
+                                drag = Offset.Zero
+                                carried = 0f
                             },
-                        ) { _, amount -> drag += amount }
+                            onDragEnd = {
+                                if (drag.y > InputFeel.swipePx(this) && drag.y > abs(drag.x) * 2) game = game.drop(random)
+                            },
+                        ) { _, amount ->
+                            drag += amount
+                            carried += amount.x
+                            val column = size.width.toFloat() / BlocksGame.WIDTH
+                            while (abs(carried) >= column) {
+                                val dx = if (carried > 0) 1 else -1
+                                game = game.move(dx)
+                                carried -= dx * column
+                            }
+                        }
                     },
         ) {
             val cell = size.width / BlocksGame.WIDTH
@@ -416,6 +408,8 @@ internal fun BricksScreen() {
             val gap = 2f
             val brickW = w / BricksGame.COLUMNS
             val brickH = w * BricksGame.BRICK_HEIGHT
+            // The field first: drawn later, it covered the bricks.
+            drawRect(BricksField)
             game.bricks.forEachIndexed { index, hits ->
                 if (hits <= 0) return@forEachIndexed
                 val row = index / BricksGame.COLUMNS
@@ -428,7 +422,6 @@ internal fun BricksScreen() {
                 )
             }
             val paddleW = w * BricksGame.PADDLE_WIDTH
-            drawRect(BricksField)
             drawRoundRect(
                 BricksPaddle,
                 Offset(game.paddleX * w - paddleW / 2, w * BricksGame.PADDLE_Y),

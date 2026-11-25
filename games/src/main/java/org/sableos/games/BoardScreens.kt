@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -60,7 +61,7 @@ private val TileShadow = Color(0xFFB89A70)
 private val WordsField = Color(0xFF141428)
 private val WordsTile = Color(0xFF262B4A)
 private val WordsEdge = Color(0xFF33407A)
-private val MarkAbsent = Color(0xFF3A4560)
+private val MarkAbsent = Color(0xFF5A5F70)
 private val SuitMarks = listOf("●", "▮", "✦")
 private val MarkRight = Color(0xFF2FD0B5)
 private val MarkElsewhere = Color(0xFFFF8A3D)
@@ -678,6 +679,17 @@ internal fun WordsScreen() {
             },
         hint = t("green_right_place_amber_in"),
         actions = listOf(GameAction(tab = true, label = t("new_label"), key = "Enter", onClick = ::reset)),
+        // Phones without a keyboard (the tall layout) type on these keys, coloured by what each letter scored.
+        tallExtras = {
+            WordsKeys(marks) { key ->
+                game =
+                    when (key) {
+                        '⌫' -> game.erase()
+                        '⏎' -> if (game.over) WordsGame.start(random) else game.submit()
+                        else -> game.type(key)
+                    }
+            }
+        },
     ) { side ->
         val colors = MaterialTheme.colorScheme
         BoardSurface(side, WordsField) {
@@ -738,6 +750,49 @@ internal fun WordsScreen() {
                     }
                 }
                 Spacer(Modifier.height(2.dp))
+            }
+        }
+    }
+}
+
+private val WordsRows = listOf("QWERTYUIOP", "ASDFGHJKL", "⏎ZXCVBNM⌫")
+
+/** An on-screen keyboard for Words: each key shows its letter's mark from the guesses so far. */
+@Composable
+private fun WordsKeys(
+    marks: Map<Char, LetterMark>,
+    onKey: (Char) -> Unit,
+) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        WordsRows.forEach { keys ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)) {
+                keys.forEach { key ->
+                    val mark = marks[key]
+                    val fill =
+                        when (mark) {
+                            LetterMark.Right -> MarkRight
+                            LetterMark.Elsewhere -> MarkElsewhere
+                            LetterMark.Absent -> MarkAbsent
+                            null -> WordsTile
+                        }
+                    val wide = key == '⏎' || key == '⌫'
+                    Box(
+                        Modifier
+                            .weight(if (wide) 1.5f else 1f)
+                            .height(40.dp)
+                            .background(fill, RoundedCornerShape(4.dp))
+                            .border(1.dp, if (mark == null) WordsEdge else fill, RoundedCornerShape(4.dp))
+                            .clickable { onKey(key) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            key.toString(),
+                            color = if (mark == LetterMark.Right || mark == LetterMark.Elsewhere) WordsField else Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                        )
+                    }
+                }
             }
         }
     }

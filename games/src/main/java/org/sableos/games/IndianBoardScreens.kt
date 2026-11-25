@@ -684,6 +684,13 @@ private fun LudoBoard(
                 Size(cell * 4, cell * 4),
                 CornerRadius(cell * 0.4f),
             )
+            // Outlined while it is this player's turn, otherwise dimmed. Drawn before the name so the
+            // shade doesn't sit over the text.
+            if (i == active && !game.over || game.over && game.winner == i) {
+                drawRect(ink, Offset(c0 * cell, r0 * cell), Size(cell * 6, cell * 6), style = Stroke(cell * 0.14f))
+            } else {
+                drawRect(Color.Black.copy(alpha = 0.18f), Offset(c0 * cell, r0 * cell), Size(cell * 6, cell * 6))
+            }
             // The seat: name and tokens home on the yard's band, outlined while it is this player's turn.
             val home = game.homeCount(i)
             val label =
@@ -704,11 +711,6 @@ private fun LudoBoard(
                 maxLines = 1,
                 size = Size(cell * 5.6f, cell),
             )
-            if (i == active && !game.over || game.over && game.winner == i) {
-                drawRect(ink, Offset(c0 * cell, r0 * cell), Size(cell * 6, cell * 6), style = Stroke(cell * 0.14f))
-            } else {
-                drawRect(Color.Black.copy(alpha = 0.18f), Offset(c0 * cell, r0 * cell), Size(cell * 6, cell * 6))
-            }
         }
         LudoGeometry.PATH.forEach { (r, c) -> square(r, c, boardLight) }
         for (k in 0 until 5) {

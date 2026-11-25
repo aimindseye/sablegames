@@ -29,9 +29,10 @@ import androidx.compose.ui.unit.dp
 import org.sableos.design.SableSpacing
 import org.sableos.games.GamesText.t
 import kotlin.math.abs
+import kotlin.random.Random
 
 private val Board2048 = Color(0xFF1C2147)
-private val Empty2048 = Color(0xFF262C58)
+private val Empty2048 = Color(0xFF343C7A)
 private val Ink2048 = Color(0xFF121633)
 private val Tile2 = Color(0xFFDFE7FF)
 private val Tile4 = Color(0xFFB9CCFF)
@@ -47,8 +48,10 @@ private val Tile2048 = Color(0xFFFFFFFF)
 
 @Composable
 internal fun Game2048Screen() {
-    var board by remember { mutableStateOf(initial2048Board()) }
+    val random = remember { Random.Default }
+    var board by remember { mutableStateOf(GamesCore.game2048Start(random)) }
     var score by remember { mutableLongStateOf(0L) }
+    val stuck = GamesCore.game2048Stuck(board)
 
     fun slide(direction: Int) {
         val result =
@@ -59,15 +62,15 @@ internal fun Game2048Screen() {
 
         check(result.size == 17)
 
-        board =
-            IntArray(16) { index ->
-                result[index].toInt()
-            }
+        val moved = IntArray(16) { index -> result[index].toInt() }
+        // A slide that changes nothing is not a move, so no tile appears.
+        if (moved.contentEquals(board)) return
+        board = GamesCore.game2048Spawn(moved, random)
         score += result[16]
     }
 
     fun reset() {
-        board = initial2048Board()
+        board = GamesCore.game2048Start(random)
         score = 0L
     }
 
@@ -84,7 +87,7 @@ internal fun Game2048Screen() {
         title = "2048",
         subtitle = t("slide_merge_and_build_the"),
         statusLabel = "score",
-        status = score.toString(),
+        status = if (stuck) "$score · no moves, N plays again" else score.toString(),
         hint = t("swipe_the_board_or_use"),
         actions = listOf(GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset)),
         tallExtras = {
@@ -123,7 +126,7 @@ private fun Game2048Board(
                             dragY = 0f
                         },
                         onDragEnd = {
-                            val threshold = 32f
+                            val threshold = InputFeel.swipePx(this@pointerInput)
                             if (
                                 abs(dragX) < threshold &&
                                 abs(dragY) < threshold
@@ -229,23 +232,3 @@ private fun tileColor(value: Int): Color =
         1024 -> Tile1024
         else -> Tile2048
     }
-
-private fun initial2048Board(): IntArray =
-    intArrayOf(
-        2,
-        2,
-        4,
-        4,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    )

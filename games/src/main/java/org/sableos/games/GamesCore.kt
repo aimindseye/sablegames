@@ -106,6 +106,32 @@ internal object GamesCore {
         }
     }
 
+    /**
+     * A fresh puzzle from [puzzle]: the digits relabelled, rows shuffled within each band, the bands
+     * shuffled, the same for columns, and sometimes transposed. Each step keeps it a valid puzzle with
+     * the same single solution and difficulty.
+     */
+    fun sudokuShuffle(
+        puzzle: String,
+        random: kotlin.random.Random,
+    ): String {
+        require(puzzle.length == SIDE * SIDE) { "not a sudoku" }
+        val digits = (1..SIDE).shuffled(random)
+        fun order() = (0 until 3).shuffled(random).flatMap { band -> (0 until 3).shuffled(random).map { band * 3 + it } }
+        val rows = order()
+        val cols = order()
+        val flip = random.nextBoolean()
+        return buildString {
+            for (r in 0 until SIDE) {
+                for (c in 0 until SIDE) {
+                    val (sr, sc) = if (flip) cols[c] to rows[r] else rows[r] to cols[c]
+                    val ch = puzzle[sr * SIDE + sc]
+                    append(if (ch == '0') '0' else '0' + digits[ch - '1'])
+                }
+            }
+        }
+    }
+
     fun sudokuStart(puzzle: String): String =
         try {
             Sudoku.parse(puzzle)
@@ -191,6 +217,7 @@ internal object GamesCore {
             y: Int,
         ): CellState {
             val i = index(x, y)
+            if (lost || won) return state[i]
             state[i] =
                 when (state[i]) {
                     CellState.Hidden -> CellState.Flagged
@@ -200,15 +227,19 @@ internal object GamesCore {
             return state[i]
         }
 
-        /** -1 a mine, -2 ignored (already open or flagged), else the neighbouring mine count. */
-        fun reveal(
+        /** True once a mine is opened; nothing more opens after that. */
+        var lost = false
+            private set
+
+        private var opened = 0
+
+        /** Every cell without a mine is open. */
+        val won: Boolean get() = !lost && opened == mines.size - mines.count { it }
+
+        fun count(
             x: Int,
             y: Int,
         ): Int {
-            val i = index(x, y)
-            if (state[i] != CellState.Hidden) return IGNORED
-            state[i] = CellState.Revealed
-            if (mines[i]) return MINE
             var count = 0
             for (dy in -1..1) {
                 for (dx in -1..1) {
@@ -219,6 +250,66 @@ internal object GamesCore {
             }
             return count
         }
+
+        /**
+         * -1 a mine, -2 ignored (already open, flagged, or the game is over), else the neighbouring mine count.
+         * The first cell opened is never a mine: its mine moves to the first free cell. A cell with no mines
+         * around it opens its neighbours too.
+         */
+        fun reveal(
+            x: Int,
+            y: Int,
+        ): Int {
+            val i = index(x, y)
+            if (state[i] != CellState.Hidden || lost || won) return IGNORED
+            if (opened == 0 && mines[i]) {
+                val spare = mines.indices.firstOrNull { it != i && !mines[it] }
+                if (spare != null) {
+                    mines[i] = false
+                    mines[spare] = true
+                }
+            }
+            if (mines[i]) {
+                state[i] = CellState.Revealed
+                lost = true
+                return MINE
+            }
+            val queue = ArrayDeque<Int>()
+            queue += i
+            state[i] = CellState.Revealed
+            opened++
+            while (queue.isNotEmpty()) {
+                val at = queue.removeFirst()
+                val cx = at % width
+                val cy = at / width
+                if (count(cx, cy) != 0) continue
+                for (dy in -1..1) {
+                    for (dx in -1..1) {
+                        val nx = cx + dx
+                        val ny = cy + dy
+                        if (nx !in 0 until width || ny !in 0 until height) continue
+                        val n = ny * width + nx
+                        if (state[n] == CellState.Hidden && !mines[n]) {
+                            state[n] = CellState.Revealed
+                            opened++
+                            queue += n
+                        }
+                    }
+                }
+            }
+            return count(x, y)
+        }
+
+        /** The view: H hidden, F flag, * mine (all of them once lost), 0..8 an open cell's count. */
+        fun view(): CharArray =
+            CharArray(state.size) { i ->
+                when {
+                    state[i] == CellState.Flagged -> 'F'
+                    mines[i] && (lost || state[i] == CellState.Revealed) -> '*'
+                    state[i] == CellState.Hidden -> 'H'
+                    else -> '0' + count(i % width, i / width)
+                }
+            }
     }
 
     private const val MINE = -1
@@ -253,32 +344,21 @@ internal object GamesCore {
     private fun replayMines(encoded: String): Triple<Minefield, MineState, CharArray> {
         val state = decodeMines(encoded) ?: throw MineError(ERR_STATE)
         val board = Minefield(state.width, state.height, state.mines, state.seed)
-        val view = CharArray(state.width * state.height) { 'H' }
         if (state.operations.isNotEmpty()) {
             for (operation in state.operations.split(';')) {
                 val parts = operation.split(',')
                 if (parts.size != 3) throw MineError(ERR_STATE)
                 val x = index(parts[1]) ?: throw MineError(ERR_STATE)
                 val y = index(parts[2]) ?: throw MineError(ERR_STATE)
-                val cell = board.index(x, y)
+                board.index(x, y)
                 when (parts[0]) {
-                    "R" ->
-                        when (val result = board.reveal(x, y)) {
-                            MINE -> view[cell] = '*'
-                            IGNORED -> Unit
-                            else -> view[cell] = '0' + result
-                        }
-                    "F" ->
-                        when (board.toggleFlag(x, y)) {
-                            CellState.Hidden -> view[cell] = 'H'
-                            CellState.Flagged -> view[cell] = 'F'
-                            CellState.Revealed -> Unit
-                        }
+                    "R" -> board.reveal(x, y)
+                    "F" -> board.toggleFlag(x, y)
                     else -> throw MineError(ERR_STATE)
                 }
             }
         }
-        return Triple(board, state, view)
+        return Triple(board, state, board.view())
     }
 
     fun minesweeperStart(
@@ -314,7 +394,7 @@ internal object GamesCore {
         return when (val result = board.reveal(x, y)) {
             MINE -> "OK|$next|MINE"
             IGNORED -> "OK|$next|IGNORED"
-            else -> "OK|$next|SAFE|$result"
+            else -> if (board.won) "OK|$next|WON" else "OK|$next|SAFE|$result"
         }
     }
 
@@ -381,6 +461,31 @@ internal object GamesCore {
         }
         return cells + score
     }
+
+    /**
+     * Puts a new tile on a random empty cell: a 2 nine times in ten, otherwise a 4. A full board comes back
+     * unchanged.
+     */
+    fun game2048Spawn(
+        board: IntArray,
+        random: kotlin.random.Random,
+    ): IntArray {
+        val empty = board.indices.filter { board[it] == 0 }
+        if (empty.isEmpty()) return board
+        val out = board.copyOf()
+        out[empty[random.nextInt(empty.size)]] = if (random.nextInt(10) == 0) 4 else 2
+        return out
+    }
+
+    /** A new game: two tiles on an empty board. */
+    fun game2048Start(random: kotlin.random.Random): IntArray = game2048Spawn(game2048Spawn(IntArray(TILES), random), random)
+
+    /** Whether no slide in any direction changes the board, so the game is over. */
+    fun game2048Stuck(board: IntArray): Boolean =
+        (0..3).all { direction ->
+            val moved = game2048Slide(board, direction)
+            (0 until TILES).all { moved[it] == board[it].toLong() }
+        }
 
     private fun slot(
         direction: Int,
