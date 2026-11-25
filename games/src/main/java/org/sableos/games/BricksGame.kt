@@ -18,9 +18,9 @@ internal enum class BricksDifficulty(
     val goodChance: Float,
     val scoreTimes: Float,
 ) {
-    Easy("Easy", 0.25f, 0.6f, 0.015f, 5, 0.8f, 0.5f),
-    Normal("Normal", 0.2f, 0.7f, 0.025f, 3, 0.65f, 1f),
-    Hard("Hard", 0.15f, 0.8f, 0.04f, 2, 0.45f, 2f),
+    Easy("Easy", 0.25f, 0.35f, 0.01f, 5, 0.8f, 0.5f),
+    Normal("Normal", 0.2f, 0.42f, 0.015f, 3, 0.65f, 1f),
+    Hard("Hard", 0.15f, 0.5f, 0.025f, 2, 0.45f, 2f),
 }
 
 internal enum class BrickKind { Plain, Tough, Hard, Steel, Explosive }
