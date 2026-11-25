@@ -126,7 +126,7 @@ private fun Game2048Board(
                             dragY = 0f
                         },
                         onDragEnd = {
-                            val threshold = 32f
+                            val threshold = InputFeel.swipePx(this@pointerInput)
                             if (
                                 abs(dragX) < threshold &&
                                 abs(dragY) < threshold

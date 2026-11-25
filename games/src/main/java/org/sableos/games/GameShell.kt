@@ -605,6 +605,22 @@ private fun ControlsScreen(
     val controls = sets.getOrNull(set)
     val actions = controls?.actions.orEmpty()
     val bindings = controls?.let(bindingsFor)
+    val context = LocalContext.current
+    // Two rows after the keys set how fast the trackpad and swipes move, for every game on this phone.
+    val trackpadRow = actions.size + 1
+    val swipeRow = actions.size + 2
+
+    fun feel(
+        row: Int,
+        step: Int,
+    ) {
+        if (row == trackpadRow) {
+            InputFeel.trackpad = (InputFeel.trackpad + step).coerceIn(InputFeel.trackpadLevels.indices)
+        } else {
+            InputFeel.swipe = (InputFeel.swipe + step).coerceIn(InputFeel.swipeLevels.indices)
+        }
+        InputFeel.save(context)
+    }
     MenuKeys(slot) { press ->
         if (listening && controls != null && bindings != null) {
             refused = false
@@ -634,12 +650,14 @@ private fun ControlsScreen(
             }
 
             ShellMenuKey.Down -> {
-                selected = (selected + 1).coerceAtMost(actions.size)
+                selected = (selected + 1).coerceAtMost(swipeRow)
             }
 
             ShellMenuKey.Left, ShellMenuKey.Right -> {
-                if (sets.size > 1) {
-                    val step = if (ShellKeys.menu(press, profile) == ShellMenuKey.Left) -1 else 1
+                val step = if (ShellKeys.menu(press, profile) == ShellMenuKey.Left) -1 else 1
+                if (selected >= trackpadRow) {
+                    feel(selected, step)
+                } else if (sets.size > 1) {
                     set = (set + step + sets.size) % sets.size
                     selected = 0
                 }
@@ -647,6 +665,11 @@ private fun ControlsScreen(
 
             ShellMenuKey.Confirm -> {
                 when {
+                    selected >= trackpadRow -> {
+                        val levels = if (selected == trackpadRow) InputFeel.trackpadLevels else InputFeel.swipeLevels
+                        val now = if (selected == trackpadRow) InputFeel.trackpad else InputFeel.swipe
+                        feel(selected, if (now == levels.lastIndex) -now else 1)
+                    }
                     controls == null -> onBack()
                     selected < actions.size -> listening = true
                     else -> onChange(controls, controls.defaults(profile))
@@ -707,6 +730,21 @@ private fun ControlsScreen(
                     }
                 }
             }
+            Text("Speed", color = palette.ink, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            MenuRow("Trackpad speed", selected == trackpadRow, palette, "◀ ${InputFeel.trackpadLevels[InputFeel.trackpad]} ▶") {
+                selected = trackpadRow
+                feel(trackpadRow, if (InputFeel.trackpad == InputFeel.trackpadLevels.lastIndex) -InputFeel.trackpad else 1)
+            }
+            MenuRow("Swipe length", selected == swipeRow, palette, "◀ ${InputFeel.swipeLevels[InputFeel.swipe]} ▶") {
+                selected = swipeRow
+                feel(swipeRow, if (InputFeel.swipe == InputFeel.swipeLevels.lastIndex) -InputFeel.swipe else 1)
+            }
+            Text(
+                "Slow the trackpad if the cursor jumps past where you aim, or speed it up if it drags. " +
+                    "A shorter swipe needs less finger travel. Both apply to every game on this phone.",
+                color = palette.muted,
+                fontSize = 12.sp,
+            )
             val note =
                 when {
                     refused -> {
