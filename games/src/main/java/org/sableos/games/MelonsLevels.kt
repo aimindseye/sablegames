@@ -14,7 +14,30 @@ internal enum class MelonMaterial(
     Glass(15f, 0.6f, "glass"),
     Wood(40f, 0.5f, "wood"),
     Stone(120f, 2f, "stone"),
+    Steel(200f, 3f, "steel"),
 }
+
+/**
+ * The melons a level can load, each [r] metres across its middle: the Bitter Melon (Space bursts three seeds) and
+ * the Split Cantaloupe (Space splits it into three smaller melons).
+ */
+internal enum class MelonKind(
+    val r: Float,
+    val density: Float,
+    val label: String,
+) {
+    Bitter(0.9f, 3f, "Bitter Melon"),
+    Split(0.9f, 3f, "Split Cantaloupe"),
+}
+
+/** A gold AD banner trampoline: a springy plate [w] metres long at [x], [y], turned [degrees] anticlockwise. */
+internal data class MelonBanner(
+    val x: Float,
+    val y: Float,
+    val degrees: Float,
+    val w: Float = 7f,
+    val bounce: Float = 1.15f,
+)
 
 /** The AI Slop: [w] by [h] metres; the Premium Ad-Slop is round, [w] across. */
 internal enum class SlopKind(
@@ -67,7 +90,14 @@ internal data class MelonLevel(
     val batteries: List<MelonBattery> = emptyList(),
     /** The score for one, two and three seeds. */
     val seeds: List<Int>,
+    /** The melons in the order they load; World 1 has Bitter Melons only. */
+    val queue: List<MelonKind> = List(melons) { MelonKind.Bitter },
+    val banners: List<MelonBanner> = emptyList(),
 ) {
+    init {
+        require(queue.size == melons) { "$world-$number: the queue must hold $melons melons" }
+    }
+
     val id: String get() = "$world-$number"
 
     /** Where the structure starts, for the arrow that points at it while aiming. */
@@ -77,7 +107,7 @@ internal data class MelonLevel(
     val fortEnd: Float get() = (blocks.map { it.x + it.w / 2 } + slop.map { it.x }).max()
 }
 
-private fun stone(
+internal fun stone(
     x: Float,
     y: Float,
     w: Float,
@@ -85,31 +115,31 @@ private fun stone(
     fixed: Boolean = false,
 ) = MelonBlock(MelonMaterial.Stone, x, y, w, h, fixed)
 
-private fun wood(
+internal fun wood(
     x: Float,
     y: Float,
     w: Float,
     h: Float,
 ) = MelonBlock(MelonMaterial.Wood, x, y, w, h)
 
-private fun glass(
+internal fun glass(
     x: Float,
     y: Float,
     w: Float,
     h: Float,
 ) = MelonBlock(MelonMaterial.Glass, x, y, w, h)
 
-private fun app(
+internal fun app(
     x: Float,
     y: Float,
 ) = MelonSlop(SlopKind.App, x, y)
 
-private fun bot(
+internal fun bot(
     x: Float,
     y: Float,
 ) = MelonSlop(SlopKind.Bot, x, y)
 
-private fun ad(
+internal fun ad(
     x: Float,
     y: Float,
 ) = MelonSlop(SlopKind.Ad, x, y)
@@ -117,13 +147,24 @@ private fun ad(
 internal object MelonsLevels {
     const val PER_WORLD = 9
 
-    val worlds = listOf("Prompt Valley" to "Sunny hills, wood, glass and stone. Learn to aim.")
+    val worlds =
+        listOf(
+            "Prompt Valley" to "Sunny hills, wood, glass and stone. Learn to aim.",
+            "Slop Mall" to "Neon shops, bouncy AD banners and the Split Cantaloupe.",
+        )
 
     /**
      * World 1 as in the level data. Where a piece there would float or sit inside another, the fix is
      * marked "Added" or "Changed" and the reason given.
      */
-    val all: List<MelonLevel> =
+    val all: List<MelonLevel> get() = ALL
+
+    /** The levels of world [n], from 1. */
+    fun world(n: Int): List<MelonLevel> = all.filter { it.world == n }
+
+    private val ALL: List<MelonLevel> by lazy { world1 + MelonsWorld2.levels }
+
+    private val world1: List<MelonLevel> =
         listOf(
             MelonLevel(
                 1,
@@ -345,8 +386,10 @@ internal data class MelonsProgress(
                     ?.split(',')
                     ?.map { it.toIntOrNull()?.coerceAtLeast(0) ?: 0 }
                     .orEmpty()
-            if (seeds.size != MelonsLevels.all.size || best.size != seeds.size) return MelonsProgress()
-            return MelonsProgress(seeds, best)
+            // A save from before more worlds were added is shorter: its levels keep their seeds, the new ones start at 0.
+            val n = MelonsLevels.all.size
+            if (seeds.size > n || best.size != seeds.size) return MelonsProgress()
+            return MelonsProgress(seeds + List(n - seeds.size) { 0 }, best + List(n - best.size) { 0 })
         }
     }
 }

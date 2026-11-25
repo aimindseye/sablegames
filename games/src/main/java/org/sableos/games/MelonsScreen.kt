@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import org.sableos.games.MelonsArt.background
 import org.sableos.games.MelonsArt.backgroundIn
 import org.sableos.games.MelonsArt.band
+import org.sableos.games.MelonsArt.banner
 import org.sableos.games.MelonsArt.block
 import org.sableos.games.MelonsArt.buttonLabel
 import org.sableos.games.MelonsArt.enemy
@@ -98,7 +99,6 @@ private const val TARGET_GROUND = 1f
 private const val TARGET_MIN_HIGH = 6f
 private const val TARGET_DOT_TIME = 0.04f
 
-
 private val SelectField = Color(0xFF1C2331)
 private val SelectCell = Color(0xFF141A26)
 private val SelectEdge = Color(0xFF33415C)
@@ -117,6 +117,18 @@ private fun saveProgress(
     .apply()
 
 private fun seedMarks(n: Int) = "●".repeat(n) + "○".repeat(3 - n)
+
+/**
+ * A Bitter Melon's rage, 0-3: it grows with the melons fired before it in a level (up to two) and with each world
+ * after the first, so World 1 runs 0-2 and World 2 starts a step angrier.
+ */
+private fun rage(
+    level: MelonLevel,
+    firedBefore: Int,
+) = (firedBefore.coerceIn(0, 2) + level.world - 1).coerceIn(0, MelonsSprites.MAX_RAGE)
+
+/** The world the level at [index] is in. */
+private fun worldOf(index: Int) = MelonsLevels.all.getOrNull(index)?.world ?: 1
 
 @Composable
 internal fun MelonsScreen() {
@@ -182,9 +194,7 @@ internal fun MelonsScreen() {
             }
 
             world.phase == MelonPhase.Cleared -> {
-                if (levelIndex + 1 <
-                    MelonsLevels.all.size
-                ) {
+                if (levelIndex + 1 < MelonsLevels.all.size) {
                     play(levelIndex + 1)
                 } else {
                     select()
@@ -297,20 +307,52 @@ internal fun MelonsScreen() {
         subtitle = "Fling angry melons. Topple the AI Slop.",
         statusLabel =
             if (selecting) {
-                "World 1 · ${progress.seeds.sum()}/${MelonsLevels.all.size * 3} seeds"
+                val n = worldOf(cursor)
+                val won =
+                    MelonsLevels.all.indices
+                        .filter { MelonsLevels.all[it].world == n }
+                        .sumOf { progress.seeds[it] }
+                "World $n · $won/${MelonsLevels.PER_WORLD * 3} seeds"
             } else {
                 "${level.id} ${level.name} · melons ${world.melonsLeft}"
             },
         status =
             when {
-                hud.isEmpty() -> ""
-                selecting -> "Pick a level · Enter plays"
-                paused -> "Paused · P resumes"
-                world.phase == MelonPhase.Cleared -> "Cleared ${seedMarks(world.seeds)} ${world.score} · Space"
-                world.phase == MelonPhase.Failed -> "Out of melons · ${world.score} · Space retries"
-                world.phase == MelonPhase.Flying && !world.burstUsed -> "${world.score} · Space bursts"
-                world.phase == MelonPhase.Flying -> world.score.toString()
-                else -> "${world.score} · ${world.angle.toInt()}° ${world.power.toInt()}% · Space fires"
+                hud.isEmpty() -> {
+                    ""
+                }
+
+                selecting -> {
+                    "Pick a level · Enter plays"
+                }
+
+                paused -> {
+                    "Paused · P resumes"
+                }
+
+                world.phase == MelonPhase.Cleared -> {
+                    "Cleared ${seedMarks(world.seeds)} ${world.score} · Space"
+                }
+
+                world.phase == MelonPhase.Failed -> {
+                    "Out of melons · ${world.score} · Space retries"
+                }
+
+                world.phase == MelonPhase.Flying && !world.burstUsed && world.melon?.melonKind == MelonKind.Split -> {
+                    "${world.score} · Space splits"
+                }
+
+                world.phase == MelonPhase.Flying && !world.burstUsed -> {
+                    "${world.score} · Space bursts"
+                }
+
+                world.phase == MelonPhase.Flying -> {
+                    world.score.toString()
+                }
+
+                else -> {
+                    "${world.score} · ${world.angle.toInt()}° ${world.power.toInt()}% · Space fires"
+                }
             },
         hint = "Up and down aim, left and right set the power",
         actions =
@@ -339,10 +381,16 @@ internal fun MelonsScreen() {
             Surface(
                 modifier =
                     boardModifier
-                        .onSizeChanged { px -> viewW = VIEW * maxOf(1f, px.width.toFloat() / px.height.coerceAtLeast(1)) }
-                        .pointerInput(Unit) { detectTapGestures { primary() } }
+                        .onSizeChanged { px ->
+                            viewW = VIEW * maxOf(1f, px.width.toFloat() / px.height.coerceAtLeast(1))
+                        }.pointerInput(Unit) { detectTapGestures { primary() } }
                         .pointerInput(Unit) {
-                            detectDragGestures { _, drag -> aim(-drag.y * DRAG_DEGREES_PER_PX, drag.x * DRAG_POWER_PER_PX) }
+                            detectDragGestures { _, drag ->
+                                aim(
+                                    -drag.y * DRAG_DEGREES_PER_PX,
+                                    drag.x * DRAG_POWER_PER_PX,
+                                )
+                            }
                         },
                 shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.surface,
@@ -375,11 +423,12 @@ private fun DrawScope.drawWorld(
 
     val degreesOf = { radians: Float -> -radians * 180f / PI.toFloat() }
     val groundY = at(0f, 0f).y
-    background(sprites.world1, cameraX, MelonsWorld.STAGE_W - viewW, groundY)
+    val level = world.level
+    background(sprites, level.world, cameraX, MelonsWorld.STAGE_W - viewW, groundY)
 
     // The melons fired so far set the next one's rage: the last melons of a level are the angriest.
-    val fired = world.level.melons - world.melonsLeft
-    val flyingRage = (fired - 1).coerceAtLeast(0)
+    val fired = level.melons - world.melonsLeft
+    val flyingRage = rage(level, fired - 1)
 
     // The slingshot, with the melon in its pouch while aiming.
     val ties = at(MelonsWorld.SLING_X, MelonsWorld.SLING_Y + 0.2f)
@@ -393,7 +442,8 @@ private fun DrawScope.drawWorld(
             val (px, py) = world.preview(PREVIEW_TIME * i / PREVIEW_DOTS)
             drawCircle(MelonsArt.Ink.copy(alpha = 0.6f), m * 0.16f, at(px, py))
         }
-        melon(sprites, pouch, MelonsWorld.MELON_R * m, 0f, MelonPose.Ready, fired)
+        val kind = world.loaded ?: MelonKind.Bitter
+        melon(sprites, pouch, kind.r * m, 0f, MelonPose.Ready, rage(level, fired), kind)
         band(left, right, pouch, m)
     }
 
@@ -430,9 +480,9 @@ private fun DrawScope.drawWorld(
 
     // The melons still to fire, bottom left.
     val inPouch = if (world.phase == MelonPhase.Aiming) 1 else 0
-    repeat((world.melonsLeft - inPouch).coerceAtLeast(0)) { i ->
-        val rage = fired + inPouch + i
-        melon(sprites, Offset(m * (1.2f + i * 1.6f), size.height - m * 1.2f), m * 0.65f, 0f, MelonPose.Ready, rage)
+    level.queue.drop(fired + inPouch).forEachIndexed { i, kind ->
+        val at = Offset(m * (1.2f + i * 1.6f), size.height - m * 1.2f)
+        melon(sprites, at, m * 0.65f, 0f, MelonPose.Ready, rage(level, fired + inPouch + i), kind)
     }
 
     if (world.comboTime > 0f) {
@@ -466,7 +516,13 @@ private fun DrawScope.resultPanel(
             val c = Offset(cx + (i - 1) * m * 2.4f, top + m * 4.8f)
             val won = i < world.seeds
             drawOval(if (won) SeedWon else SeedEmpty, Offset(c.x - m * 0.6f, c.y - m * 0.85f), Size(m * 1.2f, m * 1.7f))
-            drawOval(MelonsArt.Ink, Offset(c.x - m * 0.6f, c.y - m * 0.85f), Size(m * 1.2f, m * 1.7f), style = Stroke(m * 0.12f))
+            drawOval(
+                MelonsArt.Ink,
+                Offset(c.x - m * 0.6f, c.y - m * 0.85f),
+                Size(m * 1.2f, m * 1.7f),
+                style =
+                    Stroke(m * 0.12f),
+            )
         }
     }
     popup("Score ${world.score}", Offset(cx, top + m * 7.4f), m * 1.1f, 1f)
@@ -475,9 +531,23 @@ private fun DrawScope.resultPanel(
     val bh = m * 2.4f
     val bTop = top + h - bh - m * 1f
     drawRoundRect(MelonsArt.Yellow, Offset(cx - bw / 2, bTop), Size(bw, bh), CornerRadius(m * 0.5f))
-    drawRoundRect(MelonsArt.Ink, Offset(cx - bw / 2, bTop), Size(bw, bh), CornerRadius(m * 0.5f), style = Stroke(m * 0.12f))
-    val last = world.level.number >= MelonsLevels.all.size
-    val label = if (!cleared) "Try again · Space" else if (last) "Levels · Space" else "Next level · Space"
+    drawRoundRect(
+        MelonsArt.Ink,
+        Offset(cx - bw / 2, bTop),
+        Size(bw, bh),
+        CornerRadius(m * 0.5f),
+        style =
+            Stroke(m * 0.12f),
+    )
+    val last = world.level == MelonsLevels.all.last()
+    val label =
+        if (!cleared) {
+            "Try again · Space"
+        } else if (last) {
+            "Levels · Space"
+        } else {
+            "Next level · Space"
+        }
     buttonLabel(label, Offset(cx, bTop + bh * 0.68f), m * 1f)
 }
 
@@ -507,15 +577,26 @@ private fun DrawScope.drawPieces(
                 val landed = !current || world.phase != MelonPhase.Flying || piece.speed < 1f
                 // Spent melons lie knocked out; the one in play shows its rage.
                 val pose = if (landed) MelonPose.Landed else MelonPose.Flying
-                melon(sprites, c, MelonsWorld.MELON_R * m, deg, pose, if (current) flyingRage else 0)
+                val kind = piece.melonKind ?: MelonKind.Bitter
+                melon(sprites, c, kind.r * m, deg, pose, if (current) flyingRage else 0, kind)
             }
 
             PieceKind.Seed -> {
-                seed(c, MelonsWorld.SEED_R * m, deg)
+                val kind = piece.melonKind
+                if (kind == null) {
+                    seed(c, MelonsWorld.SEED_R * m, deg)
+                } else {
+                    // A piece of a Split Cantaloupe: a small cantaloupe, knocked out once it stops.
+                    val pose = if (piece.speed < 1f) MelonPose.Landed else MelonPose.Flying
+                    melon(sprites, c, MelonsWorld.SPLIT_R * m, deg, pose, 0, kind)
+                }
+            }
+
+            PieceKind.Banner -> {
+                banner(sprites, c, piece.w * m, deg)
             }
         }
     }
-
 }
 
 /**
@@ -544,7 +625,17 @@ private fun DrawScope.targetView(
     val originX = left + (boxW - (x1 - x0) * k) / 2 - x0 * k
     val box = Size(boxW, boxH)
     clipRect(left, top, left + boxW, top + boxH) {
-        backgroundIn(sprites.world1, left, top, boxW, boxH, ground, fortCamera(level, viewW) / (MelonsWorld.STAGE_W - viewW))
+        backgroundIn(
+            sprites,
+            level.world,
+            left,
+            top,
+            boxW,
+            boxH,
+            ground,
+            fortCamera(level, viewW) / (MelonsWorld.STAGE_W - viewW),
+        )
+
         fun inBox(
             x: Float,
             y: Float,
@@ -597,7 +688,7 @@ private fun fortCamera(
     viewW: Float,
 ) = ((level.fortX + level.fortEnd - viewW) / 2).coerceIn(0f, MelonsWorld.STAGE_W - viewW)
 
-/** World 1's nine levels in a 3 x 3 grid, with the seeds won on each; locked levels are dimmed. */
+/** The cursor's world's nine levels in a 3 x 3 grid, with the seeds won on each; locked levels are dimmed. */
 @Composable
 private fun MelonsLevelSelect(
     side: Float,
@@ -613,13 +704,15 @@ private fun MelonsLevelSelect(
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        val (name, twist) = MelonsLevels.worlds.first()
-        Text("World 1 · $name", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        val n = worldOf(cursor)
+        val first = MelonsLevels.all.indexOfFirst { it.world == n }
+        val (name, twist) = MelonsLevels.worlds[n - 1]
+        Text("World $n · $name", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         Text(twist, color = SelectMuted, fontSize = 12.sp, maxLines = 1)
         repeat(3) { row ->
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 repeat(3) { col ->
-                    val index = row * 3 + col
+                    val index = first + row * 3 + col
                     val level = MelonsLevels.all[index]
                     val open = progress.open(index)
                     val here = index == cursor

@@ -23,7 +23,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
-internal enum class PieceKind { Block, Slop, Battery, Melon, Seed }
+internal enum class PieceKind { Block, Slop, Battery, Melon, Seed, Banner }
 
 /** One body in the world, with what it is and the hit points it has left. */
 internal class MelonPiece(
@@ -35,6 +35,8 @@ internal class MelonPiece(
     val material: MelonMaterial? = null,
     val slop: SlopKind? = null,
     val fixed: Boolean = false,
+    /** A melon's kind; also set on the three pieces a Split Cantaloupe breaks into. */
+    val melonKind: MelonKind? = null,
 ) {
     var hp = maxHp
     var dead = false
@@ -130,6 +132,7 @@ internal class MelonsWorld(
         world.setContactListener(Hits())
         ground()
         level.blocks.forEach(::addBlock)
+        level.banners.forEach(::addBanner)
         placeLoose()
         // Let everything settle on the ground before anything can break.
         repeat(SETTLE_STEPS) { world.step(STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS) }
@@ -164,6 +167,12 @@ internal class MelonsWorld(
         power = newPower.coerceIn(MIN_POWER, 100f)
     }
 
+    /** The melon on the slingshot, or next to load. */
+    val loaded: MelonKind? get() = level.queue.getOrNull(shots)
+
+    /** The melons still to load after the one on the slingshot, in order. */
+    val waiting: List<MelonKind> get() = level.queue.drop(shots + 1)
+
     /** Where the melon would be [t] seconds after launch, ignoring what it hits. */
     fun preview(t: Float): Pair<Float, Float> {
         val rad = angle * PI.toFloat() / 180f
@@ -184,19 +193,35 @@ internal class MelonsWorld(
             val (x, y) = preview(t)
             val hit =
                 y <= MELON_R || x >= STAGE_W ||
-                    targets.any { abs(x - it.x) <= it.w / 2 + MELON_R && abs(y - it.y) <= it.h / 2 + MELON_R }
+                    targets.any { touches(it, x, y) }
             if (hit) return Triple(t, x, y.coerceAtLeast(MELON_R))
         }
         val (x, y) = preview(t)
         return Triple(t, x, y)
     }
 
+    /** Whether a melon centred at [x], [y] touches [piece], taken as a box turned by its angle. */
+    private fun touches(
+        piece: MelonPiece,
+        x: Float,
+        y: Float,
+    ): Boolean {
+        val c = cos(-piece.angle)
+        val s = sin(-piece.angle)
+        val dx = x - piece.x
+        val dy = y - piece.y
+        val lx = dx * c - dy * s
+        val ly = dx * s + dy * c
+        return abs(lx) <= piece.w / 2 + MELON_R && abs(ly) <= piece.h / 2 + MELON_R
+    }
+
     /** Fires the melon on the slingshot. False if there is none, or one is still in the air. */
     fun launch(): Boolean {
         if (phase != MelonPhase.Aiming || melonsLeft == 0) return false
+        val kind = loaded ?: return false
         melon?.let(::remove)
         val rad = angle * PI.toFloat() / 180f
-        val piece = circle(PieceKind.Melon, SLING_X, SLING_Y, MELON_R, MELON_DENSITY, 0f)
+        val piece = circle(PieceKind.Melon, SLING_X, SLING_Y, kind.r, kind.density, 0f, melonKind = kind)
         piece.body.linearVelocity = Vec2(launchSpeed * cos(rad), launchSpeed * sin(rad))
         melon = piece
         melonsLeft--
@@ -208,11 +233,22 @@ internal class MelonsWorld(
         return true
     }
 
-    /** Space in the air: the Classic melon's Seed Burst, three fast seeds in a ±12° spread. */
+    /**
+     * Space in the air, once a shot: the Bitter Melon's Seed Burst (three fast seeds in a ±12° spread) or the Split
+     * Cantaloupe's split (three smaller melons in a ±10° spread, at its speed).
+     */
     fun ability(): Boolean {
         val m = melon ?: return false
-        if (phase != MelonPhase.Flying || burstUsed || m.dead || flightTime < MIN_BURST_TIME) return false
+        if (phase != MelonPhase.Flying || burstUsed || m.dead || m.kind != PieceKind.Melon ||
+            flightTime < MIN_BURST_TIME
+        ) {
+            return false
+        }
         burstUsed = true
+        if (m.melonKind == MelonKind.Split) {
+            split(m)
+            return true
+        }
         val v = m.body.linearVelocity
         val heading = atan2(v.y, v.x)
         val speed = max(v.length(), BURST_MIN_SPEED) * BURST_BOOST
@@ -230,6 +266,36 @@ internal class MelonsWorld(
             seed.body.linearVelocity = Vec2(speed * cos(a), speed * sin(a))
         }
         return true
+    }
+
+    private fun split(m: MelonPiece) {
+        val v = m.body.linearVelocity
+        val heading = atan2(v.y, v.x)
+        val speed = v.length()
+        val spin = m.body.angularVelocity
+        val (x, y) = m.x to m.y
+        remove(m)
+        val parts =
+            listOf(-SPLIT_SPREAD, 0f, SPLIT_SPREAD).map { spread ->
+                val a = heading + spread * PI.toFloat() / 180f
+                // Side by side across the heading, so the three don't start inside each other.
+                val side = spread / SPLIT_SPREAD * SPLIT_R * 2.2f
+                val part =
+                    circle(
+                        PieceKind.Seed,
+                        x - sin(heading) * side,
+                        y + cos(heading) * side,
+                        SPLIT_R,
+                        MelonKind.Split.density,
+                        0f,
+                        melonKind = MelonKind.Split,
+                    )
+                part.body.linearVelocity = Vec2(speed * cos(a), speed * sin(a))
+                part.body.angularVelocity = spin
+                part
+            }
+        // The camera follows the middle one.
+        melon = parts[1]
     }
 
     /** Runs the world on by [dt] seconds, in fixed steps. */
@@ -292,7 +358,7 @@ internal class MelonsWorld(
         blasts.removeAll { it.age > BLAST_TIME }
         pieces.filter { it.kind == PieceKind.Seed }.forEach {
             it.age += dt
-            if (it.age > SEED_TIME) remove(it)
+            if (it.age > (if (it.melonKind != null) SPLIT_TIME else SEED_TIME)) remove(it)
         }
     }
 
@@ -404,11 +470,15 @@ internal class MelonsWorld(
         fixed: Boolean = false,
         material: MelonMaterial? = null,
         slop: SlopKind? = null,
+        radians: Float = 0f,
+        bounce: Float = BLOCK_BOUNCE,
+        friction: Float = BLOCK_FRICTION,
     ): MelonPiece {
         val def =
             BodyDef().apply {
                 type = if (fixed) BodyType.STATIC else BodyType.DYNAMIC
                 position.set(x, y)
+                angle = radians
             }
         val body = world.createBody(def)
         val shape = PolygonShape().apply { setAsBox(w / 2, h / 2) }
@@ -416,8 +486,8 @@ internal class MelonsWorld(
             FixtureDef().apply {
                 this.shape = shape
                 this.density = density
-                friction = BLOCK_FRICTION
-                restitution = BLOCK_BOUNCE
+                this.friction = friction
+                restitution = bounce
             },
         )
         val piece = MelonPiece(kind, body, w, h, hp, material, slop, fixed)
@@ -434,6 +504,7 @@ internal class MelonsWorld(
         density: Float,
         hp: Float,
         slop: SlopKind? = null,
+        melonKind: MelonKind? = null,
     ): MelonPiece {
         val def =
             BodyDef().apply {
@@ -452,7 +523,7 @@ internal class MelonsWorld(
                 restitution = MELON_BOUNCE
             },
         )
-        val piece = MelonPiece(kind, body, r * 2, r * 2, hp, slop = slop)
+        val piece = MelonPiece(kind, body, r * 2, r * 2, hp, slop = slop, melonKind = melonKind)
         body.userData = piece
         pieces += piece
         return piece
@@ -460,6 +531,23 @@ internal class MelonsWorld(
 
     private fun addBlock(b: MelonBlock) {
         box(PieceKind.Block, b.x, b.y, b.w, b.h, b.material.density, b.material.hp, b.fixed, material = b.material)
+    }
+
+    /** A banner is a bolted, springy plate: it can't break, and throws a melon back harder than it came. */
+    private fun addBanner(b: MelonBanner) {
+        box(
+            PieceKind.Banner,
+            b.x,
+            b.y,
+            b.w,
+            BANNER_T,
+            0f,
+            0f,
+            fixed = true,
+            radians = b.degrees * PI.toFloat() / 180f,
+            bounce = b.bounce,
+            friction = BANNER_FRICTION,
+        )
     }
 
     /**
@@ -545,10 +633,25 @@ internal class MelonsWorld(
             if (piece == null) return
             val scale =
                 when (piece.kind) {
-                    PieceKind.Slop -> SLOP_FRAGILITY
-                    PieceKind.Battery -> BATTERY_FRAGILITY
-                    PieceKind.Block -> if (piece.material == MelonMaterial.Stone) STONE_TOUGHNESS else 1f
-                    else -> return
+                    PieceKind.Slop -> {
+                        SLOP_FRAGILITY
+                    }
+
+                    PieceKind.Battery -> {
+                        BATTERY_FRAGILITY
+                    }
+
+                    PieceKind.Block -> {
+                        when (piece.material) {
+                            MelonMaterial.Stone -> STONE_TOUGHNESS
+                            MelonMaterial.Steel -> STEEL_TOUGHNESS
+                            else -> 1f
+                        }
+                    }
+
+                    else -> {
+                        return
+                    }
                 }
             damage[piece] = (damage[piece] ?: 0f) + total * scale
         }
@@ -579,7 +682,6 @@ internal class MelonsWorld(
         private const val POSITION_ITERATIONS = 3
         private const val SETTLE_STEPS = 90
 
-        private const val MELON_DENSITY = 3f
         private const val SEED_DENSITY = 6f
         private const val SLOP_DENSITY = 0.6f
         private const val BLOCK_FRICTION = 0.7f
@@ -593,6 +695,7 @@ internal class MelonsWorld(
         private const val SLOP_FRAGILITY = 1.5f
         private const val BATTERY_FRAGILITY = 3f
         private const val STONE_TOUGHNESS = 0.7f
+        private const val STEEL_TOUGHNESS = 0.5f
         private const val BATTERY_HP = 10f
 
         private const val PLACE_SLACK = 0.05f
@@ -607,6 +710,11 @@ internal class MelonsWorld(
         private const val BURST_BOOST = 1.25f
         private const val BURST_SPREAD = 12f
         private const val SEED_TIME = 3f
+        private const val SPLIT_SPREAD = 10f
+        const val SPLIT_R = 0.65f
+        private const val SPLIT_TIME = 5f
+        const val BANNER_T = 0.5f
+        private const val BANNER_FRICTION = 0.2f
 
         private const val STILL_SPEED = 0.25f
         private const val STILL_TIME = 0.8f

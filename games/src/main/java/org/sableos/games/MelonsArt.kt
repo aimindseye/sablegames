@@ -26,19 +26,43 @@ internal enum class MelonPose { Ready, Flying, Landed }
 
 /**
  * Bitter Melons' sprites, cut from the owner's art sheets (2026-11-25) by tools/melons/cut_sprites.py: the
- * melon in three poses and three rage levels, the four enemies whole and hit, glass, wood and stone in four
- * wear stages, the slingshot and the World 1 background. Each sheet's sprites share one scale.
+ * Bitter Melon in three poses and four rage levels, the Split Cantaloupe in three poses, the four enemies whole
+ * and hit, glass, wood and stone in four wear stages, the slingshot, the AD banner and each world's background.
+ * Each sheet's sprites share one scale.
  */
 internal class MelonsSprites(
     private val load: (Int) -> ImageBitmap,
 ) {
     private fun all(vararg ids: Int) = ids.map(load)
 
-    val world1 = load(R.drawable.melons_world1)
+    private val worlds = all(R.drawable.melons_world1, R.drawable.melons_world2)
     val slingshot = load(R.drawable.melons_slingshot)
-    private val ready = all(R.drawable.melons_melon_ready_0, R.drawable.melons_melon_ready_1, R.drawable.melons_melon_ready_2)
-    private val flying = all(R.drawable.melons_melon_flying_0, R.drawable.melons_melon_flying_1, R.drawable.melons_melon_flying_2)
-    private val landed = all(R.drawable.melons_melon_landed_0, R.drawable.melons_melon_landed_1, R.drawable.melons_melon_landed_2)
+    val banner = load(R.drawable.melons_banner)
+    private val ready =
+        all(
+            R.drawable.melons_melon_ready_0,
+            R.drawable.melons_melon_ready_1,
+            R.drawable.melons_melon_ready_2,
+            R.drawable.melons_melon_ready_3,
+        )
+    private val flying =
+        all(
+            R.drawable.melons_melon_flying_0,
+            R.drawable.melons_melon_flying_1,
+            R.drawable.melons_melon_flying_2,
+            R.drawable.melons_melon_flying_3,
+        )
+    private val landed =
+        all(
+            R.drawable.melons_melon_landed_0,
+            R.drawable.melons_melon_landed_1,
+            R.drawable.melons_melon_landed_2,
+            R.drawable.melons_melon_landed_3,
+        )
+
+    /** The Split Cantaloupe: ready, flying and landed. */
+    private val split =
+        all(R.drawable.melons_split_ready, R.drawable.melons_split_flying, R.drawable.melons_split_landed)
     private val app = all(R.drawable.melons_enemy_app, R.drawable.melons_enemy_app_hit)
     private val bot = all(R.drawable.melons_enemy_bot, R.drawable.melons_enemy_bot_hit)
     private val ad = all(R.drawable.melons_enemy_ad, R.drawable.melons_enemy_ad_hit)
@@ -51,7 +75,12 @@ internal class MelonsSprites(
             R.drawable.melons_block_glass_3,
         )
     private val wood =
-        all(R.drawable.melons_block_wood_0, R.drawable.melons_block_wood_1, R.drawable.melons_block_wood_2, R.drawable.melons_block_wood_3)
+        all(
+            R.drawable.melons_block_wood_0,
+            R.drawable.melons_block_wood_1,
+            R.drawable.melons_block_wood_2,
+            R.drawable.melons_block_wood_3,
+        )
     private val stone =
         all(
             R.drawable.melons_block_stone_0,
@@ -60,16 +89,22 @@ internal class MelonsSprites(
             R.drawable.melons_block_stone_3,
         )
 
-    /** [rage] 0-2 grows with each melon fired in a level. */
+    /** World [n]'s background, from 1. */
+    fun world(n: Int): ImageBitmap = worlds[(n - 1).coerceIn(worlds.indices)]
+
+    /** A melon of [kind] in [pose]; the Bitter Melon's [rage] 0-3 grows with each melon fired and each world. */
     fun melon(
         pose: MelonPose,
         rage: Int,
-    ): ImageBitmap =
-        when (pose) {
+        kind: MelonKind = MelonKind.Bitter,
+    ): ImageBitmap {
+        if (kind == MelonKind.Split) return split[pose.ordinal]
+        return when (pose) {
             MelonPose.Ready -> ready
             MelonPose.Flying -> flying
             MelonPose.Landed -> landed
         }[rage.coerceIn(0, MAX_RAGE)]
+    }
 
     /** The enemy's two sprites, whole then hit. */
     fun enemy(
@@ -95,7 +130,7 @@ internal class MelonsSprites(
         }[wear.coerceIn(0, 3)]
 
     companion object {
-        const val MAX_RAGE = 2
+        const val MAX_RAGE = 3
     }
 }
 
@@ -119,8 +154,10 @@ internal object MelonsArt {
     /** The melon's round body, in sprite pixels: its sheet draws a melon about 100 px across at our scale. */
     private const val MELON_BODY_PX = 100f
 
-    /** Where World 1's dirt path starts, as a share of the background's height. */
-    private const val PATH_TOP = 0.86f
+    /** Where each world's ground starts, as a share of its background's height: the path, then the mall floor. */
+    private val PATH_TOP = floatArrayOf(0.86f, 0.9f)
+
+    private fun pathTop(world: Int) = PATH_TOP[(world - 1).coerceIn(PATH_TOP.indices)]
 
     /** Where the slingshot's band is tied, as a share of its sprite, and where its roots end. */
     private const val SLING_TIE_Y = 0.14f
@@ -156,16 +193,19 @@ internal object MelonsArt {
      * from 0 to [maxCameraX] metres so the whole picture is seen once.
      */
     fun DrawScope.background(
-        image: ImageBitmap,
+        sprites: MelonsSprites,
+        world: Int,
         cameraX: Float,
         maxCameraX: Float,
         groundY: Float,
     ) {
-        val k = maxOf(groundY / (PATH_TOP * image.height), size.height / image.height)
+        val image = sprites.world(world)
+        val path = pathTop(world)
+        val k = maxOf(groundY / (path * image.height), size.height / image.height)
         val width = image.width * k
         val slack = (width - size.width).coerceAtLeast(0f)
         val shift = if (maxCameraX > 0f) slack * (cameraX / maxCameraX).coerceIn(0f, 1f) else 0f
-        sprite(image, -shift, groundY - PATH_TOP * image.height * k, width, image.height * k)
+        sprite(image, -shift, groundY - path * image.height * k, width, image.height * k)
     }
 
     /**
@@ -173,7 +213,8 @@ internal object MelonsArt {
      * 0-1 picks which part of the picture shows, as the camera's position would.
      */
     fun DrawScope.backgroundIn(
-        image: ImageBitmap,
+        sprites: MelonsSprites,
+        world: Int,
         left: Float,
         top: Float,
         width: Float,
@@ -181,10 +222,12 @@ internal object MelonsArt {
         groundY: Float,
         slide: Float,
     ) {
-        val k = maxOf((groundY - top) / (PATH_TOP * image.height), height / image.height)
+        val image = sprites.world(world)
+        val path = pathTop(world)
+        val k = maxOf((groundY - top) / (path * image.height), height / image.height)
         val w = image.width * k
         val shift = (w - width).coerceAtLeast(0f) * slide.coerceIn(0f, 1f)
-        sprite(image, left - shift, groundY - PATH_TOP * image.height * k, w, image.height * k)
+        sprite(image, left - shift, groundY - path * image.height * k, w, image.height * k)
     }
 
     /** A melon of radius [r] px at [center], turned by [degrees]; a landed melon rests on the bottom of its circle. */
@@ -195,8 +238,9 @@ internal object MelonsArt {
         degrees: Float,
         pose: MelonPose,
         rage: Int,
+        kind: MelonKind = MelonKind.Bitter,
     ) {
-        val image = sprites.melon(pose, rage)
+        val image = sprites.melon(pose, rage, kind)
         val k = 2f * r / MELON_BODY_PX
         val w = image.width * k
         val h = image.height * k
@@ -208,6 +252,23 @@ internal object MelonsArt {
         rotate(degrees, center) {
             // The stem sits above the body, so the body's middle is a little below the sprite's.
             sprite(image, center.x - w / 2, center.y - h * 0.56f, w, h)
+        }
+    }
+
+    /**
+     * A gold AD banner [w] px long at [center], turned by [degrees]: the trampoline's pad lies along the plate and
+     * its springs stand off behind it, squashed so they stay short.
+     */
+    fun DrawScope.banner(
+        sprites: MelonsSprites,
+        center: Offset,
+        w: Float,
+        degrees: Float,
+    ) {
+        val image = sprites.banner
+        val h = w * BANNER_HEIGHT
+        rotate(degrees, center) {
+            sprite(image, center.x - w / 2, center.y - h * BANNER_PAD_Y, w, h)
         }
     }
 
@@ -273,7 +334,17 @@ internal object MelonsArt {
             val left = center.x - w / 2
             val top = center.y - h / 2
             for (i in 0 until tiles) {
-                if (along) sprite(image, left + i * step, top, step, h) else sprite(image, left, top + i * step, w, step)
+                if (along) {
+                    sprite(
+                        image,
+                        left + i * step,
+                        top,
+                        step,
+                        h,
+                    )
+                } else {
+                    sprite(image, left, top + i * step, w, step)
+                }
             }
             if (fixed) {
                 val r = (minOf(w, h) * 0.06f).coerceIn(2f, 4f)
@@ -353,6 +424,10 @@ internal object MelonsArt {
 
     /** A tile may stretch to three times its width, so a long plank reads as a plank, not a row of crates. */
     private const val TILE_STRETCH = 3f
+
+    /** The banner's drawn height as a share of its length, and where its pad's middle is down the sprite. */
+    private const val BANNER_HEIGHT = 0.5f
+    private const val BANNER_PAD_Y = 0.3f
 
     /** An enemy's sprite is a fifth larger than its box: legs, antennas and crowns stick out. */
     private const val ENEMY_FIT = 1.2f

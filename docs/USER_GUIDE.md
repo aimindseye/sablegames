@@ -76,7 +76,8 @@ A slingshot physics game. AI Slop has taken over the hills, and every level is a
 - **Fire.** Space fires. Press Space again while the melon is in the air for a Seed Burst, three fast seeds in a spread.
 - **Look ahead.** V (or Tab) moves the camera to the structure and back. Each level also opens with a short pan over it, and your first key press skips the pan.
 - **Points.** A Slop App is worth 50, an AI Bot 100 and the gold Premium Ad-Slop 300. Breaking the gold one doubles block points for a few seconds. A red Overheated Battery blows up when hit, and its blast breaks what is near it. Each melon left over at the end is worth 500.
-- **Seeds.** A cleared level earns one to three seeds by score, and the next level opens. A panel shows the result: press Space or tap for Next level, or Try again if you ran out of melons. N (Levels) shows World 1's nine levels with the seeds won on each.
+- **Seeds.** A cleared level earns one to three seeds by score, and the next level opens. A panel shows the result: press Space or tap for Next level, or Try again if you ran out of melons. N (Levels) shows the nine levels of a world with the seeds won on each; moving down past the last row goes on to the next world.
+- **World 2, Slop Mall.** Clearing World 1's last level opens the mall. It brings the Split Cantaloupe, which splits into three smaller melons when you press Space in the air, and gold AD banners, which throw a melon off faster than it hit them. The melons waiting their turn sit at the bottom left, in the order they load.
 
 ## Sable Card Games
 
