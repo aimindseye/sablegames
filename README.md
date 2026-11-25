@@ -76,7 +76,7 @@ Release APKs build unsigned; releases are signed on the owner's computer with `t
 | `docs/` | The guides, release notes, and Bitter Melons' level data (`docs/bitter-melons/levels.json`) |
 | `design/` | The Sable look: colours, type, list keys and the shared components |
 | `.github/workflows/` | Build and test, security scans and SonarQube Cloud |
-| `tools/` | `build-release.sh` (signed release on your computer), `check-apks.sh`, and `melons/cut_sprites.py` (cuts Bitter Melons' sprites from the art sheets) |
+| `tools/` | `build-release.sh` (signed release on your computer), `check-apks.sh`, `screenshots.sh` (captures every game from a phone over adb for the docs), and `melons/cut_sprites.py` (cuts Bitter Melons' sprites from the art sheets) |
 
 ## Licence
 
