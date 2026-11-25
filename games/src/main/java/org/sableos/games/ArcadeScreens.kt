@@ -14,7 +14,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -45,16 +44,12 @@ private val PieceColors =
 
 private val ShapeNames = listOf("I", "O", "T", "S", "Z", "J", "L")
 
-private const val PADDLE_STEP = 0.06f
-
 /** How much longer (slow) or shorter (fast) each Snake step is than normal. */
 private val SNAKE_PACE = floatArrayOf(1.4f, 1f, 0.7f)
-private const val NANOS_PER_SECOND = 1_000_000_000f
-private const val MAX_FRAME_SECONDS = 0.05f
 
 /** The board's frame: a square surface with the theme's outline, as in the other Sable games. */
 @Composable
-private fun ArcadeBoard(
+internal fun ArcadeBoard(
     side: Dp,
     modifier: Modifier = Modifier,
     draw: DrawScope.() -> Unit,
@@ -339,115 +334,3 @@ internal fun BlocksScreen() {
 
 private val BlocksWell = Color(0xFF141C40)
 private val BlocksGrid = Color(0xFF1D2650)
-
-@Composable
-internal fun BricksScreen() {
-    var game by remember { mutableStateOf(BricksGame()) }
-    var paused by remember { mutableStateOf(false) }
-
-    fun reset() {
-        game = BricksGame()
-        paused = false
-    }
-
-    val held = paused || LocalGameShell.current?.suspended == true
-    LaunchedEffect(game.launched, held, game.over) {
-        var last = 0L
-        while (game.launched && !held && !game.over) {
-            withFrameNanos { now ->
-                if (last != 0L) {
-                    game = game.step(((now - last) / NANOS_PER_SECOND).coerceAtMost(MAX_FRAME_SECONDS))
-                }
-                last = now
-            }
-        }
-    }
-
-    GameKeyHandler(GameKind.Bricks) { command ->
-        when (command) {
-            is GameCommand.Move -> if (!paused && command.dx != 0) game = game.movePaddle(command.dx * PADDLE_STEP)
-            GameCommand.Primary -> if (game.over) reset() else game = game.launch()
-            GameCommand.Pause -> paused = !paused && game.launched
-            GameCommand.NewGame -> reset()
-            else -> return@GameKeyHandler false
-        }
-        true
-    }
-
-    GameFrame(
-        title = t("bricks"),
-        subtitle = t("keep_the_ball_in_play"),
-        statusLabel = "♥".repeat(game.lives.coerceAtLeast(0)) + " · level ${game.level}",
-        status =
-            when {
-                game.over -> t("game_over_space_plays_again")
-                paused -> t("paused_p_resumes")
-                !game.launched -> t("space_launches", game.score)
-                else -> game.score.toString()
-            },
-        hint = t("left_right_or_the_trackpad"),
-        actions =
-            listOf(
-                GameAction(tab = true, label = if (paused) t("resume") else t("pause"), key = "P", active = paused) {
-                    paused =
-                        !paused && game.launched
-                },
-                GameAction(tab = true, label = t("new_label"), key = "N", onClick = ::reset),
-            ),
-    ) { side ->
-        ArcadeBoard(
-            side = side,
-            modifier =
-                Modifier
-                    .pointerInput(Unit) { detectTapGestures { game = if (game.over) BricksGame() else game.launch() } }
-                    .pointerInput(Unit) {
-                        detectDragGestures { change, _ -> game = game.paddleTo(change.position.x / size.width) }
-                    },
-        ) {
-            val w = size.width
-            val gap = 2f
-            val brickW = w / BricksGame.COLUMNS
-            val brickH = w * BricksGame.BRICK_HEIGHT
-            // The field first: drawn later, it covered the bricks.
-            drawRect(BricksField)
-            game.bricks.forEachIndexed { index, hits ->
-                if (hits <= 0) return@forEachIndexed
-                val row = index / BricksGame.COLUMNS
-                val col = index % BricksGame.COLUMNS
-                drawRoundRect(
-                    BrickRows[row % BrickRows.size],
-                    Offset(col * brickW + gap, w * BricksGame.WALL_TOP + row * brickH + gap),
-                    Size(brickW - gap * 2, brickH - gap * 2),
-                    CornerRadius(4f),
-                )
-            }
-            val paddleW = w * BricksGame.PADDLE_WIDTH
-            drawRoundRect(
-                BricksPaddle,
-                Offset(game.paddleX * w - paddleW / 2, w * BricksGame.PADDLE_Y),
-                Size(paddleW, w * BricksGame.PADDLE_HEIGHT),
-                CornerRadius(w * BricksGame.PADDLE_HEIGHT / 2),
-            )
-            // A faint trail behind the ball, so it never gets lost against a brick.
-            drawCircle(
-                Color.White.copy(alpha = 0.25f),
-                w * BricksGame.BALL_RADIUS * 1.6f,
-                Offset(game.ballX * w, game.ballY * w),
-            )
-            drawCircle(Color.White, w * BricksGame.BALL_RADIUS, Offset(game.ballX * w, game.ballY * w))
-        }
-    }
-}
-
-/** Brick rows from rose at the top to blue at the bottom, on a deep violet field. */
-private val BrickRows =
-    listOf(
-        Color(0xFFFF5A8A),
-        Color(0xFFFF8A3D),
-        Color(0xFFFFC72C),
-        Color(0xFF8BE04E),
-        Color(0xFF2FD0B5),
-        Color(0xFF7AA2FF),
-    )
-private val BricksField = Color(0xFF1D1540)
-private val BricksPaddle = Color(0xFF2FD0B5)
