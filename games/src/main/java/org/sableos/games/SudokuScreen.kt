@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.sableos.games.GamesText.t
+import kotlin.random.Random
 
 private const val SUDOKU_SIZE = 9
 
@@ -35,8 +36,11 @@ private const val DEFAULT_SUDOKU =
 
 @Composable
 internal fun SudokuScreen() {
+    val random = remember { Random.Default }
+    // Each game is the base puzzle relabelled and shuffled, so New gives a different board.
+    var puzzle by remember { mutableStateOf(GamesCore.sudokuShuffle(DEFAULT_SUDOKU, random)) }
     var state by remember {
-        mutableStateOf(requireOk(GamesCore.sudokuStart(DEFAULT_SUDOKU)))
+        mutableStateOf(requireOk(GamesCore.sudokuStart(puzzle)))
     }
     var board by remember {
         mutableStateOf(requireOk(GamesCore.sudokuBoard(state)))
@@ -47,7 +51,8 @@ internal fun SudokuScreen() {
     val history = remember { mutableStateListOf<String>() }
 
     fun reset() {
-        state = requireOk(GamesCore.sudokuStart(DEFAULT_SUDOKU))
+        puzzle = GamesCore.sudokuShuffle(DEFAULT_SUDOKU, random)
+        state = requireOk(GamesCore.sudokuStart(puzzle))
         board = requireOk(GamesCore.sudokuBoard(state))
         selectedRow = 0
         selectedCol = 2
@@ -103,7 +108,7 @@ internal fun SudokuScreen() {
         selectedRow = row
         selectedCol = col
         status =
-            if (isGiven(row, col)) {
+            if (isGiven(puzzle, row, col)) {
                 t("fixed_clue")
             } else {
                 t("row_column", row + 1, col + 1)
@@ -169,6 +174,7 @@ internal fun SudokuScreen() {
         SudokuBoard(
             side = side,
             board = board,
+            puzzle = puzzle,
             selectedRow = selectedRow,
             selectedCol = selectedCol,
             onSelect = ::select,
@@ -180,6 +186,7 @@ internal fun SudokuScreen() {
 private fun SudokuBoard(
     side: Dp,
     board: String,
+    puzzle: String,
     selectedRow: Int,
     selectedCol: Int,
     onSelect: (Int, Int) -> Unit,
@@ -210,6 +217,7 @@ private fun SudokuBoard(
                                             row = row,
                                             col = col,
                                             cell = board[row * 9 + col],
+                                            given = isGiven(puzzle, row, col),
                                             highlight = cellHighlight(row, col, selectedRow, selectedCol),
                                             clash = clashes(board, row, col),
                                             onSelect = onSelect,
@@ -245,11 +253,11 @@ private fun RowScope.SudokuCell(
     row: Int,
     col: Int,
     cell: Char,
+    given: Boolean,
     highlight: CellHighlight,
     clash: Boolean,
     onSelect: (Int, Int) -> Unit,
 ) {
-    val given = isGiven(row, col)
     val selected = highlight == CellHighlight.SELECTED
     // Clues white and bold, your digits light blue, a clash coral; the cursor is a thick gold outline
     // and its row, column and box are tinted.
@@ -345,7 +353,7 @@ internal fun clashes(
 }
 
 private val SudokuCellColor = Color(0xFF18223F)
-private val SudokuPeer = Color(0xFF22305A)
+private val SudokuPeer = Color(0xFF2C3D75)
 private val SudokuCellLine = Color(0xFF2C3A66)
 private val SudokuBoxLine = Color(0xFF7A8BC0)
 private val SudokuYours = Color(0xFF7AD7FF)
@@ -354,6 +362,7 @@ private val SudokuClash = Color(0xFFFF7A6B)
 private val SudokuClashFill = Color(0xFF3A2430)
 
 private fun isGiven(
+    puzzle: String,
     row: Int,
     col: Int,
-): Boolean = DEFAULT_SUDOKU[row * 9 + col] != '0'
+): Boolean = puzzle[row * 9 + col] != '0'

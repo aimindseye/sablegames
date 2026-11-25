@@ -416,6 +416,8 @@ internal fun BricksScreen() {
             val gap = 2f
             val brickW = w / BricksGame.COLUMNS
             val brickH = w * BricksGame.BRICK_HEIGHT
+            // The field first: drawn later, it covered the bricks.
+            drawRect(BricksField)
             game.bricks.forEachIndexed { index, hits ->
                 if (hits <= 0) return@forEachIndexed
                 val row = index / BricksGame.COLUMNS
@@ -428,7 +430,6 @@ internal fun BricksScreen() {
                 )
             }
             val paddleW = w * BricksGame.PADDLE_WIDTH
-            drawRect(BricksField)
             drawRoundRect(
                 BricksPaddle,
                 Offset(game.paddleX * w - paddleW / 2, w * BricksGame.PADDLE_Y),

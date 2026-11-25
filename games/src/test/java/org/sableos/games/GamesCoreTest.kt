@@ -4,6 +4,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.random.Random
 
 class GamesCoreTest {
     private val puzzle = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
@@ -69,5 +70,73 @@ class GamesCoreTest {
         assertEquals(12L, result[16])
         val down = GamesCore.game2048Slide(intArrayOf(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0), 3)
         assertEquals(listOf(0L, 0L, 4L, 4L), listOf(down[0], down[4], down[8], down[12]))
+    }
+
+    @Test
+    fun game2048AddsATileAfterEveryMoveThatChangesTheBoard() {
+        val random = Random(7)
+        val start = GamesCore.game2048Start(random)
+        assertEquals(2, start.count { it != 0 })
+        assertTrue(start.all { it == 0 || it == 2 || it == 4 })
+        val board = intArrayOf(2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        val spawned = GamesCore.game2048Spawn(board, random)
+        assertEquals(2, spawned.count { it != 0 })
+        assertEquals(2, spawned[0])
+        val full = IntArray(16) { if ((it / 4 + it % 4) % 2 == 0) 2 else 4 }
+        assertArrayEquals(full, GamesCore.game2048Spawn(full, random))
+        assertTrue(GamesCore.game2048Stuck(full))
+        assertTrue(!GamesCore.game2048Stuck(board))
+    }
+
+    @Test
+    fun minesweeperFirstRevealIsSafeAndOpenFieldsFlood() {
+        // Eight mines in nine cells: the first cell opened is never one of them, and it wins.
+        val tight = ok(GamesCore.minesweeperStart(3, 3, 8, 99))
+        val first = GamesCore.minesweeperReveal(tight, 1, 1).split('|')
+        assertEquals("WON", first[2])
+        // No mines at all: one reveal opens everything.
+        val empty = ok(GamesCore.minesweeperStart(9, 9, 0, 5))
+        val opened = GamesCore.minesweeperReveal(empty, 0, 0).split('|')
+        assertEquals("WON", opened[2])
+        assertTrue(ok(GamesCore.minesweeperView(opened[1])).none { it == 'H' })
+    }
+
+    @Test
+    fun minesweeperEndsOnAMineAndShowsThemAll() {
+        var state = ok(GamesCore.minesweeperStart(3, 3, 7, 42))
+        state = GamesCore.minesweeperReveal(state, 0, 0).split('|')[1]
+        var last = ""
+        for (i in 1 until 9) {
+            val r = GamesCore.minesweeperReveal(state, i % 3, i / 3).split('|')
+            state = r[1]
+            if (r[2] == "MINE" || r[2] == "WON") {
+                last = r[2]
+                break
+            }
+        }
+        assertEquals("MINE", last)
+        val view = ok(GamesCore.minesweeperView(state))
+        assertEquals(7, view.count { it == '*' })
+        // Nothing opens or flags after the end.
+        assertEquals("IGNORED", GamesCore.minesweeperReveal(state, 2, 2).split('|')[2])
+        assertEquals(view, ok(GamesCore.minesweeperView(GamesCore.minesweeperToggleFlag(state, 2, 2).split('|')[1])))
+    }
+
+    @Test
+    fun sudokuShuffleGivesADifferentValidPuzzle() {
+        val random = Random(3)
+        val shuffled = GamesCore.sudokuShuffle(puzzle, random)
+        assertTrue(shuffled != puzzle)
+        assertEquals(puzzle.count { it == '0' }, shuffled.count { it == '0' })
+        ok(GamesCore.sudokuStart(shuffled))
+        // No digit twice in a row, column or box among the clues.
+        val units =
+            (0 until 9).map { r -> (0 until 9).map { r * 9 + it } } +
+                (0 until 9).map { c -> (0 until 9).map { it * 9 + c } } +
+                (0 until 9).map { b -> (0 until 9).map { (b / 3 * 3 + it / 3) * 9 + b % 3 * 3 + it % 3 } }
+        units.forEach { unit ->
+            val digits = unit.map { shuffled[it] }.filter { it != '0' }
+            assertEquals(digits.size, digits.toSet().size)
+        }
     }
 }
