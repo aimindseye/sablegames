@@ -545,8 +545,8 @@ internal class MelonsWorld(
         const val MIN_POWER = 20f
         const val MELON_R = 0.9f
         const val SEED_R = 0.3f
-        const val BATTERY_W = 1f
-        const val BATTERY_H = 1.4f
+        const val BATTERY_W = 1.4f
+        const val BATTERY_H = 2f
         const val BATTERY_POINTS = 75
         const val UNUSED_MELON_BONUS = 500
 

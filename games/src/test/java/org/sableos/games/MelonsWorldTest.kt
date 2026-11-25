@@ -53,7 +53,7 @@ class MelonsWorldTest {
                 "1-2" to listOf(7f to 100f),
                 "1-3" to listOf(25f to 82f),
                 "1-4" to listOf(4f to 100f),
-                "1-5" to listOf(4f to 94f),
+                "1-5" to listOf(4f to 98f),
                 "1-6" to listOf(16f to 100f),
                 "1-7" to listOf(43f to 64f),
                 "1-8" to listOf(25f to 88f, 10f to 100f, 16f to 100f),

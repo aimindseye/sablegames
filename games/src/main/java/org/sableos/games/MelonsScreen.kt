@@ -42,6 +42,7 @@ import org.sableos.games.MelonsArt.enemy
 import org.sableos.games.MelonsArt.melon
 import org.sableos.games.MelonsArt.popup
 import org.sableos.games.MelonsArt.seed
+import org.sableos.games.MelonsArt.slingTies
 import org.sableos.games.MelonsArt.slingshot
 import kotlin.math.PI
 import kotlin.math.cos
@@ -103,6 +104,7 @@ internal fun MelonsScreen() {
     var recorded by remember { mutableStateOf(false) }
     // Bumped every frame, so the canvas redraws the world as it moves.
     var frame by remember { mutableIntStateOf(0) }
+    val sprites = rememberMelonsSprites()
 
     fun play(index: Int) {
         if (!progress.open(index)) return
@@ -289,7 +291,7 @@ internal fun MelonsScreen() {
                     },
         ) {
             // Reading the frame count makes the canvas redraw as the world moves.
-            if (frame >= 0) drawWorld(world, cameraX)
+            if (frame >= 0) drawWorld(world, cameraX, sprites)
         }
     }
 }
@@ -298,6 +300,7 @@ internal fun MelonsScreen() {
 private fun DrawScope.drawWorld(
     world: MelonsWorld,
     cameraX: Float,
+    sprites: MelonsSprites,
 ) {
     val m = size.width / VIEW
     val top = VIEW_BOTTOM + VIEW
@@ -308,14 +311,17 @@ private fun DrawScope.drawWorld(
     ) = Offset((x - cameraX) * m, (top - y) * m)
 
     val degreesOf = { radians: Float -> -radians * 180f / PI.toFloat() }
-    background(cameraX, m, at(0f, 0f).y)
+    val groundY = at(0f, 0f).y
+    background(sprites.world1, cameraX, MelonsWorld.STAGE_W - VIEW, groundY)
+
+    // The melons fired so far set the next one's rage: the last melons of a level are the angriest.
+    val fired = world.level.melons - world.melonsLeft
+    val flyingRage = (fired - 1).coerceAtLeast(0)
 
     // The slingshot, with the melon in its pouch while aiming.
-    val foot = at(MelonsWorld.SLING_X, 0f)
-    val fork = at(MelonsWorld.SLING_X, MelonsWorld.SLING_Y - 1.6f)
-    val left = at(MelonsWorld.SLING_X - 0.8f, MelonsWorld.SLING_Y + 0.2f)
-    val right = at(MelonsWorld.SLING_X + 0.9f, MelonsWorld.SLING_Y + 0.2f)
-    slingshot(foot, fork, left, right, m)
+    val ties = at(MelonsWorld.SLING_X, MelonsWorld.SLING_Y + 0.2f)
+    val (left, right) = slingTies(sprites.slingshot, ties, groundY)
+    slingshot(sprites.slingshot, ties, groundY)
     val rad = world.angle * PI.toFloat() / 180f
     if (world.phase == MelonPhase.Aiming && world.melonsLeft > 0) {
         val pull = PULL_BACK * world.power / 100f
@@ -324,8 +330,8 @@ private fun DrawScope.drawWorld(
             val (px, py) = world.preview(PREVIEW_TIME * i / PREVIEW_DOTS)
             drawCircle(MelonsArt.Ink.copy(alpha = 0.6f), m * 0.16f, at(px, py))
         }
+        melon(sprites, pouch, MelonsWorld.MELON_R * m, 0f, MelonPose.Ready, fired)
         band(left, right, pouch, m)
-        melon(pouch, MelonsWorld.MELON_R * m, 0f)
     }
 
     for (piece in world.pieces) {
@@ -333,16 +339,19 @@ private fun DrawScope.drawWorld(
         val deg = degreesOf(piece.angle)
         when (piece.kind) {
             PieceKind.Block -> {
-                block(c, piece.w * m, piece.h * m, deg, piece.material, piece.cracked, m, bolted = piece.fixed)
+                block(sprites, c, piece.w * m, piece.h * m, deg, piece.material, piece.hp, piece.maxHp, piece.fixed)
             }
 
             PieceKind.Slop, PieceKind.Battery -> {
-                enemy(c, piece.w * m, piece.h * m, deg, piece.kind, piece.slop, piece.cracked)
+                enemy(sprites, c, piece.w * m, piece.h * m, deg, piece.kind, piece.slop, piece.cracked)
             }
 
             PieceKind.Melon -> {
-                val landed = world.phase != MelonPhase.Flying || piece.speed < 1f
-                melon(c, MelonsWorld.MELON_R * m, deg, squashed = landed && piece !== world.melon)
+                val current = piece === world.melon
+                val landed = !current || world.phase != MelonPhase.Flying || piece.speed < 1f
+                // Spent melons lie knocked out; the one in play shows its rage.
+                val pose = if (landed) MelonPose.Landed else MelonPose.Flying
+                melon(sprites, c, MelonsWorld.MELON_R * m, deg, pose, if (current) flyingRage else 0)
             }
 
             PieceKind.Seed -> {
@@ -397,8 +406,10 @@ private fun DrawScope.drawWorld(
     }
 
     // The melons still to fire, bottom left.
-    repeat((world.melonsLeft - if (world.phase == MelonPhase.Aiming) 1 else 0).coerceAtLeast(0)) { i ->
-        melon(Offset(m * (1.2f + i * 1.6f), size.height - m * 1.2f), m * 0.65f, 0f)
+    val inPouch = if (world.phase == MelonPhase.Aiming) 1 else 0
+    repeat((world.melonsLeft - inPouch).coerceAtLeast(0)) { i ->
+        val rage = fired + inPouch + i
+        melon(sprites, Offset(m * (1.2f + i * 1.6f), size.height - m * 1.2f), m * 0.65f, 0f, MelonPose.Ready, rage)
     }
 
     if (world.comboTime > 0f) {
