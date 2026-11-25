@@ -1,18 +1,24 @@
 package org.sableos.games
 
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -33,6 +40,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,6 +49,7 @@ import org.sableos.games.MelonsArt.background
 import org.sableos.games.MelonsArt.backgroundIn
 import org.sableos.games.MelonsArt.band
 import org.sableos.games.MelonsArt.block
+import org.sableos.games.MelonsArt.buttonLabel
 import org.sableos.games.MelonsArt.enemy
 import org.sableos.games.MelonsArt.melon
 import org.sableos.games.MelonsArt.popup
@@ -72,6 +81,11 @@ private const val DRAG_POWER_PER_PX = 0.25f
 private const val PREVIEW_TIME = 1.1f
 private const val PREVIEW_DOTS = 11
 private const val PULL_BACK = 1.6f
+
+/** In flight the camera keeps the melon this share of the view from the left. */
+private const val FOLLOW_AT = 0.35f
+private val SeedWon = Color(0xFFFFF1C1)
+private val SeedEmpty = Color(0x33FFFFFF)
 
 /** Seconds the opening shot holds on the structure before panning back. */
 private const val INTRO_HOLD = 1.6f
@@ -122,13 +136,19 @@ internal fun MelonsScreen() {
     var recorded by remember { mutableStateOf(false) }
     // Bumped every frame, so the canvas redraws the world as it moves.
     var frame by remember { mutableIntStateOf(0) }
+
+    // The board fills the space it is given; a wide one shows more of the stage across.
+    var viewW by remember { mutableFloatStateOf(VIEW) }
+
+    // The world is not Compose state, so the status line is refreshed from this when what it shows changes.
+    var hud by remember { mutableStateOf(listOf<Any>()) }
     val sprites = rememberMelonsSprites()
 
     fun play(index: Int) {
         if (!progress.open(index)) return
         levelIndex = index
         world = MelonsWorld(MelonsLevels.all[index])
-        cameraX = fortCamera(world.level)
+        cameraX = fortCamera(world.level, viewW)
         intro = INTRO_HOLD
         peek = false
         paused = false
@@ -202,13 +222,13 @@ internal fun MelonsScreen() {
                         world.phase == MelonPhase.Flying -> {
                             (
                                 world.melon?.takeIf { !it.dead }?.x
-                                    ?: (cameraX + VIEW * 0.35f)
+                                    ?: (cameraX + viewW * FOLLOW_AT)
                             ) -
-                                VIEW * 0.35f
+                                viewW * FOLLOW_AT
                         }
 
                         peek || intro > 0f -> {
-                            fortCamera(world.level)
+                            fortCamera(world.level, viewW)
                         }
 
                         world.phase == MelonPhase.Aiming -> {
@@ -218,13 +238,14 @@ internal fun MelonsScreen() {
                         else -> {
                             cameraX
                         }
-                    }.coerceIn(0f, MelonsWorld.STAGE_W - VIEW)
+                    }.coerceIn(0f, MelonsWorld.STAGE_W - viewW)
                 cameraX += (target - cameraX) * (CAMERA_EASE * dt).coerceAtMost(1f)
                 if (world.phase == MelonPhase.Cleared && !recorded) {
                     recorded = true
                     progress = progress.record(levelIndex, world.seeds, world.score)
                     saveProgress(context, progress)
                 }
+                hud = listOf(world.phase, world.score, world.angle, world.power, world.burstUsed, world.melonsLeft)
                 frame++
             }
         }
@@ -269,6 +290,8 @@ internal fun MelonsScreen() {
     }
 
     val level = world.level
+    // Reading the HUD key recomposes the status line when the phase, score or aim changes.
+    if (hud.isEmpty()) hud = listOf(world.phase)
     GameFrame(
         title = "Bitter Melons",
         subtitle = "Fling angry melons. Topple the AI Slop.",
@@ -280,6 +303,7 @@ internal fun MelonsScreen() {
             },
         status =
             when {
+                hud.isEmpty() -> ""
                 selecting -> "Pick a level · Enter plays"
                 paused -> "Paused · P resumes"
                 world.phase == MelonPhase.Cleared -> "Cleared ${seedMarks(world.seeds)} ${world.score} · Space"
@@ -307,17 +331,28 @@ internal fun MelonsScreen() {
             }
             return@GameFrame
         }
-        ArcadeBoard(
-            side = side,
-            modifier =
-                Modifier
-                    .pointerInput(Unit) { detectTapGestures { primary() } }
-                    .pointerInput(Unit) {
-                        detectDragGestures { _, drag -> aim(-drag.y * DRAG_DEGREES_PER_PX, drag.x * DRAG_POWER_PER_PX) }
-                    },
-        ) {
-            // Reading the frame count makes the canvas redraw as the world moves.
-            if (frame >= 0) drawWorld(world, cameraX, sprites)
+        BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            // Where the frame gives a bounded box (the square layout), use all of it, so a screen wider or taller
+            // than square is filled; in the scrolling tall layout keep the square side.
+            val boardModifier =
+                if (constraints.hasBoundedHeight) Modifier.fillMaxSize() else Modifier.size(side)
+            Surface(
+                modifier =
+                    boardModifier
+                        .onSizeChanged { px -> viewW = VIEW * maxOf(1f, px.width.toFloat() / px.height.coerceAtLeast(1)) }
+                        .pointerInput(Unit) { detectTapGestures { primary() } }
+                        .pointerInput(Unit) {
+                            detectDragGestures { _, drag -> aim(-drag.y * DRAG_DEGREES_PER_PX, drag.x * DRAG_POWER_PER_PX) }
+                        },
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Canvas(Modifier.fillMaxSize()) {
+                    // Reading the frame count makes the canvas redraw as the world moves.
+                    if (frame >= 0) drawWorld(world, cameraX, sprites)
+                }
+            }
         }
     }
 }
@@ -328,8 +363,10 @@ private fun DrawScope.drawWorld(
     cameraX: Float,
     sprites: MelonsSprites,
 ) {
-    val m = size.width / VIEW
-    val top = VIEW_BOTTOM + VIEW
+    // VIEW metres fit the shorter side; a wider board shows more of the stage, a taller one more sky.
+    val m = minOf(size.width, size.height) / VIEW
+    val viewW = size.width / m
+    val top = VIEW_BOTTOM + size.height / m
 
     fun at(
         x: Float,
@@ -338,7 +375,7 @@ private fun DrawScope.drawWorld(
 
     val degreesOf = { radians: Float -> -radians * 180f / PI.toFloat() }
     val groundY = at(0f, 0f).y
-    background(sprites.world1, cameraX, MelonsWorld.STAGE_W - VIEW, groundY)
+    background(sprites.world1, cameraX, MelonsWorld.STAGE_W - viewW, groundY)
 
     // The melons fired so far set the next one's rage: the last melons of a level are the angriest.
     val fired = world.level.melons - world.melonsLeft
@@ -387,8 +424,8 @@ private fun DrawScope.drawWorld(
     }
 
     // While aiming with the structure off screen, a live view of it sits top right, with its distance.
-    if (world.phase == MelonPhase.Aiming && world.level.fortX > cameraX + VIEW) {
-        targetView(world, sprites, m)
+    if (world.phase == MelonPhase.Aiming && world.level.fortX > cameraX + viewW) {
+        targetView(world, sprites, m, viewW)
     }
 
     // The melons still to fire, bottom left.
@@ -401,6 +438,47 @@ private fun DrawScope.drawWorld(
     if (world.comboTime > 0f) {
         popup("2× DEBRIS", Offset(size.width / 2, m * 3f), m * 1.6f, 1f)
     }
+
+    if (world.phase == MelonPhase.Cleared || world.phase == MelonPhase.Failed) resultPanel(world, m)
+}
+
+/**
+ * The end of a level, over the middle of the board: cleared with its seeds and score and a Next level button,
+ * or out of melons with a Try again button. A tap anywhere or Space does what the button says.
+ */
+private fun DrawScope.resultPanel(
+    world: MelonsWorld,
+    m: Float,
+) {
+    val cleared = world.phase == MelonPhase.Cleared
+    val w = minOf(size.width * 0.8f, m * 22f)
+    val h = m * 12f
+    val left = (size.width - w) / 2
+    val top = (size.height - h) / 2
+    drawRect(MelonsArt.Ink.copy(alpha = 0.35f))
+    drawRoundRect(MelonsArt.Ink.copy(alpha = 0.92f), Offset(left, top), Size(w, h), CornerRadius(m * 0.8f))
+    drawRoundRect(MelonsArt.Yellow, Offset(left, top), Size(w, h), CornerRadius(m * 0.8f), style = Stroke(m * 0.15f))
+    val cx = size.width / 2
+    popup(if (cleared) "Level cleared!" else "Out of melons", Offset(cx, top + m * 2.6f), m * 1.8f, 1f)
+    if (cleared) {
+        // Three seeds, filled for each one won.
+        for (i in 0 until 3) {
+            val c = Offset(cx + (i - 1) * m * 2.4f, top + m * 4.8f)
+            val won = i < world.seeds
+            drawOval(if (won) SeedWon else SeedEmpty, Offset(c.x - m * 0.6f, c.y - m * 0.85f), Size(m * 1.2f, m * 1.7f))
+            drawOval(MelonsArt.Ink, Offset(c.x - m * 0.6f, c.y - m * 0.85f), Size(m * 1.2f, m * 1.7f), style = Stroke(m * 0.12f))
+        }
+    }
+    popup("Score ${world.score}", Offset(cx, top + m * 7.4f), m * 1.1f, 1f)
+    // The button.
+    val bw = minOf(w * 0.7f, m * 13f)
+    val bh = m * 2.4f
+    val bTop = top + h - bh - m * 1f
+    drawRoundRect(MelonsArt.Yellow, Offset(cx - bw / 2, bTop), Size(bw, bh), CornerRadius(m * 0.5f))
+    drawRoundRect(MelonsArt.Ink, Offset(cx - bw / 2, bTop), Size(bw, bh), CornerRadius(m * 0.5f), style = Stroke(m * 0.12f))
+    val last = world.level.number >= MelonsLevels.all.size
+    val label = if (!cleared) "Try again · Space" else if (last) "Levels · Space" else "Next level · Space"
+    buttonLabel(label, Offset(cx, bTop + bh * 0.68f), m * 1f)
 }
 
 /** Every block, enemy, melon and seed, [m] px per metre, placed by [at]. */
@@ -448,6 +526,7 @@ private fun DrawScope.targetView(
     world: MelonsWorld,
     sprites: MelonsSprites,
     m: Float,
+    viewW: Float,
 ) {
     val level = world.level
     val standing = world.pieces.filter { it.kind != PieceKind.Melon && it.kind != PieceKind.Seed }
@@ -465,7 +544,7 @@ private fun DrawScope.targetView(
     val originX = left + (boxW - (x1 - x0) * k) / 2 - x0 * k
     val box = Size(boxW, boxH)
     clipRect(left, top, left + boxW, top + boxH) {
-        backgroundIn(sprites.world1, left, top, boxW, boxH, ground, fortCamera(level) / (MelonsWorld.STAGE_W - VIEW))
+        backgroundIn(sprites.world1, left, top, boxW, boxH, ground, fortCamera(level, viewW) / (MelonsWorld.STAGE_W - viewW))
         fun inBox(
             x: Float,
             y: Float,
@@ -512,8 +591,11 @@ private fun DrawScope.targetView(
     )
 }
 
-/** The camera that frames a level's structure. */
-private fun fortCamera(level: MelonLevel) = ((level.fortX + level.fortEnd - VIEW) / 2).coerceIn(0f, MelonsWorld.STAGE_W - VIEW)
+/** The camera that frames a level's structure, for a view [viewW] metres across. */
+private fun fortCamera(
+    level: MelonLevel,
+    viewW: Float,
+) = ((level.fortX + level.fortEnd - viewW) / 2).coerceIn(0f, MelonsWorld.STAGE_W - viewW)
 
 /** World 1's nine levels in a 3 x 3 grid, with the seeds won on each; locked levels are dimmed. */
 @Composable
