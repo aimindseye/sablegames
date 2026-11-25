@@ -68,20 +68,113 @@ class ArcadeGamesTest {
         val game = BricksGame().movePaddle(0.2f)
         assertEquals(0.7f, game.paddleX, 0.001f)
         assertEquals(game.paddleX, game.ballX, 0.001f)
-        assertEquals(game, game.step(1f))
+        assertEquals(game, game.step(1f, Random(1)))
         assertTrue(game.launch().velY < 0f)
     }
 
     @Test
     fun bricksBreakAndAMissCostsALife() {
         var game = BricksGame().launch()
-        repeat(200) { game = game.step(1f / 60) }
+        repeat(200) { game = game.step(1f / 60, Random(it)) }
         assertTrue(game.score > 0)
 
-        val falling = BricksGame(ballX = 0.05f, ballY = 0.99f, velX = 0f, velY = 1f, paddleX = 0.9f, launched = true)
-        val missed = falling.step(0.05f)
+        val falling = BricksGame(balls = listOf(BricksBall(0.05f, 0.99f, 0f, 1f)), paddleX = 0.9f)
+        val missed = falling.step(0.05f, Random(1))
         assertEquals(2, missed.lives)
         assertFalse(missed.launched)
+        assertTrue(missed.lostLife)
+    }
+
+    /** A wall with [bricks] at the given cells and a ball rising into cell 5 (row 0, column 5). */
+    private fun bricksAt(
+        vararg cells: Pair<Int, Brick>,
+        capsules: List<BricksCapsule> = emptyList(),
+    ): BricksGame {
+        val wall = MutableList<Brick?>(BricksGame.ROWS * BricksGame.COLUMNS) { null }
+        cells.forEach { (i, b) -> wall[i] = b }
+        return BricksGame(bricks = wall, balls = listOf(BricksBall(0.55f, 0.16f, 0f, -0.7f)), capsules = capsules)
+    }
+
+    private fun BricksGame.run(seconds: Float) = step(seconds, Random(0))
+
+    @Test
+    fun bricksLevelsAreFourWorldsOfFiveWallsThatFit() {
+        assertEquals(20, BricksLevels.all.size)
+        assertEquals(4, BricksLevels.worlds.size)
+        BricksLevels.all.forEachIndexed { i, level ->
+            assertEquals(level.name, i, level.index)
+            assertTrue(level.name, level.rows.size <= BricksGame.ROWS)
+            assertTrue(level.name, level.rows.all { it.length == BricksGame.COLUMNS })
+            assertTrue(level.name, BricksGame.wallFor(level).any { it?.breakable == true })
+        }
+        assertTrue(BricksLevels.all.filter { it.world == 4 }.all { it.sliding || it.ceilingSeconds > 0f })
+    }
+
+    @Test
+    fun bricksToughTakeTwoHitsAndSteelNeverBreaks() {
+        val tough = bricksAt(5 to Brick(BrickKind.Tough, 2), 0 to Brick(BrickKind.Plain, 1)).run(0.1f)
+        assertEquals(1, tough.bricks[5]?.hits)
+        val steel = bricksAt(5 to Brick(BrickKind.Steel, 1), 0 to Brick(BrickKind.Plain, 1)).run(0.1f)
+        assertEquals(BrickKind.Steel, steel.bricks[5]?.kind)
+        assertTrue(steel.balls.first().vy > 0f)
+    }
+
+    @Test
+    fun bricksExplosivesClearTheirNeighboursAndALevelEndsWithStars() {
+        val plain = Brick(BrickKind.Plain, 1)
+        val game =
+            bricksAt(
+                5 to Brick(BrickKind.Explosive, 1),
+                4 to plain,
+                6 to Brick(BrickKind.Hard, 3),
+                16 to plain,
+                9 to Brick(BrickKind.Steel, 1),
+            ).run(0.1f)
+        assertNull(game.bricks[4])
+        assertNull(game.bricks[6])
+        assertNull(game.bricks[16])
+        assertEquals(BrickKind.Steel, game.bricks[9]?.kind)
+        // Only steel is left, so the wall is cleared: no life lost and well under par.
+        assertEquals(3, game.cleared)
+        assertFalse(game.launched)
+        assertEquals(game, game.run(1f))
+    }
+
+    @Test
+    fun bricksCapsulesChangeThePaddleAndSplitTheBall() {
+        val plain = 0 to Brick(BrickKind.Plain, 1)
+        val y = BricksGame.PADDLE_Y - 0.005f
+        val wide = bricksAt(plain, capsules = listOf(BricksCapsule(BricksPower.Wide, 0.5f, y))).run(0.05f)
+        assertTrue(wide.active(BricksPower.Wide))
+        assertEquals(0.3f, wide.paddleWidth, 0.001f)
+        val narrow = wide.copy(capsules = listOf(BricksCapsule(BricksPower.Narrow, 0.5f, y))).run(0.05f)
+        assertFalse(narrow.active(BricksPower.Wide))
+        assertTrue(narrow.paddleWidth < 0.2f)
+        val multi = bricksAt(plain, capsules = listOf(BricksCapsule(BricksPower.Multi, 0.5f, y))).run(0.05f)
+        assertEquals(3, multi.balls.size)
+        val life = bricksAt(plain, capsules = listOf(BricksCapsule(BricksPower.Life, 0.5f, y))).run(0.05f)
+        assertEquals(4, life.lives)
+    }
+
+    @Test
+    fun bricksDifficultySetsLivesAndPaddle() {
+        assertEquals(5, BricksGame.start(0, BricksDifficulty.Easy).lives)
+        assertEquals(2, BricksGame.start(0, BricksDifficulty.Hard).lives)
+        assertTrue(BricksGame.start(0, BricksDifficulty.Hard).paddleWidth < BricksGame.start(0, BricksDifficulty.Easy).paddleWidth)
+        assertTrue(BricksGame.start(10, BricksDifficulty.Normal).speed > BricksGame.start(0, BricksDifficulty.Normal).speed)
+    }
+
+    @Test
+    fun bricksProgressOpensLevelsInOrderAndSaves() {
+        var progress = BricksProgress()
+        assertTrue(progress.open(0))
+        assertFalse(progress.open(1))
+        progress = progress.record(0, 2).record(0, 1).score(BricksDifficulty.Hard, 900)
+        assertEquals(2, progress.stars[0])
+        assertTrue(progress.open(1))
+        assertEquals(progress, BricksProgress.decode(progress.encode()))
+        assertEquals(BricksProgress(), BricksProgress.decode("junk"))
+        assertEquals(BricksProgress(), BricksProgress.decode(null))
     }
 }
 

@@ -182,13 +182,25 @@ internal object GameCatalog {
                     HowToPage(
                         "Break the wall",
                         listOf(
-                            "Move the paddle to bounce the ball into the wall of bricks. The further from the paddle's centre it lands, the wider it goes.",
-                            "Each brick breaks on the first hit. Clear the wall for the next, faster level.",
-                            "Miss the ball and you lose a life. You have three.",
-                            "Launch the ball to start, and again after a miss. You can drag the paddle too.",
+                            "Move the paddle to bounce the ball into the wall. The further from the paddle's centre it lands, the wider it goes.",
+                            "Clear every brick but steel to finish the level. Lose every ball and you lose a life.",
+                            "Four worlds of five walls. A level opens when you clear the one before it.",
+                            "Stars: one for clearing a wall, one for losing no life on it, one for beating its par time.",
+                            "Difficulty on the title menu sets the paddle, speed and lives. Easy has 5 lives, Hard 2.",
+                        ),
+                    ),
+                    HowToPage(
+                        "Bricks and capsules",
+                        listOf(
+                            "Gold bricks take 2 hits and orange ones 3; the number shows what's left. Grey steel never breaks.",
+                            "A red brick with a dashed edge explodes and clears the bricks around it.",
+                            "Teal capsules help: W wide paddle, M multi-ball, S slow ball, +1 extra life, C catch, L laser (Space fires).",
+                            "Coral capsules hurt: N narrow paddle, F fast ball. Let them fall past.",
+                            "In World 4 rows slide and the ceiling drops. If the wall reaches the paddle you lose a life.",
                         ),
                     ),
                 ),
+            option = GameOption("Difficulty", listOf("Easy", "Normal", "Hard"), 1),
             controls =
                 listOf(
                     GameControls(
