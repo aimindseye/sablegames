@@ -26,16 +26,19 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sableos.games.MelonsArt.background
+import org.sableos.games.MelonsArt.backgroundIn
 import org.sableos.games.MelonsArt.band
 import org.sableos.games.MelonsArt.block
 import org.sableos.games.MelonsArt.enemy
@@ -70,6 +73,18 @@ private const val PREVIEW_TIME = 1.1f
 private const val PREVIEW_DOTS = 11
 private const val PULL_BACK = 1.6f
 
+/** Seconds the opening shot holds on the structure before panning back. */
+private const val INTRO_HOLD = 1.6f
+
+/** The target view: its share of the screen, metres of margin round the structure, and ground shown. */
+private const val TARGET_WIDTH = 0.4f
+private const val TARGET_HEIGHT = 0.3f
+private const val TARGET_MARGIN = 1.5f
+private const val TARGET_GROUND = 1f
+private const val TARGET_MIN_HIGH = 6f
+private const val TARGET_DOT_TIME = 0.04f
+
+
 private val SelectField = Color(0xFF1C2331)
 private val SelectCell = Color(0xFF141A26)
 private val SelectEdge = Color(0xFF33415C)
@@ -101,6 +116,9 @@ internal fun MelonsScreen() {
     var paused by remember { mutableStateOf(false) }
     var peek by remember { mutableStateOf(false) }
     var cameraX by remember { mutableFloatStateOf(AIM_CAMERA_X) }
+
+    // Each level opens on the structure, then the camera pans back to the slingshot.
+    var intro by remember { mutableFloatStateOf(0f) }
     var recorded by remember { mutableStateOf(false) }
     // Bumped every frame, so the canvas redraws the world as it moves.
     var frame by remember { mutableIntStateOf(0) }
@@ -110,7 +128,8 @@ internal fun MelonsScreen() {
         if (!progress.open(index)) return
         levelIndex = index
         world = MelonsWorld(MelonsLevels.all[index])
-        cameraX = AIM_CAMERA_X
+        cameraX = fortCamera(world.level)
+        intro = INTRO_HOLD
         peek = false
         paused = false
         recorded = false
@@ -126,6 +145,11 @@ internal fun MelonsScreen() {
         when {
             selecting -> {
                 play(cursor)
+            }
+
+            // The first press during the opening pan skips it rather than firing blind.
+            world.phase == MelonPhase.Aiming && intro > 0f -> {
+                intro = 0f
             }
 
             world.phase == MelonPhase.Aiming -> {
@@ -159,6 +183,7 @@ internal fun MelonsScreen() {
         dPower: Float,
     ) {
         if (world.phase != MelonPhase.Aiming || paused) return
+        intro = 0f
         world.aim(dAngle, dPower)
         frame++
     }
@@ -171,6 +196,7 @@ internal fun MelonsScreen() {
                 val dt = if (last == 0L) 0f else ((now - last) / NANOS).coerceAtMost(MAX_FRAME)
                 last = now
                 world.step(dt)
+                intro = (intro - dt).coerceAtLeast(0f)
                 val target =
                     when {
                         world.phase == MelonPhase.Flying -> {
@@ -181,8 +207,8 @@ internal fun MelonsScreen() {
                                 VIEW * 0.35f
                         }
 
-                        peek -> {
-                            (world.level.fortX + world.level.fortEnd - VIEW) / 2
+                        peek || intro > 0f -> {
+                            fortCamera(world.level)
                         }
 
                         world.phase == MelonPhase.Aiming -> {
@@ -334,6 +360,58 @@ private fun DrawScope.drawWorld(
         band(left, right, pouch, m)
     }
 
+    drawPieces(world, sprites, m, flyingRage, ::at)
+
+    for (blast in world.blasts) {
+        val t = blast.age / MelonsWorld.BLAST_TIME
+        val c = at(blast.x, blast.y)
+        drawCircle(MelonsArt.Yellow.copy(alpha = (1f - t) * 0.5f), blast.radius * m * t, c)
+        drawCircle(MelonsArt.Red.copy(alpha = 1f - t), blast.radius * m * t, c, style = Stroke(m * 0.3f))
+    }
+    for (p in world.popups) {
+        val t = p.age / MelonsWorld.POPUP_TIME
+        popup(p.text, at(p.x, p.y + t * 2f), m * 1.3f, 1f - t * t)
+    }
+
+    // A melon above the top edge shows as a marker at its x.
+    world.melon?.takeIf { !it.dead && it.y > top }?.let { high ->
+        val x = at(high.x, top).x
+        val path =
+            Path().apply {
+                moveTo(x, m * 0.3f)
+                lineTo(x - m * 0.6f, m * 1.3f)
+                lineTo(x + m * 0.6f, m * 1.3f)
+                close()
+            }
+        drawPath(path, MelonsArt.Red)
+    }
+
+    // While aiming with the structure off screen, a live view of it sits top right, with its distance.
+    if (world.phase == MelonPhase.Aiming && world.level.fortX > cameraX + VIEW) {
+        targetView(world, sprites, m)
+    }
+
+    // The melons still to fire, bottom left.
+    val inPouch = if (world.phase == MelonPhase.Aiming) 1 else 0
+    repeat((world.melonsLeft - inPouch).coerceAtLeast(0)) { i ->
+        val rage = fired + inPouch + i
+        melon(sprites, Offset(m * (1.2f + i * 1.6f), size.height - m * 1.2f), m * 0.65f, 0f, MelonPose.Ready, rage)
+    }
+
+    if (world.comboTime > 0f) {
+        popup("2× DEBRIS", Offset(size.width / 2, m * 3f), m * 1.6f, 1f)
+    }
+}
+
+/** Every block, enemy, melon and seed, [m] px per metre, placed by [at]. */
+private fun DrawScope.drawPieces(
+    world: MelonsWorld,
+    sprites: MelonsSprites,
+    m: Float,
+    flyingRage: Int,
+    at: (Float, Float) -> Offset,
+) {
+    val degreesOf = { radians: Float -> -radians * 180f / PI.toFloat() }
     for (piece in world.pieces) {
         val c = at(piece.x, piece.y)
         val deg = degreesOf(piece.angle)
@@ -360,62 +438,82 @@ private fun DrawScope.drawWorld(
         }
     }
 
-    for (blast in world.blasts) {
-        val t = blast.age / MelonsWorld.BLAST_TIME
-        val c = at(blast.x, blast.y)
-        drawCircle(MelonsArt.Yellow.copy(alpha = (1f - t) * 0.5f), blast.radius * m * t, c)
-        drawCircle(MelonsArt.Red.copy(alpha = 1f - t), blast.radius * m * t, c, style = Stroke(m * 0.3f))
-    }
-    for (p in world.popups) {
-        val t = p.age / MelonsWorld.POPUP_TIME
-        popup(p.text, at(p.x, p.y + t * 2f), m * 1.3f, 1f - t * t)
-    }
-
-    // A melon above the top edge shows as a marker at its x.
-    world.melon?.takeIf { !it.dead && it.y > top }?.let { high ->
-        val x = at(high.x, top).x
-        val path =
-            Path().apply {
-                moveTo(x, m * 0.3f)
-                lineTo(x - m * 0.6f, m * 1.3f)
-                lineTo(x + m * 0.6f, m * 1.3f)
-                close()
-            }
-        drawPath(path, MelonsArt.Red)
-    }
-
-    // While aiming, an arrow at the right edge points at the structure and says how far it is.
-    if (world.phase == MelonPhase.Aiming && world.level.fortX > cameraX + VIEW) {
-        val y = size.height * 0.45f
-        val x = size.width - m * 0.6f
-        val path =
-            Path().apply {
-                moveTo(x, y)
-                lineTo(x - m * 1.2f, y - m * 0.9f)
-                lineTo(x - m * 1.2f, y + m * 0.9f)
-                close()
-            }
-        drawPath(path, MelonsArt.Yellow)
-        drawPath(path, MelonsArt.Ink, style = Stroke(m * 0.12f))
-        popup(
-            "${(world.level.fortX - MelonsWorld.SLING_X).toInt()} m",
-            Offset(x - m * 3.4f, y + m * 0.45f),
-            m * 1.1f,
-            1f,
-        )
-    }
-
-    // The melons still to fire, bottom left.
-    val inPouch = if (world.phase == MelonPhase.Aiming) 1 else 0
-    repeat((world.melonsLeft - inPouch).coerceAtLeast(0)) { i ->
-        val rage = fired + inPouch + i
-        melon(sprites, Offset(m * (1.2f + i * 1.6f), size.height - m * 1.2f), m * 0.65f, 0f, MelonPose.Ready, rage)
-    }
-
-    if (world.comboTime > 0f) {
-        popup("2× DEBRIS", Offset(size.width / 2, m * 3f), m * 1.6f, 1f)
-    }
 }
+
+/**
+ * The structure in a framed box at the top right, drawn small from the same pieces, so the player sees what
+ * they are aiming at; the label says how far it is from the slingshot.
+ */
+private fun DrawScope.targetView(
+    world: MelonsWorld,
+    sprites: MelonsSprites,
+    m: Float,
+) {
+    val level = world.level
+    val standing = world.pieces.filter { it.kind != PieceKind.Melon && it.kind != PieceKind.Seed }
+    val high = standing.maxOfOrNull { it.y + maxOf(it.w, it.h) / 2 } ?: TARGET_MIN_HIGH
+    val x0 = level.fortX - TARGET_MARGIN
+    val x1 = level.fortEnd + TARGET_MARGIN
+    val y1 = maxOf(high, TARGET_MIN_HIGH) + TARGET_MARGIN
+    val boxW = size.width * TARGET_WIDTH
+    val boxH = size.height * TARGET_HEIGHT
+    val k = minOf(boxW / (x1 - x0), boxH / (y1 + TARGET_GROUND))
+    val left = size.width - boxW - m * 0.4f
+    val top = m * 0.4f
+    val ground = top + boxH - TARGET_GROUND * k
+    // Centred across, with the ground near the bottom of the box.
+    val originX = left + (boxW - (x1 - x0) * k) / 2 - x0 * k
+    val box = Size(boxW, boxH)
+    clipRect(left, top, left + boxW, top + boxH) {
+        backgroundIn(sprites.world1, left, top, boxW, boxH, ground, fortCamera(level) / (MelonsWorld.STAGE_W - VIEW))
+        fun inBox(
+            x: Float,
+            y: Float,
+        ) = Offset(originX + x * k, ground - y * k)
+        drawPieces(world, sprites, k, 0, ::inBox)
+        // The aimed arc across the window, and a ring where the melon first meets the structure or the ground.
+        val (time, landX, landY) = world.landing()
+        val windowX = (left - originX) / k
+        var t = 0f
+        while (t < time) {
+            val (px, py) = world.preview(t)
+            if (px >= windowX) drawCircle(MelonsArt.Ink.copy(alpha = 0.75f), m * 0.1f, inBox(px, py))
+            t += TARGET_DOT_TIME
+        }
+        val ring = inBox(landX, landY)
+        val radius = maxOf(MelonsWorld.MELON_R * k, m * 0.5f)
+        drawCircle(MelonsArt.Ink, radius, ring, style = Stroke(m * 0.24f))
+        drawCircle(MelonsArt.Red, radius, ring, style = Stroke(m * 0.14f))
+        drawLine(MelonsArt.Red, ring - Offset(radius * 1.5f, 0f), ring + Offset(radius * 1.5f, 0f), m * 0.08f)
+        drawLine(MelonsArt.Red, ring - Offset(0f, radius * 1.5f), ring + Offset(0f, radius * 1.5f), m * 0.08f)
+        // A shot that comes down before the structure or past it shows a red chevron at that edge.
+        if (landX < x0 || landX > x1) {
+            val pointsLeft = landX < x0
+            val x = if (pointsLeft) left + m * 0.3f else left + boxW - m * 0.3f
+            val y = top + boxH / 2
+            val dx = if (pointsLeft) m * 0.7f else -m * 0.7f
+            val chevron =
+                Path().apply {
+                    moveTo(x, y)
+                    lineTo(x + dx, y - m * 0.6f)
+                    lineTo(x + dx, y + m * 0.6f)
+                    close()
+                }
+            drawPath(chevron, MelonsArt.Red)
+        }
+    }
+    drawRect(MelonsArt.Ink, Offset(left, top), box, style = Stroke(m * 0.12f))
+    drawRect(MelonsArt.Yellow, Offset(left, top), box, style = Stroke(m * 0.05f))
+    popup(
+        "Target · ${(level.fortX - MelonsWorld.SLING_X).toInt()} m",
+        Offset(left + boxW / 2, top + boxH + m * 1.2f),
+        m * 0.9f,
+        1f,
+    )
+}
+
+/** The camera that frames a level's structure. */
+private fun fortCamera(level: MelonLevel) = ((level.fortX + level.fortEnd - VIEW) / 2).coerceIn(0f, MelonsWorld.STAGE_W - VIEW)
 
 /** World 1's nine levels in a 3 x 3 grid, with the seeds won on each; locked levels are dimmed. */
 @Composable

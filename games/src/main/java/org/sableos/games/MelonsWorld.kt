@@ -171,6 +171,26 @@ internal class MelonsWorld(
         return (SLING_X + v * cos(rad) * t) to (SLING_Y + v * sin(rad) * t - GRAVITY * t * t / 2)
     }
 
+    /**
+     * Where and when the aimed shot first meets a standing block, enemy or battery, or the ground: its flight
+     * time and the melon's centre then. The flight is the plain arc of [preview]; pieces are taken as upright
+     * boxes, which they are until something hits them.
+     */
+    fun landing(): Triple<Float, Float, Float> {
+        val targets = pieces.filter { !it.dead && it.kind != PieceKind.Melon && it.kind != PieceKind.Seed }
+        var t = 0f
+        while (t < LANDING_MAX_TIME) {
+            t += STEP
+            val (x, y) = preview(t)
+            val hit =
+                y <= MELON_R || x >= STAGE_W ||
+                    targets.any { abs(x - it.x) <= it.w / 2 + MELON_R && abs(y - it.y) <= it.h / 2 + MELON_R }
+            if (hit) return Triple(t, x, y.coerceAtLeast(MELON_R))
+        }
+        val (x, y) = preview(t)
+        return Triple(t, x, y)
+    }
+
     /** Fires the melon on the slingshot. False if there is none, or one is still in the air. */
     fun launch(): Boolean {
         if (phase != MelonPhase.Aiming || melonsLeft == 0) return false
@@ -551,6 +571,9 @@ internal class MelonsWorld(
         const val UNUSED_MELON_BONUS = 500
 
         private const val STEP = 1f / 60f
+
+        /** The aimed arc is followed this many seconds at most. */
+        private const val LANDING_MAX_TIME = 8f
         private const val MAX_CATCH_UP = 0.1f
         private const val VELOCITY_ITERATIONS = 8
         private const val POSITION_ITERATIONS = 3
