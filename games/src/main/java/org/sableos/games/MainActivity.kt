@@ -85,6 +85,10 @@ class MainActivity : ComponentActivity() {
                             GameShell(GameCatalog.ludo) { BoardGameApp("ludo") }
                         }
 
+                        "melons" -> {
+                            GameShell(GameCatalog.melons) { MelonsScreen() }
+                        }
+
                         "scaffold" -> {
                             ScaffoldApp()
                         }

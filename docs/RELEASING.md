@@ -23,7 +23,7 @@ The keystore and alias are required, as arguments or as `SABLEGAMES_KEYSTORE` an
 
 ## Package names
 
-The 14 names to register in the Android Developer Console, one per app:
+The 16 names to register in the Android Developer Console, one per app:
 
 ```
 io.github.aimindseye.sablegames.console
@@ -31,6 +31,7 @@ io.github.aimindseye.sablegames.cards
 io.github.aimindseye.sablegames.snakesladders
 io.github.aimindseye.sablegames.ludo
 io.github.aimindseye.sablegames.scaffold
+io.github.aimindseye.sablegames.melons
 io.github.aimindseye.sablegames.sudoku
 io.github.aimindseye.sablegames.minesweeper
 io.github.aimindseye.sablegames.game2048

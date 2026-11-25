@@ -16,7 +16,7 @@ aapt2="$(find "$sdk/build-tools" -maxdepth 2 -name aapt2 -type f 2>/dev/null | L
 
 # Each flavor's package is io.github.aimindseye.sablegames.<flavor>. Plain arrays only: macOS ships
 # bash 3.2, which has no associative arrays and no mapfile.
-flavors=(console sudoku minesweeper game2048 bricks snake blocks reversi solitaire mahjong words cards snakesladders ludo scaffold)
+flavors=(console sudoku minesweeper game2048 bricks snake blocks reversi solitaire mahjong words cards snakesladders ludo scaffold melons)
 apksigner="$(dirname "$aapt2")/apksigner"
 certs=()
 fail=0

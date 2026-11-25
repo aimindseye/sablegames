@@ -104,6 +104,12 @@ android {
             resValue("string", "app_name", "Sable Scaffold")
             buildConfigField("String", "SABLE_GAME", "\"scaffold\"")
         }
+        create("melons") {
+            dimension = "game"
+            applicationId = "io.github.aimindseye.sablegames.melons"
+            resValue("string", "app_name", "Bitter Melons")
+            buildConfigField("String", "SABLE_GAME", "\"melons\"")
+        }
         // Sable Games Console: games written in Lua, added from a folder without rebuilding the app.
         create("console") {
             dimension = "game"
@@ -148,6 +154,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     // Only the Games Console carries the Lua engine.
     "consoleImplementation"(libs.luaj.jse)
+    // Bitter Melons' rigid-body physics. R8 drops it from the other apps, which never call it.
+    implementation(libs.jbox2d.library)
 
     testImplementation(libs.junit)
 }

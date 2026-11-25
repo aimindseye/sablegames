@@ -1,0 +1,4594 @@
+[
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-1",
+  "title": "First Prompt",
+  "is_boss": false,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 32.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "WOOD",
+    "shape": "RECT",
+    "x": 63.0,
+    "y": 4.0,
+    "w": 1.2,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "WOOD",
+    "shape": "RECT",
+    "x": 69.0,
+    "y": 4.0,
+    "w": 1.2,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b3",
+    "material": "WOOD",
+    "shape": "BEAM",
+    "x": 66.0,
+    "y": 8.5,
+    "w": 8.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 66.0,
+    "y": 10.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 66.0,
+    "y": 12.6,
+    "points": 50,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [],
+  "mechanics": [
+   "AIM_POWER_BASICS"
+  ],
+  "seed_thresholds": {
+   "one_seed": 200,
+   "two_seeds": 800,
+   "three_seeds": 1200
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-2",
+  "title": "Glass House",
+  "is_boss": false,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 32.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 63.0,
+    "y": 2.5,
+    "w": 0.8,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 70.0,
+    "y": 2.5,
+    "w": 0.8,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b3",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 77.0,
+    "y": 2.5,
+    "w": 0.8,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b4",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 70.0,
+    "y": 5.4,
+    "w": 16.0,
+    "h": 0.8,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 60.5,
+    "y": 1.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 66.5,
+    "y": 1.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "SLOP_APP_PURPLE",
+    "x": 73.5,
+    "y": 1.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [],
+  "mechanics": [
+   "SEED_BURST_ABILITY"
+  ],
+  "seed_thresholds": {
+   "one_seed": 300,
+   "two_seeds": 1000,
+   "three_seeds": 1450
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-3",
+  "title": "Domino Stack",
+  "is_boss": false,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 34.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "w1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 52.0,
+    "y": 5.0,
+    "w": 2.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "t1",
+    "material": "WOOD",
+    "shape": "RECT",
+    "x": 62.0,
+    "y": 4.5,
+    "w": 1.2,
+    "h": 9.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "t2",
+    "material": "WOOD",
+    "shape": "RECT",
+    "x": 68.0,
+    "y": 4.5,
+    "w": 1.2,
+    "h": 9.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "t3",
+    "material": "WOOD",
+    "shape": "RECT",
+    "x": 74.0,
+    "y": 4.5,
+    "w": 1.2,
+    "h": 9.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 62.0,
+    "y": 10.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 68.0,
+    "y": 10.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "SLOP_APP_PURPLE",
+    "x": 74.0,
+    "y": 10.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [],
+  "mechanics": [
+   "HIGH_ARC_LOB",
+   "PEEK_CAM"
+  ],
+  "seed_thresholds": {
+   "one_seed": 400,
+   "two_seeds": 1300,
+   "three_seeds": 1900
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-4",
+  "title": "Overheated",
+  "is_boss": false,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 34.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 62.0,
+    "y": 3.0,
+    "w": 1.5,
+    "h": 6.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 74.0,
+    "y": 3.0,
+    "w": 1.5,
+    "h": 6.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b3",
+    "material": "WOOD",
+    "shape": "BEAM",
+    "x": 68.0,
+    "y": 6.5,
+    "w": 15.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 64.5,
+    "y": 8.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "AI_BOT_GREEN",
+    "x": 68.0,
+    "y": 8.5,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "SLOP_APP_PURPLE",
+    "x": 71.5,
+    "y": 8.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "RED_BATTERY",
+    "x": 68.0,
+    "y": 2.5,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.0,
+     "blast_damage": 140
+    }
+   }
+  ],
+  "mechanics": [
+   "RED_BATTERY_CHAIN",
+   "GREEN_AI_BOT"
+  ],
+  "seed_thresholds": {
+   "one_seed": 500,
+   "two_seeds": 1250,
+   "three_seeds": 1650
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-5",
+  "title": "The Prompt Tower",
+  "is_boss": false,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 34.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "g1",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 58.0,
+    "y": 2.5,
+    "w": 1.0,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "m1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 72.0,
+    "y": 4.0,
+    "w": 1.5,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "m2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 82.0,
+    "y": 4.0,
+    "w": 1.5,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "m3",
+    "material": "WOOD",
+    "shape": "BEAM",
+    "x": 77.0,
+    "y": 8.5,
+    "w": 12.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "m4",
+    "material": "WOOD",
+    "shape": "BEAM",
+    "x": 77.0,
+    "y": 14.0,
+    "w": 10.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 58.0,
+    "y": 6.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 74.5,
+    "y": 10.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "SLOP_APP_PURPLE",
+    "x": 79.5,
+    "y": 10.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 74.5,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "AI_BOT_GREEN",
+    "x": 79.5,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e6",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 77.0,
+    "y": 11.2,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "RED_BATTERY",
+    "x": 58.0,
+    "y": 1.5,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.0,
+     "blast_damage": 140
+    }
+   }
+  ],
+  "mechanics": [
+   "RED_BATTERY_CHAIN",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 900,
+   "two_seeds": 1800,
+   "three_seeds": 2400
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-6",
+  "title": "Hallucination Bridge",
+  "is_boss": false,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 34.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "p1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 58.0,
+    "y": 4.0,
+    "w": 2.0,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "p2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 80.0,
+    "y": 4.0,
+    "w": 2.0,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "d1",
+    "material": "WOOD",
+    "shape": "BEAM",
+    "x": 69.0,
+    "y": 8.5,
+    "w": 22.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "d2",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 69.0,
+    "y": 9.5,
+    "w": 18.0,
+    "h": 0.8,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 63.0,
+    "y": 11.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 75.0,
+    "y": 11.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 69.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [],
+  "mechanics": [
+   "BRIDGE_COLLAPSE"
+  ],
+  "seed_thresholds": {
+   "one_seed": 450,
+   "two_seeds": 1150,
+   "three_seeds": 1550
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-7",
+  "title": "Token Limit",
+  "is_boss": false,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "s1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 62.0,
+    "y": 2.8,
+    "w": 2.0,
+    "h": 5.6,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "s2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 62.0,
+    "y": 11.5,
+    "w": 2.0,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "s3",
+    "material": "STONE",
+    "shape": "BEAM",
+    "x": 70.0,
+    "y": 15.5,
+    "w": 18.0,
+    "h": 1.5,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "s4",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 78.0,
+    "y": 8.0,
+    "w": 2.0,
+    "h": 16.0,
+    "angle_deg": 0,
+    "is_static": true
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "AI_BOT_GREEN",
+    "x": 74.5,
+    "y": 3.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "AI_BOT_GREEN",
+    "x": 74.5,
+    "y": 7.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "RED_BATTERY",
+    "x": 69.5,
+    "y": 7.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 7.5,
+     "blast_damage": 170
+    }
+   }
+  ],
+  "mechanics": [
+   "SHIFT_MICRO_AIM",
+   "RED_BATTERY_CHAIN"
+  ],
+  "seed_thresholds": {
+   "one_seed": 400,
+   "two_seeds": 850,
+   "three_seeds": 1100
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-8",
+  "title": "The Clone Farm",
+  "is_boss": false,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "g1",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 56.0,
+    "y": 4.0,
+    "w": 6.0,
+    "h": 4.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "g2",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 68.0,
+    "y": 8.0,
+    "w": 6.0,
+    "h": 4.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "g3",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 80.0,
+    "y": 12.0,
+    "w": 6.0,
+    "h": 4.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 56.0,
+    "y": 3.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 68.0,
+    "y": 7.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "SLOP_APP_PURPLE",
+    "x": 80.0,
+    "y": 11.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 81.5,
+    "y": 11.5,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [],
+  "mechanics": [
+   "SEED_BURST_ABILITY",
+   "STEPPED_TERRACE"
+  ],
+  "seed_thresholds": {
+   "one_seed": 700,
+   "two_seeds": 1500,
+   "three_seeds": 2050
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 1,
+  "level_id": "1-9",
+  "title": "The Vibe-Coder's Shed",
+  "is_boss": true,
+  "rage_tier": "ANNOYED_W1",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "f1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 58.0,
+    "y": 3.5,
+    "w": 1.5,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "f2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 71.0,
+    "y": 3.5,
+    "w": 1.5,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "f3",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 84.0,
+    "y": 3.5,
+    "w": 1.5,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "m1",
+    "material": "WOOD",
+    "shape": "BEAM",
+    "x": 71.0,
+    "y": 7.5,
+    "w": 28.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "a1",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 71.0,
+    "y": 14.5,
+    "w": 14.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 61.5,
+    "y": 9.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 71.0,
+    "y": 9.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "SLOP_APP_PURPLE",
+    "x": 80.5,
+    "y": 9.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 65.0,
+    "y": 9.2,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "AI_BOT_GREEN",
+    "x": 77.0,
+    "y": 9.2,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "boss_w1",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 71.0,
+    "y": 12.2,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "RED_BATTERY",
+    "x": 64.5,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 77.5,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   }
+  ],
+  "mechanics": [
+   "RED_BATTERY_CHAIN",
+   "SEED_BURST_ABILITY",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1200,
+   "two_seeds": 2300,
+   "three_seeds": 3100
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-1",
+  "title": "Pop-Up Ads",
+  "is_boss": false,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 34.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 67.0,
+    "y": 6.0,
+    "w": 1.0,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 75.0,
+    "y": 6.0,
+    "w": 1.0,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b3",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 71.0,
+    "y": 11.5,
+    "w": 9.0,
+    "h": 0.8,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 71.0,
+    "y": 3.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 71.0,
+    "y": 6.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 71.0,
+    "y": 9.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 48.0,
+    "y": 2.0,
+    "angle_deg": 20,
+    "params": {
+     "width_m": 7.0,
+     "restitution": 1.15
+    }
+   }
+  ],
+  "mechanics": [
+   "BOUNCY_AD_BANNER_VAULT"
+  ],
+  "seed_thresholds": {
+   "one_seed": 450,
+   "two_seeds": 1150,
+   "three_seeds": 1550
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-2",
+  "title": "Triple Split",
+  "is_boss": false,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 34.0
+  },
+  "melon_queue": [
+   "SPLIT_CANTALOUPE",
+   "SPLIT_CANTALOUPE",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "k1",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 58.0,
+    "y": 3.0,
+    "w": 7.0,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "k2",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 68.0,
+    "y": 3.0,
+    "w": 7.0,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "k3",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 78.0,
+    "y": 3.0,
+    "w": 7.0,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 58.0,
+    "y": 2.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 78.0,
+    "y": 2.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 68.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [],
+  "mechanics": [
+   "SPLIT_CANTALOUPE"
+  ],
+  "seed_thresholds": {
+   "one_seed": 500,
+   "two_seeds": 1200,
+   "three_seeds": 1600
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-3",
+  "title": "Paywall Atrium",
+  "is_boss": false,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "SPLIT_CANTALOUPE"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "STONE",
+    "shape": "BEAM",
+    "x": 69.0,
+    "y": 12.0,
+    "w": 16.0,
+    "h": 2.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "b2",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 63.0,
+    "y": 3.0,
+    "w": 1.0,
+    "h": 6.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "AI_BOT_GREEN",
+    "x": 66.5,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "AI_BOT_GREEN",
+    "x": 72.5,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 82.0,
+    "y": 6.0,
+    "angle_deg": 90,
+    "params": {
+     "width_m": 8.0,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 69.5,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.0,
+     "blast_damage": 140
+    }
+   }
+  ],
+  "mechanics": [
+   "BOUNCY_AD_BANNER_BANK",
+   "SPLIT_CANTALOUPE"
+  ],
+  "seed_thresholds": {
+   "one_seed": 550,
+   "two_seeds": 1400,
+   "three_seeds": 1950
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-4",
+  "title": "Review Bombed",
+  "is_boss": false,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "SPLIT_CANTALOUPE",
+   "SPLIT_CANTALOUPE",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "t1",
+    "material": "WOOD",
+    "shape": "RECT",
+    "x": 64.0,
+    "y": 8.0,
+    "w": 1.2,
+    "h": 16.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "t2",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 68.5,
+    "y": 8.0,
+    "w": 1.0,
+    "h": 16.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "k1",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 78.0,
+    "y": 2.5,
+    "w": 5.0,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 66.2,
+    "y": 14.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 66.2,
+    "y": 11.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 66.2,
+    "y": 8.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 66.2,
+    "y": 5.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "AI_BOT_GREEN",
+    "x": 78.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "RED_BATTERY",
+    "x": 66.2,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   }
+  ],
+  "mechanics": [
+   "TOWER_TOPPLE",
+   "RED_BATTERY_CHAIN"
+  ],
+  "seed_thresholds": {
+   "one_seed": 650,
+   "two_seeds": 1600,
+   "three_seeds": 2200
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-5",
+  "title": "Flash Sale",
+  "is_boss": false,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "SPLIT_CANTALOUPE",
+   "SPLIT_CANTALOUPE",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "u1",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 70.0,
+    "y": 14.0,
+    "w": 18.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "l1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 62.0,
+    "y": 4.0,
+    "w": 2.0,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": true
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 65.0,
+    "y": 15.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 75.0,
+    "y": 15.5,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 68.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 76.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 70.0,
+    "y": 16.0,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 52.0,
+    "y": 2.0,
+    "angle_deg": 25,
+    "params": {
+     "width_m": 7.0,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 72.0,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.0,
+     "blast_damage": 140
+    }
+   }
+  ],
+  "mechanics": [
+   "SPLIT_CANTALOUPE",
+   "BOUNCY_AD_BANNER_VAULT",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1000,
+   "two_seeds": 1950,
+   "three_seeds": 2600
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-6",
+  "title": "Pinball Promo",
+  "is_boss": false,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "v1",
+    "material": "STONE",
+    "shape": "BEAM",
+    "x": 75.0,
+    "y": 13.0,
+    "w": 14.0,
+    "h": 1.5,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "v2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 82.0,
+    "y": 6.5,
+    "w": 1.5,
+    "h": 13.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "v3",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 68.5,
+    "y": 4.0,
+    "w": 1.0,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "AI_BOT_GREEN",
+    "x": 74.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "AI_BOT_GREEN",
+    "x": 79.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 48.0,
+    "y": 18.0,
+    "angle_deg": -35,
+    "params": {
+     "width_m": 7.0,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 56.0,
+    "y": 4.0,
+    "angle_deg": 40,
+    "params": {
+     "width_m": 7.0,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "RED_BATTERY",
+    "x": 76.5,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   }
+  ],
+  "mechanics": [
+   "MULTI_BOUNCE_RICOCHET",
+   "RED_BATTERY_CHAIN"
+  ],
+  "seed_thresholds": {
+   "one_seed": 550,
+   "two_seeds": 1250,
+   "three_seeds": 1650
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-7",
+  "title": "Free Trial Trap",
+  "is_boss": false,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "SPLIT_CANTALOUPE",
+   "SPLIT_CANTALOUPE",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "d1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 62.0,
+    "y": 3.5,
+    "w": 2.0,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "d2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 74.0,
+    "y": 3.5,
+    "w": 2.0,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "s1",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 56.0,
+    "y": 6.5,
+    "w": 8.0,
+    "h": 0.8,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "s2",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 68.0,
+    "y": 6.5,
+    "w": 8.0,
+    "h": 0.8,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "s3",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 80.0,
+    "y": 6.5,
+    "w": 8.0,
+    "h": 0.8,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 56.0,
+    "y": 2.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 68.0,
+    "y": 2.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "SLOP_APP_PURPLE",
+    "x": 80.0,
+    "y": 2.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 58.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "AI_BOT_GREEN",
+    "x": 82.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [],
+  "mechanics": [
+   "SPLIT_CANTALOUPE",
+   "GLASS_SKYLIGHT_SHRED"
+  ],
+  "seed_thresholds": {
+   "one_seed": 700,
+   "two_seeds": 1550,
+   "three_seeds": 2150
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-8",
+  "title": "Subscription Wall",
+  "is_boss": false,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "SPLIT_CANTALOUPE"
+  ],
+  "blocks": [
+   {
+    "id": "w1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 56.0,
+    "y": 8.0,
+    "w": 2.5,
+    "h": 16.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "a1",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 72.0,
+    "y": 7.0,
+    "w": 14.0,
+    "h": 0.8,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 76.0,
+    "y": 2.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "AI_BOT_GREEN",
+    "x": 66.5,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 73.5,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 60.0,
+    "y": 28.0,
+    "angle_deg": 180,
+    "params": {
+     "width_m": 9.0,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 70.0,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   }
+  ],
+  "mechanics": [
+   "CEILING_BANNER_DIVE",
+   "RED_BATTERY_CHAIN"
+  ],
+  "seed_thresholds": {
+   "one_seed": 650,
+   "two_seeds": 1500,
+   "three_seeds": 2100
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 2,
+  "level_id": "2-9",
+  "title": "The Mega-Mall",
+  "is_boss": true,
+  "rage_tier": "HEATED_W2",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "SPLIT_CANTALOUPE",
+   "SPLIT_CANTALOUPE",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "f1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 60.0,
+    "y": 3.5,
+    "w": 1.5,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "f2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 72.0,
+    "y": 3.5,
+    "w": 1.5,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "f3",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 84.0,
+    "y": 3.5,
+    "w": 1.5,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "m1",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 72.0,
+    "y": 7.5,
+    "w": 26.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "p1",
+    "material": "GLASS",
+    "shape": "BEAM",
+    "x": 72.0,
+    "y": 15.0,
+    "w": 14.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "SLOP_APP_PURPLE",
+    "x": 64.0,
+    "y": 9.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "SLOP_APP_PURPLE",
+    "x": 80.0,
+    "y": 9.2,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 67.0,
+    "y": 9.2,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 72.0,
+    "y": 9.2,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "AI_BOT_GREEN",
+    "x": 77.0,
+    "y": 9.2,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "boss_w2",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 72.0,
+    "y": 12.2,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 50.0,
+    "y": 2.0,
+    "angle_deg": 20,
+    "params": {
+     "width_m": 7.0,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 66.0,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "RED_BATTERY",
+    "x": 78.0,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   }
+  ],
+  "mechanics": [
+   "SPLIT_CANTALOUPE",
+   "BOUNCY_AD_BANNER_VAULT",
+   "RED_BATTERY_CHAIN",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1400,
+   "two_seeds": 2600,
+   "three_seeds": 3400
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-1",
+  "title": "Heavy Slam",
+  "is_boss": false,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "HEAVY_HONEYDEW",
+   "HEAVY_HONEYDEW",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 62.0,
+    "y": 3.5,
+    "w": 1.5,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 74.0,
+    "y": 3.5,
+    "w": 1.5,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 68.0,
+    "y": 7.6,
+    "w": 14.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 65.5,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 70.5,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 68.0,
+    "y": 4.8,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [],
+  "mechanics": [
+   "HEAVY_HONEYDEW_SLAM",
+   "PROMPT_BOT_ORANGE"
+  ],
+  "seed_thresholds": {
+   "one_seed": 650,
+   "two_seeds": 1400,
+   "three_seeds": 1850
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-2",
+  "title": "Cooling Updraft",
+  "is_boss": false,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "HEAVY_HONEYDEW"
+  ],
+  "blocks": [
+   {
+    "id": "w1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 56.0,
+    "y": 9.0,
+    "w": 2.5,
+    "h": 18.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "r1",
+    "material": "WOOD",
+    "shape": "BEAM",
+    "x": 72.0,
+    "y": 7.0,
+    "w": 14.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 68.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 76.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 69.0,
+    "y": 8.8,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 75.0,
+    "y": 8.8,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "COOLING_FAN",
+    "x": 46.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 26.0,
+     "updraft_accel_mps2": 16.0
+    }
+   }
+  ],
+  "mechanics": [
+   "COOLING_FAN_UPDRAFT",
+   "SEED_BURST_ABILITY"
+  ],
+  "seed_thresholds": {
+   "one_seed": 750,
+   "two_seeds": 1650,
+   "three_seeds": 2250
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-3",
+  "title": "Cable Snap",
+  "is_boss": false,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "WOOD",
+    "shape": "RECT",
+    "x": 66.0,
+    "y": 3.0,
+    "w": 1.2,
+    "h": 6.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "WOOD",
+    "shape": "RECT",
+    "x": 78.0,
+    "y": 3.0,
+    "w": 1.2,
+    "h": 6.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 69.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 75.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "SLOP_APP_PURPLE",
+    "x": 69.0,
+    "y": 4.8,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "SLOP_APP_PURPLE",
+    "x": 75.0,
+    "y": 4.8,
+    "points": 50,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "HANGING_BEAM",
+    "x": 68.0,
+    "y": 24.0,
+    "angle_deg": 0,
+    "params": {
+     "cable_hp": 10,
+     "beam_mass_mult": 2.0
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "HANGING_BEAM",
+    "x": 76.0,
+    "y": 24.0,
+    "angle_deg": 0,
+    "params": {
+     "cable_hp": 10,
+     "beam_mass_mult": 2.0
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "RED_BATTERY",
+    "x": 72.0,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   }
+  ],
+  "mechanics": [
+   "HANGING_BEAM",
+   "RED_BATTERY_CHAIN"
+  ],
+  "seed_thresholds": {
+   "one_seed": 700,
+   "two_seeds": 1550,
+   "three_seeds": 2100
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-4",
+  "title": "Thermal Throttle",
+  "is_boss": false,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "HEAVY_HONEYDEW",
+   "HEAVY_HONEYDEW",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 73.0,
+    "y": 14.0,
+    "w": 12.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 73.0,
+    "y": 7.0,
+    "w": 12.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 70.0,
+    "y": 9.0,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 76.0,
+    "y": 9.0,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 76.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "COOLING_FAN",
+    "x": 50.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 26.0,
+     "updraft_accel_mps2": 16.0
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 70.0,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   }
+  ],
+  "mechanics": [
+   "COOLING_FAN_UPDRAFT",
+   "HEAVY_HONEYDEW_SLAM"
+  ],
+  "seed_thresholds": {
+   "one_seed": 800,
+   "two_seeds": 1750,
+   "three_seeds": 2350
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-5",
+  "title": "Overclocked Rack",
+  "is_boss": false,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "HEAVY_HONEYDEW",
+   "HEAVY_HONEYDEW",
+   "SPLIT_CANTALOUPE",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "f1",
+    "material": "GLASS",
+    "shape": "RECT",
+    "x": 58.0,
+    "y": 3.5,
+    "w": 8.0,
+    "h": 7.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 74.0,
+    "y": 5.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 86.0,
+    "y": 5.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 80.0,
+    "y": 10.6,
+    "w": 14.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "AI_BOT_GREEN",
+    "x": 56.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "AI_BOT_GREEN",
+    "x": 60.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 77.5,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 82.5,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "boss_w3_mid",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 80.0,
+    "y": 6.5,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "HANGING_BEAM",
+    "x": 58.0,
+    "y": 22.0,
+    "angle_deg": 0,
+    "params": {
+     "cable_hp": 10,
+     "beam_mass_mult": 2.0
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 80.0,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   }
+  ],
+  "mechanics": [
+   "HANGING_BEAM",
+   "HEAVY_HONEYDEW_SLAM",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1250,
+   "two_seeds": 2400,
+   "three_seeds": 3200
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-6",
+  "title": "Crosswind Corridor",
+  "is_boss": false,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "HEAVY_HONEYDEW"
+  ],
+  "blocks": [
+   {
+    "id": "w1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 48.0,
+    "y": 7.0,
+    "w": 2.0,
+    "h": 14.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "w2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 66.0,
+    "y": 7.0,
+    "w": 2.0,
+    "h": 14.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "b1",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 80.0,
+    "y": 8.5,
+    "w": 12.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 77.5,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 82.5,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 80.0,
+    "y": 5.2,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "COOLING_FAN",
+    "x": 38.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 24.0,
+     "updraft_accel_mps2": 15.0
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "COOLING_FAN",
+    "x": 58.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 24.0,
+     "updraft_accel_mps2": 15.0
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "RED_BATTERY",
+    "x": 80.0,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   }
+  ],
+  "mechanics": [
+   "COOLING_FAN_UPDRAFT",
+   "HEAVY_HONEYDEW_SLAM"
+  ],
+  "seed_thresholds": {
+   "one_seed": 800,
+   "two_seeds": 1750,
+   "three_seeds": 2350
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-7",
+  "title": "Suspended Load",
+  "is_boss": false,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "HEAVY_HONEYDEW",
+   "HEAVY_HONEYDEW",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "r1",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 71.0,
+    "y": 11.0,
+    "w": 14.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "r2",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 71.0,
+    "y": 7.5,
+    "w": 14.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 67.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 71.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 75.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 68.5,
+    "y": 5.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "AI_BOT_GREEN",
+    "x": 73.5,
+    "y": 5.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "HANGING_BEAM",
+    "x": 71.0,
+    "y": 20.0,
+    "angle_deg": 0,
+    "params": {
+     "cable_hp": 15,
+     "beam_mass_mult": 2.5
+    }
+   }
+  ],
+  "mechanics": [
+   "HANGING_BEAM",
+   "HEAVY_HONEYDEW_SLAM"
+  ],
+  "seed_thresholds": {
+   "one_seed": 950,
+   "two_seeds": 1950,
+   "three_seeds": 2600
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-8",
+  "title": "Data Center Maze",
+  "is_boss": false,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "SPLIT_CANTALOUPE"
+  ],
+  "blocks": [
+   {
+    "id": "m1",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 70.0,
+    "y": 20.5,
+    "w": 28.0,
+    "h": 1.5,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "m2",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 68.0,
+    "y": 16.5,
+    "w": 22.0,
+    "h": 1.5,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "m3",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 83.0,
+    "y": 10.0,
+    "w": 2.0,
+    "h": 20.0,
+    "angle_deg": 0,
+    "is_static": true
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 72.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 80.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 76.0,
+    "y": 5.0,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "SLOP_APP_PURPLE",
+    "x": 73.0,
+    "y": 5.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "SLOP_APP_PURPLE",
+    "x": 79.0,
+    "y": 5.0,
+    "points": 50,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "COOLING_FAN",
+    "x": 48.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 25.0,
+     "updraft_accel_mps2": 16.0
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 76.0,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 7.0,
+     "blast_damage": 170
+    }
+   }
+  ],
+  "mechanics": [
+   "COOLING_FAN_UPDRAFT",
+   "SHIFT_MICRO_AIM",
+   "RED_BATTERY_CHAIN"
+  ],
+  "seed_thresholds": {
+   "one_seed": 950,
+   "two_seeds": 1900,
+   "three_seeds": 2550
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 3,
+  "level_id": "3-9",
+  "title": "The Mainframe",
+  "is_boss": true,
+  "rage_tier": "FURIOUS_W3",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 36.0
+  },
+  "melon_queue": [
+   "HEAVY_HONEYDEW",
+   "HEAVY_HONEYDEW",
+   "SPLIT_CANTALOUPE",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "w1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 56.0,
+    "y": 7.0,
+    "w": 2.0,
+    "h": 14.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "c1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 68.0,
+    "y": 6.0,
+    "w": 1.5,
+    "h": 12.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 84.0,
+    "y": 6.0,
+    "w": 1.5,
+    "h": 12.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 76.0,
+    "y": 12.6,
+    "w": 18.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 64.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 72.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 80.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 64.0,
+    "y": 5.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "AI_BOT_GREEN",
+    "x": 88.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "boss_w3",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 76.0,
+    "y": 8.0,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "COOLING_FAN",
+    "x": 48.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 26.0,
+     "updraft_accel_mps2": 16.0
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "HANGING_BEAM",
+    "x": 66.0,
+    "y": 25.0,
+    "angle_deg": 0,
+    "params": {
+     "cable_hp": 10,
+     "beam_mass_mult": 2.0
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "HANGING_BEAM",
+    "x": 84.0,
+    "y": 25.0,
+    "angle_deg": 0,
+    "params": {
+     "cable_hp": 10,
+     "beam_mass_mult": 2.0
+    }
+   },
+   {
+    "id": "h4",
+    "kind": "RED_BATTERY",
+    "x": 72.0,
+    "y": 5.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   },
+   {
+    "id": "h5",
+    "kind": "RED_BATTERY",
+    "x": 80.0,
+    "y": 5.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   }
+  ],
+  "mechanics": [
+   "COOLING_FAN_UPDRAFT",
+   "HANGING_BEAM",
+   "HEAVY_HONEYDEW_SLAM",
+   "RED_BATTERY_CHAIN",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1600,
+   "two_seeds": 2900,
+   "three_seeds": 3800
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-1",
+  "title": "Juice Shockwave",
+  "is_boss": false,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "OVERRIPE_BOMB_MELON",
+   "OVERRIPE_BOMB_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 64.0,
+    "y": 4.0,
+    "w": 1.5,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 78.0,
+    "y": 4.0,
+    "w": 1.5,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 71.0,
+    "y": 8.6,
+    "w": 15.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 68.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 74.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 71.0,
+    "y": 5.5,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "FIREWALL_SHIELD",
+    "x": 71.0,
+    "y": 4.5,
+    "angle_deg": 0,
+    "params": {
+     "radius_m": 8.5,
+     "gap_deg": 0.0,
+     "angular_vel_dps": 0.0,
+     "hp": 80
+    }
+   }
+  ],
+  "mechanics": [
+   "OVERRIPE_BOMB_SHOCKWAVE",
+   "FIREWALL_SHIELD",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 900,
+   "two_seeds": 1850,
+   "three_seeds": 2450
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-2",
+  "title": "Drone Drop",
+  "is_boss": false,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "SPLIT_CANTALOUPE"
+  ],
+  "blocks": [
+   {
+    "id": "g1",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 69.0,
+    "y": 6.5,
+    "w": 22.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 62.0,
+    "y": 19.5,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 76.0,
+    "y": 19.5,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 65.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 73.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "DRONE_PLATFORM",
+    "x": 62.0,
+    "y": 18.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "thruster_hp": 25
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "DRONE_PLATFORM",
+    "x": 76.0,
+    "y": 18.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "thruster_hp": 25
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "RED_BATTERY",
+    "x": 69.0,
+    "y": 2.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 150
+    }
+   }
+  ],
+  "mechanics": [
+   "DRONE_PLATFORM",
+   "SEED_BURST_ABILITY",
+   "RED_BATTERY_CHAIN"
+  ],
+  "seed_thresholds": {
+   "one_seed": 950,
+   "two_seeds": 1950,
+   "three_seeds": 2600
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-3",
+  "title": "Firewall Gap",
+  "is_boss": false,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "OVERRIPE_BOMB_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "s1",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 68.0,
+    "y": 5.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "s2",
+    "material": "STONE",
+    "shape": "RECT",
+    "x": 78.0,
+    "y": 5.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 71.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 75.5,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 73.0,
+    "y": 6.5,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "FIREWALL_SHIELD",
+    "x": 73.0,
+    "y": 5.5,
+    "angle_deg": 0,
+    "params": {
+     "radius_m": 9.0,
+     "gap_deg": 90.0,
+     "angular_vel_dps": 45.0
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "RED_BATTERY",
+    "x": 73.0,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   }
+  ],
+  "mechanics": [
+   "FIREWALL_SHIELD",
+   "RED_BATTERY_CHAIN",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1000,
+   "two_seeds": 2050,
+   "three_seeds": 2700
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-4",
+  "title": "Sky-High Slop",
+  "is_boss": false,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "OVERRIPE_BOMB_MELON",
+   "OVERRIPE_BOMB_MELON",
+   "HEAVY_HONEYDEW",
+   "HEAVY_HONEYDEW"
+  ],
+  "blocks": [
+   {
+    "id": "c1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 68.0,
+    "y": 22.0,
+    "w": 1.0,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 78.0,
+    "y": 22.0,
+    "w": 1.0,
+    "h": 5.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 73.0,
+    "y": 24.8,
+    "w": 11.0,
+    "h": 1.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 70.5,
+    "y": 21.0,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 75.5,
+    "y": 21.0,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "AI_BOT_GREEN",
+    "x": 70.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 76.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 73.0,
+    "y": 21.5,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "COOLING_FAN",
+    "x": 46.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 28.0,
+     "updraft_accel_mps2": 16.5
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "DRONE_PLATFORM",
+    "x": 73.0,
+    "y": 19.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 12.0,
+     "thruster_hp": 25
+    }
+   }
+  ],
+  "mechanics": [
+   "COOLING_FAN_UPDRAFT",
+   "DRONE_PLATFORM",
+   "OVERRIPE_BOMB_SHOCKWAVE",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1150,
+   "two_seeds": 2250,
+   "three_seeds": 2950
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-5",
+  "title": "The Token Gate",
+  "is_boss": false,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "SPLIT_CANTALOUPE",
+   "OVERRIPE_BOMB_MELON",
+   "OVERRIPE_BOMB_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "g1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 72.0,
+    "y": 5.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "g2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 84.0,
+    "y": 5.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "g3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 78.0,
+    "y": 10.6,
+    "w": 14.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 75.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 81.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 78.0,
+    "y": 5.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 78.0,
+    "y": 8.0,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "DRONE_PLATFORM",
+    "x": 58.0,
+    "y": 16.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 6.0,
+     "thruster_hp": 20
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "DRONE_PLATFORM",
+    "x": 58.0,
+    "y": 9.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 6.0,
+     "thruster_hp": 20
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 52.0,
+    "y": 2.0,
+    "angle_deg": 20,
+    "params": {
+     "width_m": 7.0,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h4",
+    "kind": "FIREWALL_SHIELD",
+    "x": 78.0,
+    "y": 5.5,
+    "angle_deg": 0,
+    "params": {
+     "radius_m": 9.5,
+     "gap_deg": 90.0,
+     "angular_vel_dps": 45.0
+    }
+   },
+   {
+    "id": "h5",
+    "kind": "RED_BATTERY",
+    "x": 78.0,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   }
+  ],
+  "mechanics": [
+   "DRONE_PLATFORM",
+   "FIREWALL_SHIELD",
+   "OVERRIPE_BOMB_SHOCKWAVE",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1400,
+   "two_seeds": 2650,
+   "three_seeds": 3500
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-6",
+  "title": "Ricochet Citadel",
+  "is_boss": false,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "BITTER_MELON",
+   "BITTER_MELON",
+   "OVERRIPE_BOMB_MELON",
+   "OVERRIPE_BOMB_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "v1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 70.0,
+    "y": 4.5,
+    "w": 1.5,
+    "h": 9.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "v2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 84.0,
+    "y": 4.5,
+    "w": 1.5,
+    "h": 9.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "v3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 77.0,
+    "y": 9.6,
+    "w": 15.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 74.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 80.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 77.0,
+    "y": 6.5,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 52.0,
+    "y": 3.0,
+    "angle_deg": 35,
+    "params": {
+     "width_m": 7.5,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "BOUNCY_AD_BANNER",
+    "x": 88.0,
+    "y": 10.0,
+    "angle_deg": 90,
+    "params": {
+     "width_m": 8.0,
+     "restitution": 1.15
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "FIREWALL_SHIELD",
+    "x": 77.0,
+    "y": 5.0,
+    "angle_deg": 0,
+    "params": {
+     "radius_m": 9.0,
+     "gap_deg": 90.0,
+     "angular_vel_dps": 45.0
+    }
+   },
+   {
+    "id": "h4",
+    "kind": "RED_BATTERY",
+    "x": 77.0,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   }
+  ],
+  "mechanics": [
+   "MULTI_BOUNCE_RICOCHET",
+   "FIREWALL_SHIELD",
+   "OVERRIPE_BOMB_SHOCKWAVE",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1150,
+   "two_seeds": 2200,
+   "three_seeds": 2950
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-7",
+  "title": "Drone Fleet",
+  "is_boss": false,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "HEAVY_HONEYDEW",
+   "HEAVY_HONEYDEW",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 66.0,
+    "y": 4.0,
+    "w": 1.5,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 78.0,
+    "y": 4.0,
+    "w": 1.5,
+    "h": 8.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 72.0,
+    "y": 8.6,
+    "w": 14.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 72.0,
+    "y": 25.5,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 72.0,
+    "y": 18.5,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 72.0,
+    "y": 11.5,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 72.0,
+    "y": 5.5,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "DRONE_PLATFORM",
+    "x": 72.0,
+    "y": 24.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "thruster_hp": 25
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "DRONE_PLATFORM",
+    "x": 72.0,
+    "y": 17.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "thruster_hp": 25
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "DRONE_PLATFORM",
+    "x": 72.0,
+    "y": 10.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "thruster_hp": 25
+    }
+   },
+   {
+    "id": "h4",
+    "kind": "RED_BATTERY",
+    "x": 72.0,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   }
+  ],
+  "mechanics": [
+   "DRONE_PLATFORM",
+   "HEAVY_HONEYDEW_SLAM",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1250,
+   "two_seeds": 2450,
+   "three_seeds": 3250
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-8",
+  "title": "The Prompt Gauntlet",
+  "is_boss": false,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 100.0,
+   "height_m": 40.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 35.0
+  },
+  "melon_queue": [
+   "OVERRIPE_BOMB_MELON",
+   "OVERRIPE_BOMB_MELON",
+   "HEAVY_HONEYDEW",
+   "SPLIT_CANTALOUPE",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "w1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 56.0,
+    "y": 8.0,
+    "w": 2.5,
+    "h": 16.0,
+    "angle_deg": 0,
+    "is_static": true
+   },
+   {
+    "id": "c1",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 72.0,
+    "y": 5.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 86.0,
+    "y": 5.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "c3",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 79.0,
+    "y": 10.6,
+    "w": 15.0,
+    "h": 1.2,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 75.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 83.0,
+    "y": 2.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 79.0,
+    "y": 5.2,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 79.0,
+    "y": 8.0,
+    "points": 300,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "COOLING_FAN",
+    "x": 46.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 28.0,
+     "updraft_accel_mps2": 16.5
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "FIREWALL_SHIELD",
+    "x": 79.0,
+    "y": 5.5,
+    "angle_deg": 0,
+    "params": {
+     "radius_m": 9.5,
+     "gap_deg": 90.0,
+     "angular_vel_dps": 45.0
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "RED_BATTERY",
+    "x": 76.5,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   },
+   {
+    "id": "h4",
+    "kind": "RED_BATTERY",
+    "x": 81.5,
+    "y": 2.2,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 6.5,
+     "blast_damage": 160
+    }
+   }
+  ],
+  "mechanics": [
+   "COOLING_FAN_UPDRAFT",
+   "FIREWALL_SHIELD",
+   "OVERRIPE_BOMB_SHOCKWAVE",
+   "RED_BATTERY_CHAIN",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 1500,
+   "two_seeds": 2750,
+   "three_seeds": 3650
+  }
+ },
+ {
+  "schema_version": "1.0.0",
+  "world_id": 4,
+  "level_id": "4-9",
+  "title": "The Vibe-Code Overlord",
+  "is_boss": true,
+  "rage_tier": "FULL_RAGE_W4",
+  "stage_bounds": {
+   "width_m": 105.0,
+   "height_m": 42.0,
+   "gravity_mps2": -9.8
+  },
+  "slingshot": {
+   "x": 12.0,
+   "y": 5.0,
+   "max_launch_speed_mps": 36.0
+  },
+  "melon_queue": [
+   "SPLIT_CANTALOUPE",
+   "HEAVY_HONEYDEW",
+   "OVERRIPE_BOMB_MELON",
+   "OVERRIPE_BOMB_MELON",
+   "BITTER_MELON",
+   "BITTER_MELON"
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "material": "STEEL",
+    "shape": "BEAM",
+    "x": 76.0,
+    "y": 20.0,
+    "w": 14.0,
+    "h": 1.5,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b2",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 68.0,
+    "y": 14.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   },
+   {
+    "id": "b3",
+    "material": "STEEL",
+    "shape": "RECT",
+    "x": 84.0,
+    "y": 14.0,
+    "w": 1.5,
+    "h": 10.0,
+    "angle_deg": 0,
+    "is_static": false
+   }
+  ],
+  "enemies": [
+   {
+    "id": "e1",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 62.0,
+    "y": 8.0,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e2",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 71.5,
+    "y": 11.0,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e3",
+    "type": "PROMPT_BOT_ORANGE",
+    "x": 80.5,
+    "y": 11.0,
+    "points": 150,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e4",
+    "type": "AI_BOT_GREEN",
+    "x": 62.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "e5",
+    "type": "AI_BOT_GREEN",
+    "x": 88.0,
+    "y": 2.0,
+    "points": 100,
+    "combo_multiplier": 1.0
+   },
+   {
+    "id": "boss_core",
+    "type": "PREMIUM_AD_SLOP_GOLD",
+    "x": 76.0,
+    "y": 12.0,
+    "points": 600,
+    "combo_multiplier": 2.0
+   }
+  ],
+  "hazards": [
+   {
+    "id": "h1",
+    "kind": "COOLING_FAN",
+    "x": 46.0,
+    "y": 1.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 8.0,
+     "height_m": 28.0,
+     "updraft_accel_mps2": 16.0
+    }
+   },
+   {
+    "id": "h2",
+    "kind": "DRONE_PLATFORM",
+    "x": 64.0,
+    "y": 24.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 9.0,
+     "thruster_hp": 25
+    }
+   },
+   {
+    "id": "h3",
+    "kind": "DRONE_PLATFORM",
+    "x": 86.0,
+    "y": 24.0,
+    "angle_deg": 0,
+    "params": {
+     "width_m": 9.0,
+     "thruster_hp": 25
+    }
+   },
+   {
+    "id": "h4",
+    "kind": "HANGING_BEAM",
+    "x": 70.0,
+    "y": 28.0,
+    "angle_deg": 0,
+    "params": {
+     "cable_hp": 10,
+     "beam_mass_mult": 2.0
+    }
+   },
+   {
+    "id": "h5",
+    "kind": "HANGING_BEAM",
+    "x": 82.0,
+    "y": 28.0,
+    "angle_deg": 0,
+    "params": {
+     "cable_hp": 10,
+     "beam_mass_mult": 2.0
+    }
+   },
+   {
+    "id": "h6",
+    "kind": "FIREWALL_SHIELD",
+    "x": 76.0,
+    "y": 12.0,
+    "angle_deg": 0,
+    "params": {
+     "radius_m": 10.0,
+     "gap_deg": 90.0,
+     "angular_vel_dps": 45.0
+    }
+   },
+   {
+    "id": "h7",
+    "kind": "RED_BATTERY",
+    "x": 76.0,
+    "y": 6.0,
+    "angle_deg": 0,
+    "params": {
+     "points": 75,
+     "blast_radius_m": 7.0,
+     "blast_damage": 180
+    }
+   }
+  ],
+  "mechanics": [
+   "SPLIT_CANTALOUPE",
+   "HEAVY_HONEYDEW_SLAM",
+   "OVERRIPE_BOMB_SHOCKWAVE",
+   "COOLING_FAN_UPDRAFT",
+   "DRONE_PLATFORM",
+   "HANGING_BEAM",
+   "FIREWALL_SHIELD",
+   "RED_BATTERY_CHAIN",
+   "DEBRIS_COMBO_2X"
+  ],
+  "seed_thresholds": {
+   "one_seed": 2200,
+   "two_seeds": 3800,
+   "three_seeds": 5000
+  }
+ }
+]
