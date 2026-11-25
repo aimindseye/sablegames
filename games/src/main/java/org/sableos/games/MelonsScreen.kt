@@ -51,9 +51,15 @@ private const val MELONS_PREFS = "sable_melons"
 private const val NANOS = 1_000_000_000f
 private const val MAX_FRAME = 0.05f
 
-/** The camera shows a square [VIEW] metres across, from [VIEW_BOTTOM] up; the ground is at 0. */
-private const val VIEW = 44f
-private const val VIEW_BOTTOM = -6f
+/**
+ * The camera shows a square [VIEW] metres across, from [VIEW_BOTTOM] up; the ground is at 0. 30 m keeps
+ * the melon and the Slop about 45 px tall on the Q25's 720 px screen.
+ */
+private const val VIEW = 30f
+private const val VIEW_BOTTOM = -4f
+
+/** While aiming, the slingshot sits this far into the view, so the aim dots stay on screen. */
+private const val AIM_CAMERA_X = MelonsWorld.SLING_X - VIEW * 0.3f
 private const val CAMERA_EASE = 4f
 private const val AIM_STEP = 1f
 private const val POWER_STEP = 2f
@@ -93,7 +99,7 @@ internal fun MelonsScreen() {
     var cursor by remember { mutableIntStateOf(progress.seeds.indexOfFirst { it == 0 }.coerceAtLeast(0)) }
     var paused by remember { mutableStateOf(false) }
     var peek by remember { mutableStateOf(false) }
-    var cameraX by remember { mutableFloatStateOf(0f) }
+    var cameraX by remember { mutableFloatStateOf(AIM_CAMERA_X) }
     var recorded by remember { mutableStateOf(false) }
     // Bumped every frame, so the canvas redraws the world as it moves.
     var frame by remember { mutableIntStateOf(0) }
@@ -102,7 +108,7 @@ internal fun MelonsScreen() {
         if (!progress.open(index)) return
         levelIndex = index
         world = MelonsWorld(MelonsLevels.all[index])
-        cameraX = 0f
+        cameraX = AIM_CAMERA_X
         peek = false
         paused = false
         recorded = false
@@ -174,11 +180,11 @@ internal fun MelonsScreen() {
                         }
 
                         peek -> {
-                            world.level.fortX - VIEW * 0.2f
+                            (world.level.fortX + world.level.fortEnd - VIEW) / 2
                         }
 
                         world.phase == MelonPhase.Aiming -> {
-                            0f
+                            AIM_CAMERA_X
                         }
 
                         else -> {

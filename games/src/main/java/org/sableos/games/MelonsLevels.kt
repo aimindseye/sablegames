@@ -72,6 +72,9 @@ internal data class MelonLevel(
 
     /** Where the structure starts, for the arrow that points at it while aiming. */
     val fortX: Float get() = (blocks.map { it.x - it.w / 2 } + slop.map { it.x }).min()
+
+    /** Where the structure ends, so looking ahead can centre on it. */
+    val fortEnd: Float get() = (blocks.map { it.x + it.w / 2 } + slop.map { it.x }).max()
 }
 
 private fun stone(
