@@ -101,6 +101,21 @@ class MelonsWorldTest {
     }
 
     @Test
+    fun theAimedLandingIsOnTheStructureOrTheGround() {
+        // 1-7's planned lob comes down on the bunker.
+        val world = MelonsWorld(level("1-7"))
+        world.setAim(43f, 64f)
+        val (time, x, _) = world.landing()
+        assertTrue(time > 0f)
+        assertTrue("lands at $x", x >= world.level.fortX - MelonsWorld.MELON_R && x <= world.level.fortEnd)
+        // A weak shot comes down on the ground well short of the structure.
+        world.setAim(0f, 20f)
+        val (_, shortX, shortY) = world.landing()
+        assertTrue(shortX < world.level.fortX)
+        assertEquals(MelonsWorld.MELON_R, shortY, 0.01f)
+    }
+
+    @Test
     fun aimStaysInRange() {
         val world = MelonsWorld(level("1-1"))
         world.aim(500f, 500f)

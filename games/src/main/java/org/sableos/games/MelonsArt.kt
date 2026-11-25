@@ -168,6 +168,25 @@ internal object MelonsArt {
         sprite(image, -shift, groundY - PATH_TOP * image.height * k, width, image.height * k)
     }
 
+    /**
+     * The same background inside a [width] by [height] box at [left], [top], with the path at [groundY]; [slide]
+     * 0-1 picks which part of the picture shows, as the camera's position would.
+     */
+    fun DrawScope.backgroundIn(
+        image: ImageBitmap,
+        left: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        groundY: Float,
+        slide: Float,
+    ) {
+        val k = maxOf((groundY - top) / (PATH_TOP * image.height), height / image.height)
+        val w = image.width * k
+        val shift = (w - width).coerceAtLeast(0f) * slide.coerceIn(0f, 1f)
+        sprite(image, left - shift, groundY - PATH_TOP * image.height * k, w, image.height * k)
+    }
+
     /** A melon of radius [r] px at [center], turned by [degrees]; a landed melon rests on the bottom of its circle. */
     fun DrawScope.melon(
         sprites: MelonsSprites,
