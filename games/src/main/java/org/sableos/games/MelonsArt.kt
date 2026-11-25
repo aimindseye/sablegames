@@ -321,6 +321,18 @@ internal object MelonsArt {
         drawLine(Band, right, pouch, m * 0.22f, StrokeCap.Round)
     }
 
+    /** Dark text centred at [at], for a label on a yellow button. */
+    fun DrawScope.buttonLabel(
+        text: String,
+        at: Offset,
+        sizePx: Float,
+    ) {
+        labelPaint.textSize = sizePx
+        labelPaint.style = Paint.Style.FILL
+        labelPaint.color = android.graphics.Color.rgb(0x1C, 0x23, 0x31)
+        drawContext.canvas.nativeCanvas.drawText(text, at.x, at.y, labelPaint)
+    }
+
     /** A score or bonus floating up, in yellow with an ink outline. */
     fun DrawScope.popup(
         text: String,
