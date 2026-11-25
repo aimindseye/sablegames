@@ -16,10 +16,10 @@ The keystore and alias are required, as arguments or as `SABLEGAMES_KEYSTORE` an
 
 ## Making a release
 
-1. Raise `versionCode` and `versionName` in `games/build.gradle.kts`, merge to `main` and pull it.
-2. Run `bash tools/build-release.sh /path/to/key.jks KEY_ALIAS` and type the keystore password. With clean sources, it runs the unit tests, builds every app's release APK, signs each with `apksigner`, checks each one's package name, that it asks for no permissions and that all are signed with the registered key (`tools/check-apks.sh --signed`), then writes the APKs, `SHA256SUMS.txt` and `SOURCE_COMMIT.txt` to `~/Downloads/sablegames-release/<version>/` (`SABLEGAMES_RELEASE_DIR` overrides it).
-3. Install one APK on a phone and play it.
-4. Publish: the script prints the `gh release create` command, which tags `v<version>` and uploads the APKs and `SHA256SUMS.txt`.
+1. Raise `versionCode` and `versionName` in `games/build.gradle.kts` (`versionCode` is major × 100 + minor × 10 + patch: 1.0.0 is 100), write the release notes in `docs/releases/v<version>.md`, merge to `main` and pull it.
+2. Run `bash tools/build-release.sh /path/to/key.jks KEY_ALIAS 1.0.0` and type the keystore password. The version is read from `versionName`; the third argument (or `SABLEGAMES_VERSION`) is optional and stops the script if it doesn't match. With clean sources, it runs the unit tests, builds every app's release APK, signs each with `apksigner`, checks each one's package name, that it asks for no permissions and that all are signed with the registered key (`tools/check-apks.sh --signed`), then writes the APKs, `SHA256SUMS.txt` and `SOURCE_COMMIT.txt` to `~/Downloads/sablegames-release/<version>/` (`SABLEGAMES_RELEASE_DIR` overrides it).
+3. Install the APKs on a phone and play them. To refresh the pictures in the docs, run `bash tools/screenshots.sh` with the phone connected over adb: it opens each app in turn, waits for you to set up the shot and press Enter, and saves `docs/images/<game>.png`. For Card Games and the console it then names each game inside (ten card games, eight console games) and saves one shot of each, such as `cards-teen-patti.png`, and at the end it lists any shot you skipped (`--auto` skips the waiting, `bash tools/screenshots.sh melons sudoku` takes only those).
+4. Publish: the script prints the `gh release create` command, which tags `v<version>`, uploads the APKs and `SHA256SUMS.txt`, and uses `docs/releases/v<version>.md` as the release notes.
 
 ## Package names
 
@@ -44,6 +44,6 @@ io.github.aimindseye.sablegames.mahjong
 io.github.aimindseye.sablegames.words
 ```
 
-Registered so far (2026-11-13): console, cards, snakesladders, ludo, sudoku, minesweeper, game2048, bricks, snake and blocks. The console stopped after ten that day; reversi, solitaire, mahjong and words are still to register. Until then those four still install over USB with `adb install`.
+Registered so far (2026-11-13): console, cards, snakesladders, ludo, sudoku, minesweeper, game2048, bricks, snake and blocks. The console stopped after ten that day; reversi, solitaire, mahjong, words, scaffold and melons are still to register. Until then those six still install over USB with `adb install`.
 
 Planned, not built yet: `io.github.aimindseye.sablegames.installer`.
