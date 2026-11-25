@@ -6,7 +6,10 @@
 # The apps must already be installed on the phone (a release from tools/build-release.sh, or
 # `./gradlew assembleRelease` plus `adb install`). For each game the script starts the app, then:
 #   - by default, waits for you to set up the shot on the phone (start a game, make a few moves)
-#     and press Enter here, then captures the screen. Type s and Enter to skip a game.
+#     and press Enter here, then captures the screen. Type s and Enter to skip a game. After that
+#     it asks for more shots of the same app, for the apps with games inside (Card Games' ten, the
+#     console's tilt games): open the next one on the phone, type a short name such as teen-patti and
+#     press Enter, and it saves <app>-<name>.png. An empty Enter moves on to the next app.
 #   - with --auto, waits a few seconds, presses the keys listed for the game below (to get past a
 #     menu into play) and captures. Quicker, but the boards are at their start.
 # GAME names one or more flavors (sudoku melons ...); with none, every app is captured.
@@ -93,5 +96,15 @@ for row in "${table[@]}"; do
     "${adb_cmd[@]}" exec-out screencap -p > "$out/$name.png"
     echo "saved $out/$name.png"
     taken=$((taken + 1))
+    [[ "$auto" == yes ]] && continue
+    # More shots of the same app: a game inside Card Games or the console.
+    while true; do
+        read -r -p "$flavor: open another game in it and type a name for the shot (e.g. teen-patti), or Enter for the next app: " extra
+        extra="$(printf '%s' "$extra" | tr 'A-Z ' 'a-z-' | tr -cd 'a-z0-9-')"
+        [[ -z "$extra" ]] && break
+        "${adb_cmd[@]}" exec-out screencap -p > "$out/$name-$extra.png"
+        echo "saved $out/$name-$extra.png"
+        taken=$((taken + 1))
+    done
 done
 echo "$taken screenshot(s) in $out"
