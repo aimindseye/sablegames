@@ -64,7 +64,7 @@ internal data class GameKeyPress(
     val repeatCount: Int = 0,
 )
 
-internal enum class GameKind { Sudoku, Minesweeper, Game2048, Bricks, Snake, Blocks, Reversi, Solitaire, Mahjong, Words, Indian }
+internal enum class GameKind { Sudoku, Minesweeper, Game2048, Bricks, Snake, Blocks, Reversi, Solitaire, Mahjong, Words, Melons, Indian }
 
 internal object GameKeymap {
     fun command(
@@ -96,6 +96,7 @@ internal object GameKeymap {
             GameKind.Solitaire -> solitaire(press)
             GameKind.Mahjong -> mahjong(press)
             GameKind.Words -> words(press)
+            GameKind.Melons -> melons(press)
             GameKind.Indian -> indian(press)
         }
     }
@@ -211,6 +212,17 @@ internal object GameKeymap {
             press.keyCode == KeyEvent.KEYCODE_ENTER || press.keyCode == KeyEvent.KEYCODE_DPAD_CENTER -> GameCommand.Primary
             press.keyCode == KeyEvent.KEYCODE_A -> GameCommand.Auto
             press.keyCode == KeyEvent.KEYCODE_DEL || press.keyCode == KeyEvent.KEYCODE_ESCAPE -> GameCommand.Erase
+            else -> common(press)
+        }
+
+    /** Bitter Melons: Space or Enter fires (and bursts in the air), V or Tab looks ahead, R restarts, P pauses. */
+    private fun melons(press: GameKeyPress): GameCommand? =
+        when {
+            press.alt -> null
+            isPrimary(press.keyCode) -> GameCommand.Primary
+            press.keyCode == KeyEvent.KEYCODE_V || press.keyCode == KeyEvent.KEYCODE_TAB -> GameCommand.Hint
+            press.keyCode == KeyEvent.KEYCODE_R -> GameCommand.Undo
+            press.keyCode == KeyEvent.KEYCODE_P -> GameCommand.Pause
             else -> common(press)
         }
 

@@ -1,0 +1,26 @@
+<!-- Bitter Melons: a melon glyph in the same frame as the other Sable game icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.171875"
+        android:scaleY="0.171875"
+        android:translateX="32"
+        android:translateY="32">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M128,44C178,44 200,100 200,140C200,196 168,228 128,228C88,228 56,196 56,140C56,100 78,44 128,44Z" />
+        <path
+            android:strokeColor="#00000000"
+            android:strokeWidth="10"
+            android:strokeLineCap="round"
+            android:pathData="M102,60C84,110 84,180 100,218M128,48L128,226M154,60C172,110 172,180 156,218" />
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="12"
+            android:strokeLineCap="round"
+            android:pathData="M128,46C124,28 136,18 152,22" />
+    </group>
+</vector>

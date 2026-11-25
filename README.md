@@ -20,6 +20,7 @@ Each game is its own app, so you install only the ones you want.
 | Sable Snakes & Ladders | `io.github.aimindseye.sablegames.snakesladders` | Two to four players, exact finish |
 | Sable Ludo | `io.github.aimindseye.sablegames.ludo` | Four colours: bring your tokens home |
 | Sable Scaffold | `io.github.aimindseye.sablegames.scaffold` | Climb the site, dodge rolling hazards, rescue Juno |
+| Bitter Melons | `io.github.aimindseye.sablegames.melons` | Fling angry melons from a slingshot and topple the AI Slop. World 1: nine levels |
 | Sable Sudoku | `io.github.aimindseye.sablegames.sudoku` | Fill the 9 x 9 grid |
 | Sable Minesweeper | `io.github.aimindseye.sablegames.minesweeper` | Clear the field without hitting a mine |
 | Sable 2048 | `io.github.aimindseye.sablegames.game2048` | Slide tiles to merge them up to 2048 |
@@ -73,4 +74,4 @@ Release APKs build unsigned; releases are signed on the owner's computer with `t
 
 ## Licence
 
-Apache-2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). LuaJ and the Phosphor icon glyphs are MIT; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Apache-2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). LuaJ and the Phosphor icon glyphs are MIT and JBox2D is BSD-2-Clause; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -221,6 +221,57 @@ internal object GameCatalog {
             timed = true,
         )
 
+    val melons =
+        GameSpec(
+            id = "melons",
+            title = "Bitter Melons",
+            tagline = "Fling angry melons. Topple the AI Slop.",
+            palette = GamePalette(Color(0xFF1C2331), Color(0xFF141A26), Color(0xFFFFD400)),
+            howTo =
+                listOf(
+                    HowToPage(
+                        "Fling the melon",
+                        listOf(
+                            "Up and down set the angle, left and right the power. The dots show the start of the flight.",
+                            "Space fires. Press Space again in the air for a Seed Burst: three fast seeds in a spread.",
+                            "V or Tab looks ahead at the structure while you aim. R starts the level again.",
+                            "Break every piece of AI Slop to clear the level. Each melon left over is worth 500.",
+                        ),
+                    ),
+                    HowToPage(
+                        "Slop, blocks and seeds",
+                        listOf(
+                            "Slop App 50, AI Bot 100, gold Premium Ad-Slop 300. Breaking the gold one doubles block points for a few seconds.",
+                            "Glass breaks easily, wood takes a solid hit and stone takes a heavy one. Bolted blocks never break.",
+                            "A red battery blows up when hit, and the blast breaks what is near it.",
+                            "Score enough for one, two or three seeds. Clearing a level opens the next.",
+                        ),
+                    ),
+                ),
+            controls =
+                listOf(
+                    GameControls(
+                        "melons",
+                        listOf(
+                            ControlAction("up", "Aim up", UP, byProfile(listOf(K_W), listOf(K_I, K_W))),
+                            ControlAction("down", "Aim down", DOWN, byProfile(listOf(K_S), listOf(K_K, K_S))),
+                            ControlAction("right", "More power", RIGHT, byProfile(listOf(K_D), listOf(K_L, K_D))),
+                            ControlAction("left", "Less power", LEFT, byProfile(listOf(K_A), listOf(K_J, K_A))),
+                            action("launch", "Fire, Seed Burst", GameCommand.Primary, K_SPACE),
+                            action("peek", "Look ahead", GameCommand.Hint, KeyEvent.KEYCODE_V, KeyEvent.KEYCODE_TAB),
+                            action("restart", "Restart level", GameCommand.Undo, KeyEvent.KEYCODE_R),
+                            pause,
+                            newGame,
+                        ),
+                        listOf(
+                            FixedKey("Aim") { if (it.letterMoves) "I J K L (set above)" else "Trackpad, arrows" },
+                            menuKey,
+                        ),
+                    ),
+                ),
+            timed = true,
+        )
+
     val game2048 =
         GameSpec(
             id = "2048",
@@ -526,6 +577,7 @@ internal object GameCatalog {
             GameKind.Solitaire -> solitaire
             GameKind.Mahjong -> mahjong
             GameKind.Words -> words
+            GameKind.Melons -> melons
             GameKind.Indian -> null
         }?.controls?.firstOrNull()
 
@@ -544,6 +596,7 @@ internal object GameCatalog {
             snakesLadders,
             ludo,
             cards,
+            melons,
         )
 }
 
