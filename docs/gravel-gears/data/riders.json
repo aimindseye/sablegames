@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1.0.0",
+  "pureModeSupported": true,
+  "riders": [
+    {
+      "id": "gravel",
+      "name": "Gravel",
+      "species": "Trail Goat",
+      "unlockedByDefault": true,
+      "unlockRule": null,
+      "signatureCardId": "bunny_hop",
+      "passive": {
+        "name": "Sure-Footed",
+        "type": "KEEP_COMBO_ON_STUMP_BOUNCE",
+        "value": 1,
+        "description": "Starts with +1 Bunny Hop; bouncing off tree stumps preserves combo."
+      },
+      "spriteLayers": {
+        "dayStrip": "riders_gravel_day_5pose_strip.png",
+        "headGridRow": 0,
+        "nightVariantIndex": 0
+      }
+    },
+    {
+      "id": "spokes",
+      "name": "Spokes",
+      "species": "Red Fox",
+      "unlockedByDefault": false,
+      "unlockRule": {
+        "metric": "MAX_GATES_SINGLE_RUN",
+        "target": 15
+      },
+      "signatureCardId": "switchback_l",
+      "passive": {
+        "name": "Flow State",
+        "type": "REDRAW_RECHARGE_CONSECUTIVE_GATES",
+        "value": 3,
+        "description": "Starts with +1 Switchback; 3 consecutive gates grant a free Redraw charge."
+      },
+      "spriteLayers": {
+        "dayStrip": "base_bike_5pose_composite",
+        "headGridRow": 1,
+        "nightVariantIndex": 1
+      }
+    },
+    {
+      "id": "knobby",
+      "name": "Knobby",
+      "species": "Badger",
+      "unlockedByDefault": false,
+      "unlockRule": {
+        "metric": "NIGHT_RIDES_COMPLETED",
+        "target": 1
+      },
+      "signatureCardId": "trail_bash",
+      "passive": {
+        "name": "Bash Bar",
+        "type": "SMASH_SMALL_ROCKS_PASSIVE",
+        "value": 50,
+        "description": "Heavy frame smashes straight through small rocks/rubble for +50 pts without deflecting."
+      },
+      "spriteLayers": {
+        "dayStrip": "base_bike_5pose_composite",
+        "headGridRow": 2,
+        "nightVariantIndex": 2
+      }
+    }
+  ]
+}

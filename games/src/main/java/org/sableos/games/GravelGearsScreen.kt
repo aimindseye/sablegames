@@ -324,7 +324,7 @@ internal fun GravelGearsScreen() {
                     GgDock(r, selected, onSlot = ::pressSlot, onRedraw = { if (r.redraw()) selected = -1; hud++ })
                     when (r.phase) {
                         GgPhase.Drafting -> GgDraft(r, selected, onPick = { r.pick(it); selected = -1; hud++ }, onSkip = { r.skipDraft(); hud++ })
-                        GgPhase.StageClear -> GgStagePanel(r, progress, onContinue = { r.continueRide(); hud++ })
+                        GgPhase.StageClear -> GgStagePanel(r, onContinue = { r.continueRide(); hud++ })
                         GgPhase.Wiped -> GgWipePanel(r, progress, onRetry = { r.retry(); hud++ }, onNew = { screen = GgScreen.Select; run = null })
                         else -> Unit
                     }
@@ -349,6 +349,16 @@ private fun riderAt(
     val a = pts[i]
     val b = pts[i + 1]
     return Triple(a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u, glide.air[i])
+}
+
+/** Where the board is looking: the size of a tile and the row at the top of the screen. */
+private class GgView(
+    val tile: Float,
+    val camY: Float,
+) {
+    fun sx(x: Float) = x * tile + tile / 2
+
+    fun sy(y: Float) = (y - camY) * tile + tile / 2
 }
 
 private fun ggHash(
@@ -381,8 +391,9 @@ private fun GgBoard(
         val tile = size.width / GG_COLUMNS
         val rows = size.height / tile
         val course = run.course
-        fun sx(x: Float) = x * tile + tile / 2
-        fun sy(y: Float) = (y - camY) * tile + tile / 2
+        val view = GgView(tile, camY)
+        fun sx(x: Float) = view.sx(x)
+        fun sy(y: Float) = view.sy(y)
         val y0 = camY.toInt() - 2
         val y1 = (camY + rows).toInt() + 3
         course.ensure(y1)
@@ -462,7 +473,7 @@ private fun GgBoard(
             for (x in 0 until GG_COLUMNS) {
                 val o = course.obstacleAt(x, yy) ?: continue
                 if (o.x != x) continue
-                things += yy.toFloat() to { drawObstacle(o, sprites, night, tile, ::sx, ::sy) }
+                things += yy.toFloat() to { drawObstacle(o, sprites, night, view) }
             }
         }
         for (i in 0 until 4) {
@@ -494,7 +505,7 @@ private fun GgBoard(
         }
         val rider = GgRider.byId(run.rider.id)
         things += shown.second to {
-            val pose = poseFor(run, glide, shown.third)
+            val pose = poseFor(glide, shown.third)
             val foot = Offset(sx(shown.first), sy(shown.second) + tile * 0.4f - (if (shown.third) tile * 0.35f * sin(PI.toFloat() * ((glide?.t ?: 0f) * 4f).mod(1f)) else 0f))
             drawOval(Color.Black.copy(alpha = if (night) 0.4f else 0.22f), Offset(sx(shown.first) - tile * 0.32f, sy(shown.second) + tile * 0.25f), Size(tile * 0.64f, tile * 0.2f))
             prop(sprites.rider(rider.id, pose, night), foot, tile * 1.15f, anchor = 0.87f)
@@ -503,7 +514,7 @@ private fun GgBoard(
 
         // The ghost: where the selected card ends, its path, and what it would hit.
         if (selected >= 0 && glide == null && run.phase == GgPhase.Riding) {
-            run.preview(selected)?.let { o -> drawGhost(o, run, sprites, tile, night, clock, ::sx, ::sy) }
+            run.preview(selected)?.let { o -> drawGhost(o, run, sprites, view, night, clock) }
         }
         // A deer about to bolt: the whole row is a danger row for one turn.
         run.animals.filter { it.kind == GgAnimalKind.DEER && it.state == GgDeerState.ALERT && it.y in y0..y1 }.forEach { a ->
@@ -511,12 +522,11 @@ private fun GgBoard(
             val pulse = 0.25f + 0.2f * sin(clock * 6f)
             drawRect(GgArt.Lethal.copy(alpha = pulse), Offset(t.first * tile, sy(a.y.toFloat()) - tile * 0.1f), Size((t.last - t.first + 1) * tile, tile * 0.6f))
         }
-        if (night) drawHeadlight(run, shown, tile, camY, ::sx, ::sy, sprites, clock)
+        if (night) drawHeadlight(run, shown, view, sprites)
     }
 }
 
 private fun poseFor(
-    run: GgRun,
     glide: GgGlide?,
     air: Boolean,
 ): Int {
@@ -540,10 +550,12 @@ private fun DrawScope.drawObstacle(
     o: GgObstacle,
     sprites: GgSprites,
     night: Boolean,
-    tile: Float,
-    sx: (Float) -> Float,
-    sy: (Float) -> Float,
+    view: GgView,
 ) {
+    val tile = view.tile
+    fun sx(x: Float) = view.sx(x)
+
+    fun sy(y: Float) = view.sy(y)
     val img = sprites.prop(o.kind, night)
     val cx = sx(o.x + (o.span - 1) / 2f)
     val foot = Offset(cx, sy(o.y.toFloat()) + tile * 0.42f)
@@ -564,12 +576,14 @@ private fun DrawScope.drawGhost(
     o: GgOutcome,
     run: GgRun,
     sprites: GgSprites,
-    tile: Float,
+    view: GgView,
     night: Boolean,
     clock: Float,
-    sx: (Float) -> Float,
-    sy: (Float) -> Float,
 ) {
+    val tile = view.tile
+    fun sx(x: Float) = view.sx(x)
+
+    fun sy(y: Float) = view.sy(y)
     val safe = if (night) GgArt.SafeNight else GgArt.Safe
     val outline = if (night) Color(0xFF001018) else Color(0xFF5A2A1A)
     var from = Offset(sx(run.x.toFloat()), sy(run.y.toFloat()) + tile * 0.2f)
@@ -612,13 +626,13 @@ private fun DrawScope.drawGhost(
 private fun DrawScope.drawHeadlight(
     run: GgRun,
     shown: Triple<Float, Float, Boolean>,
-    tile: Float,
-    camY: Float,
-    sx: (Float) -> Float,
-    sy: (Float) -> Float,
+    view: GgView,
     sprites: GgSprites,
-    clock: Float,
 ) {
+    val tile = view.tile
+    fun sx(x: Float) = view.sx(x)
+
+    fun sy(y: Float) = view.sy(y)
     val cx = sx(shown.first)
     val cy = sy(shown.second) + tile * 0.2f
     val full = run.beam > 0
@@ -802,7 +816,6 @@ private fun GgDraft(
 @Composable
 private fun GgStagePanel(
     run: GgRun,
-    progress: GgProgress,
     onContinue: () -> Unit,
 ) {
     val cleared = run.clearedStage

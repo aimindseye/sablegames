@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "stage_1_pine_ridge",
+  "stageNumber": 1,
+  "name": "Stage 1: Pine Ridge",
+  "biomeId": "alpine_topo_day",
+  "gridColumns": 9,
+  "trailWidth": 5,
+  "obstacleDensity": 0.1,
+  "scoreMultiplier": 1.0,
+  "unlocksOnStageGate": null,
+  "lightingOverride": {
+    "mode": "DAYLIGHT",
+    "headlightDepthTiles": null,
+    "headlightWidthTiles": null,
+    "gatesAlwaysVisible": true
+  },
+  "gateRange": {
+    "startGate": 1,
+    "endGate": 6
+  },
+  "endlessContinuation": false,
+  "gates": [
+    {
+      "gateNumber": 1,
+      "rowY": 5,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 2,
+          "y": 3,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Warmup straight or soft left line into wide opening gate."
+    },
+    {
+      "gateNumber": 2,
+      "rowY": 10,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 7,
+          "type": "RAMP"
+        },
+        {
+          "x": 4,
+          "y": 8,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Hit the Wooden Ramp at (4,7) to launch airborne over the boulder for +75 AIR."
+    },
+    {
+      "gateNumber": 3,
+      "rowY": 15,
+      "trailCenterX": 3,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 2,
+        "rightX": 3
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "RARE"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 5,
+          "y": 12,
+          "type": "BOULDER"
+        },
+        {
+          "x": 3,
+          "y": 13,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Carve left around the stump or bounce off it; Gate 3 opens first Card Draft."
+    },
+    {
+      "gateNumber": 4,
+      "rowY": 20,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 2,
+          "y": 17,
+          "type": "STUMP"
+        },
+        {
+          "x": 5,
+          "y": 18,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Soft Right carve threads past the boulder for a +50 Close Call bonus."
+    },
+    {
+      "gateNumber": 5,
+      "rowY": 25,
+      "trailCenterX": 5,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 5,
+        "rightX": 6
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": true,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 5,
+          "y": 22,
+          "type": "RAMP"
+        },
+        {
+          "x": 5,
+          "y": 23,
+          "type": "BOULDER"
+        },
+        {
+          "x": 3,
+          "y": 24,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Second ramp launch; Gate 5 recharges +1 Redraw pip."
+    },
+    {
+      "gateNumber": 6,
+      "rowY": 30,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "RARE"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 27,
+          "type": "BOULDER"
+        },
+        {
+          "x": 2,
+          "y": 28,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Bunny Hop over center boulder into Gate 6; triggers Card Draft before Stage 2."
+    }
+  ]
+}

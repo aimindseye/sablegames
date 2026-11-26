@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "1.0.0",
+  "gridViewport": {
+    "cols": 9,
+    "rows": 9
+  },
+  "scoring": {
+    "baseGatePoints": 100,
+    "comboCap": 8,
+    "redrawStartCharges": 1,
+    "redrawMaxCharges": 2,
+    "redrawRechargeEveryNGates": 5,
+    "draftEveryNGates": 3,
+    "styleBonuses": {
+      "airClearPerLethal": 75,
+      "bankShot": 100,
+      "closeCall": 50,
+      "rampLaunch": 50
+    }
+  },
+  "biomes": [
+    {
+      "id": "alpine_topo_day",
+      "name": "Alpine Forest",
+      "unlockedByDefault": true,
+      "scoreMultiplier": 1.0,
+      "lighting": {
+        "mode": "DAYLIGHT",
+        "headlightDepthTiles": null,
+        "headlightWidthTiles": null
+      },
+      "palette": {
+        "dirtTrail": "#E59866",
+        "terracottaSlope": "#D35400",
+        "contourLine": "#C0392B",
+        "pineTree": "#1E463E",
+        "gateFlag": "#FF5722",
+        "trajectorySafe": "#FFFFFF",
+        "trajectoryBounce": "#00F2FE",
+        "trajectoryLethal": "#FF3B30"
+      },
+      "pacingTiers": [
+        {
+          "stageName": "Stage 1: Pine Ridge",
+          "minGate": 0,
+          "trailWidth": 5,
+          "obstacleDensity": 0.1,
+          "allowedHazards": [
+            "BOULDER",
+            "STUMP",
+            "RAMP"
+          ]
+        },
+        {
+          "stageName": "Stage 2: Mudslide Switchbacks",
+          "minGate": 7,
+          "trailWidth": 4,
+          "obstacleDensity": 0.2,
+          "allowedHazards": [
+            "BOULDER",
+            "STUMP",
+            "RAMP",
+            "MUD",
+            "BERM"
+          ]
+        },
+        {
+          "stageName": "Stage 3: Black Diamond Gorge",
+          "minGate": 16,
+          "trailWidth": 3,
+          "obstacleDensity": 0.3,
+          "allowedHazards": [
+            "BOULDER",
+            "LOG",
+            "STUMP",
+            "RAMP",
+            "MUD",
+            "GRAVEL",
+            "BERM"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "night_ride_oled",
+      "name": "Night Ride (OLED)",
+      "unlockedByDefault": false,
+      "unlockRule": {
+        "metric": "MAX_GATES_SINGLE_RUN",
+        "target": 18
+      },
+      "scoreMultiplier": 1.5,
+      "lighting": {
+        "mode": "HEADLIGHT_CONE",
+        "headlightDepthTiles": 4,
+        "headlightWidthTiles": 5,
+        "gatesAlwaysVisible": true
+      },
+      "palette": {
+        "dirtTrail": "#111A24",
+        "terracottaSlope": "#080D14",
+        "contourLine": "#1E3246",
+        "pineTree": "#05090F",
+        "gateFlagAmber": "#F39C12",
+        "gateArchCyan": "#00F2FE",
+        "headlightBloom": "#F9D423",
+        "trajectorySafe": "#00F2FE",
+        "trajectoryLethal": "#FF3B30"
+      },
+      "pacingTiers": [
+        {
+          "stageName": "Night Stage 1: Twilight Singletrack",
+          "minGate": 0,
+          "trailWidth": 5,
+          "obstacleDensity": 0.14,
+          "allowedHazards": [
+            "BOULDER",
+            "STUMP",
+            "RAMP",
+            "BERM"
+          ]
+        },
+        {
+          "stageName": "Night Stage 2: Midnight Ridge",
+          "minGate": 10,
+          "trailWidth": 4,
+          "obstacleDensity": 0.24,
+          "allowedHazards": [
+            "BOULDER",
+            "LOG",
+            "STUMP",
+            "RAMP",
+            "MUD",
+            "GRAVEL",
+            "BERM"
+          ]
+        }
+      ]
+    }
+  ]
+}

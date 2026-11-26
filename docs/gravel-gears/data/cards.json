@@ -1,0 +1,566 @@
+{
+  "schemaVersion": "1.0.0",
+  "handSize": 4,
+  "starterDeckSize": 10,
+  "cards": [
+    {
+      "id": "straight_shot",
+      "name": "Straight Shot",
+      "category": "CARVE_LINE",
+      "rarity": "STARTER",
+      "starterQty": 2,
+      "vector": {
+        "dx": 0,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 0,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [],
+      "iconGlyph": "glyph_straight_down_2",
+      "description": "Clean, reliable downhill speed."
+    },
+    {
+      "id": "soft_left",
+      "name": "Soft Left",
+      "category": "CARVE_LINE",
+      "rarity": "STARTER",
+      "starterQty": 2,
+      "vector": {
+        "dx": -1,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": -1,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": -1,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [],
+      "iconGlyph": "glyph_soft_left",
+      "description": "Gentle carve left; checks 1 intermediate tile."
+    },
+    {
+      "id": "soft_right",
+      "name": "Soft Right",
+      "category": "CARVE_LINE",
+      "rarity": "STARTER",
+      "starterQty": 2,
+      "vector": {
+        "dx": 1,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": 1,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 1,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [],
+      "iconGlyph": "glyph_soft_right",
+      "description": "Gentle carve right; checks 1 intermediate tile."
+    },
+    {
+      "id": "hard_left",
+      "name": "Hard Left",
+      "category": "CARVE_LINE",
+      "rarity": "STARTER",
+      "starterQty": 1,
+      "vector": {
+        "dx": -2,
+        "dy": 1
+      },
+      "pathSteps": [
+        {
+          "dx": -1,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": -2,
+          "dy": 1,
+          "airborne": false
+        }
+      ],
+      "effects": [],
+      "iconGlyph": "glyph_hard_left",
+      "description": "Tight switchback left to dodge sudden boulders."
+    },
+    {
+      "id": "hard_right",
+      "name": "Hard Right",
+      "category": "CARVE_LINE",
+      "rarity": "STARTER",
+      "starterQty": 1,
+      "vector": {
+        "dx": 2,
+        "dy": 1
+      },
+      "pathSteps": [
+        {
+          "dx": 1,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 2,
+          "dy": 1,
+          "airborne": false
+        }
+      ],
+      "effects": [],
+      "iconGlyph": "glyph_hard_right",
+      "description": "Tight switchback right to dodge sudden boulders."
+    },
+    {
+      "id": "bunny_hop",
+      "name": "Bunny Hop",
+      "category": "AIR_TECH",
+      "rarity": "STARTER",
+      "starterQty": 1,
+      "vector": {
+        "dx": 0,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": true
+        },
+        {
+          "dx": 0,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "AIR_BONUS_ON_CLEAR",
+          "points": 75
+        }
+      ],
+      "iconGlyph": "glyph_bunny_hop",
+      "description": "Airborne over middle tile (0, +1). Clears boulders and logs."
+    },
+    {
+      "id": "feather_brake",
+      "name": "Feather Brake",
+      "category": "FLOW_UTILITY",
+      "rarity": "STARTER",
+      "starterQty": 1,
+      "vector": {
+        "dx": 0,
+        "dy": 1
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": false
+        }
+      ],
+      "effects": [],
+      "iconGlyph": "glyph_slide_brake",
+      "description": "Short micro-step to align with a gate or ramp."
+    },
+    {
+      "id": "switchback_l",
+      "name": "Switchback Left",
+      "category": "CARVE_LINE",
+      "rarity": "COMMON",
+      "starterQty": 0,
+      "vector": {
+        "dx": -2,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": -1,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": -2,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "BONUS_COMBO_ON_GATE",
+          "delta": 1
+        }
+      ],
+      "iconGlyph": "glyph_hard_left",
+      "description": "Sweeping left S-curve; +1 Combo if passing through a Gate."
+    },
+    {
+      "id": "switchback_r",
+      "name": "Switchback Right",
+      "category": "CARVE_LINE",
+      "rarity": "COMMON",
+      "starterQty": 0,
+      "vector": {
+        "dx": 2,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": 1,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 2,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "BONUS_COMBO_ON_GATE",
+          "delta": 1
+        }
+      ],
+      "iconGlyph": "glyph_hard_right",
+      "description": "Sweeping right S-curve; +1 Combo if passing through a Gate."
+    },
+    {
+      "id": "berm_whip",
+      "name": "Berm Whip",
+      "category": "CARVE_LINE",
+      "rarity": "TACTICAL",
+      "starterQty": 0,
+      "vector": {
+        "dx": 0,
+        "dy": 2,
+        "mirrorLastLateral": true
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 0,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "MIRROR_LAST_LATERAL_SIGN",
+          "magnitude": 1
+        },
+        {
+          "type": "STYLE_BONUS",
+          "points": 50
+        }
+      ],
+      "iconGlyph": "glyph_soft_right",
+      "description": "Mirrors your last lateral direction (+/-1, +2) and grants +50 Style."
+    },
+    {
+      "id": "skid_stop",
+      "name": "Skid Stop",
+      "category": "CARVE_LINE",
+      "rarity": "COMMON",
+      "starterQty": 0,
+      "vector": {
+        "dx": 0,
+        "dy": 1
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "CLEAR_TERRAIN_DEBUFFS"
+        },
+        {
+          "type": "RECHARGE_REDRAW_PIP",
+          "amount": 1
+        }
+      ],
+      "iconGlyph": "glyph_slide_brake",
+      "description": "Clears Mud/Gravel debuffs and recharges +1 Redraw pip."
+    },
+    {
+      "id": "tabletop_jump",
+      "name": "Tabletop Jump",
+      "category": "AIR_TECH",
+      "rarity": "TACTICAL",
+      "starterQty": 0,
+      "vector": {
+        "dx": 0,
+        "dy": 3
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": true
+        },
+        {
+          "dx": 0,
+          "dy": 2,
+          "airborne": true
+        },
+        {
+          "dx": 0,
+          "dy": 3,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "AIR_BONUS_ON_CLEAR",
+          "points": 75
+        }
+      ],
+      "iconGlyph": "glyph_bunny_hop",
+      "description": "Airborne over 2 tiles (0, +1) and (0, +2). Must land on clear trail."
+    },
+    {
+      "id": "whip_left",
+      "name": "Whip Left",
+      "category": "AIR_TECH",
+      "rarity": "RARE",
+      "starterQty": 0,
+      "vector": {
+        "dx": -1,
+        "dy": 3
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": true
+        },
+        {
+          "dx": -1,
+          "dy": 2,
+          "airborne": true
+        },
+        {
+          "dx": -1,
+          "dy": 3,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "AIR_BONUS_ON_CLEAR",
+          "points": 75
+        }
+      ],
+      "iconGlyph": "glyph_bunny_hop",
+      "description": "Airborne diagonal jump left; awards Air Bonus per lethal obstacle cleared."
+    },
+    {
+      "id": "whip_right",
+      "name": "Whip Right",
+      "category": "AIR_TECH",
+      "rarity": "RARE",
+      "starterQty": 0,
+      "vector": {
+        "dx": 1,
+        "dy": 3
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": true
+        },
+        {
+          "dx": 1,
+          "dy": 2,
+          "airborne": true
+        },
+        {
+          "dx": 1,
+          "dy": 3,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "AIR_BONUS_ON_CLEAR",
+          "points": 75
+        }
+      ],
+      "iconGlyph": "glyph_bunny_hop",
+      "description": "Airborne diagonal jump right; awards Air Bonus per lethal obstacle cleared."
+    },
+    {
+      "id": "trail_bash",
+      "name": "Trail Bash",
+      "category": "AIR_TECH",
+      "rarity": "TACTICAL",
+      "starterQty": 0,
+      "vector": {
+        "dx": 0,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 0,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "SMASH_BUMPER",
+          "maxSmash": 1,
+          "bonusPoints": 100
+        }
+      ],
+      "iconGlyph": "glyph_fast_sprint",
+      "description": "Smashes through 1 Stump or Small Rock on the path (+100 pts, no bounce)."
+    },
+    {
+      "id": "tuck_and_bomb",
+      "name": "Tuck & Bomb",
+      "category": "FLOW_UTILITY",
+      "rarity": "RARE",
+      "starterQty": 0,
+      "vector": {
+        "dx": 0,
+        "dy": 4
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 0,
+          "dy": 2,
+          "airborne": false
+        },
+        {
+          "dx": 0,
+          "dy": 3,
+          "airborne": false
+        },
+        {
+          "dx": 0,
+          "dy": 4,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "GATE_POINTS_MULTIPLIER",
+          "multiplier": 2.0
+        }
+      ],
+      "iconGlyph": "glyph_fast_sprint",
+      "description": "High-speed straightaway; 2x Gate Points if threading a gate mid-flight."
+    },
+    {
+      "id": "manual_wheelie",
+      "name": "Manual (Wheelie)",
+      "category": "FLOW_UTILITY",
+      "rarity": "TACTICAL",
+      "starterQty": 0,
+      "vector": {
+        "dx": 0,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 0,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "IGNORE_TERRAIN_MODIFIERS",
+          "tags": [
+            "MUD",
+            "GRAVEL"
+          ]
+        },
+        {
+          "type": "NEXT_TURN_EXTRA_DRAW",
+          "count": 1
+        }
+      ],
+      "iconGlyph": "glyph_bunny_hop",
+      "description": "Ignores Mud & Loose Gravel; draws 1 extra card next turn (hand of 5)."
+    },
+    {
+      "id": "high_beam",
+      "name": "High Beam",
+      "category": "FLOW_UTILITY",
+      "rarity": "NIGHT_BIOME",
+      "starterQty": 0,
+      "vector": {
+        "dx": 0,
+        "dy": 2
+      },
+      "pathSteps": [
+        {
+          "dx": 0,
+          "dy": 1,
+          "airborne": false
+        },
+        {
+          "dx": 0,
+          "dy": 2,
+          "airborne": false
+        }
+      ],
+      "effects": [
+        {
+          "type": "EXPAND_HEADLIGHT_FULLSCREEN",
+          "durationTurns": 2
+        }
+      ],
+      "iconGlyph": "glyph_high_beam",
+      "description": "Night Ride card: expands headlight cone to full-screen visibility for 2 turns."
+    }
+  ]
+}

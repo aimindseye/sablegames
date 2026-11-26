@@ -1,0 +1,294 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "night_stage_1_twilight_singletrack",
+  "stageNumber": 1,
+  "name": "Night Stage 1: Twilight Singletrack",
+  "biomeId": "night_ride_oled",
+  "gridColumns": 9,
+  "trailWidth": 5,
+  "obstacleDensity": 0.14,
+  "scoreMultiplier": 1.5,
+  "unlocksOnStageGate": null,
+  "lightingOverride": {
+    "mode": "HEADLIGHT_CONE",
+    "headlightDepthTiles": 4,
+    "headlightWidthTiles": 5,
+    "gatesAlwaysVisible": true
+  },
+  "gateRange": {
+    "startGate": 1,
+    "endGate": 9
+  },
+  "endlessContinuation": false,
+  "gates": [
+    {
+      "gateNumber": 1,
+      "rowY": 5,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "AMBER_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 5,
+          "y": 3,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Headlight warmup; glowing amber gate flags stay visible beyond cone."
+    },
+    {
+      "gateNumber": 2,
+      "rowY": 10,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 7,
+          "type": "RAMP"
+        },
+        {
+          "x": 4,
+          "y": 8,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Cyan-chevron Ramp launches rider through glowing Cyan Holo Arch."
+    },
+    {
+      "gateNumber": 3,
+      "rowY": 15,
+      "trailCenterX": 3,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 2,
+        "rightX": 3
+      },
+      "gateStyle": "AMBER_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "NIGHT_BIOME"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 12,
+          "type": "STUMP"
+        },
+        {
+          "x": 2,
+          "y": 13,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Use Scout (W/S or trackpad roll) to sweep headlamp; Gate 3 Night Draft."
+    },
+    {
+      "gateNumber": 4,
+      "rowY": 20,
+      "trailCenterX": 5,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 5,
+        "rightX": 6
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 17,
+          "type": "BERM_LEFT"
+        },
+        {
+          "x": 5,
+          "y": 18,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Reflector Berm redirects rider toward glowing Cyan Arch."
+    },
+    {
+      "gateNumber": 5,
+      "rowY": 25,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "AMBER_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": true,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 22,
+          "type": "BOULDER"
+        },
+        {
+          "x": 5,
+          "y": 23,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Split the twin boulders with Straight Shot; Gate 5 recharges +1 Redraw."
+    },
+    {
+      "gateNumber": 6,
+      "rowY": 30,
+      "trailCenterX": 3,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "NIGHT_BIOME"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 27,
+          "type": "RAMP"
+        },
+        {
+          "x": 3,
+          "y": 28,
+          "type": "BOULDER"
+        },
+        {
+          "x": 4,
+          "y": 28,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Ramp jump or High Beam reveal before Gate 6 Card Draft."
+    },
+    {
+      "gateNumber": 7,
+      "rowY": 35,
+      "trailCenterX": 5,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "AMBER_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 6,
+          "y": 32,
+          "type": "BERM_RIGHT"
+        },
+        {
+          "x": 4,
+          "y": 33,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Right Berm bounce threads past dark boulder into Gate 7."
+    },
+    {
+      "gateNumber": 8,
+      "rowY": 40,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 37,
+          "type": "STUMP"
+        },
+        {
+          "x": 4,
+          "y": 38,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Amber-rimmed stump bounce sets up +100 Bank Shot at 1.5x Night multiplier."
+    },
+    {
+      "gateNumber": 9,
+      "rowY": 45,
+      "trailCenterX": 4,
+      "trailWidth": 5,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "TACTICAL",
+        "RARE",
+        "NIGHT_BIOME"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 42,
+          "type": "RAMP"
+        },
+        {
+          "x": 4,
+          "y": 43,
+          "type": "BOULDER"
+        },
+        {
+          "x": 5,
+          "y": 43,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Stage finale jump into Night Stage 2; triggers Night Card Draft."
+    }
+  ]
+}
