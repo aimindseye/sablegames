@@ -109,7 +109,13 @@ for row in "${table[@]}"; do
         continue
     fi
     "${adb_cmd[@]}" shell am force-stop "$package"
-    "${adb_cmd[@]}" shell am start -W -n "$package/org.sableos.games.MainActivity" >/dev/null
+    # Start the app's launcher activity, whatever it is called: the console's is ConsoleActivity, not
+    # MainActivity. A failed start is reported and skipped, never a silent exit.
+    activity="$("${adb_cmd[@]}" shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER "$package" | tr -d '\r' | tail -n 1)"
+    if [[ "$activity" != */* ]] || ! "${adb_cmd[@]}" shell am start -W -n "$activity" >/dev/null; then
+        echo "skip $flavor: could not start $package"; missed+=("$name.png (did not start)")
+        continue
+    fi
     if [[ "$auto" == yes ]]; then
         sleep 3
         for key in $keys; do
