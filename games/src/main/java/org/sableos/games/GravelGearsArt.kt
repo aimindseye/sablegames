@@ -63,11 +63,18 @@ internal class GgSprites(
             "knobby" to strip(R.drawable.gg_knobby_hard_left, R.drawable.gg_knobby_soft_left, R.drawable.gg_knobby_straight, R.drawable.gg_knobby_soft_right, R.drawable.gg_knobby_air),
         )
     }
-    private val nightRiders: Map<String, ImageBitmap> by lazy {
+    private val nightRiders: Map<String, List<ImageBitmap>> by lazy {
+        fun strip(
+            a: Int,
+            b: Int,
+            c: Int,
+            d: Int,
+            e: Int,
+        ) = listOf(a, b, c, d, e).map(load)
         mapOf(
-            "gravel" to load(R.drawable.gg_nightrider_gravel),
-            "spokes" to load(R.drawable.gg_nightrider_spokes),
-            "knobby" to load(R.drawable.gg_nightrider_knobby),
+            "gravel" to strip(R.drawable.gg_nr_gravel_hard_left, R.drawable.gg_nr_gravel_soft_left, R.drawable.gg_nr_gravel_straight, R.drawable.gg_nr_gravel_soft_right, R.drawable.gg_nr_gravel_air),
+            "spokes" to strip(R.drawable.gg_nr_spokes_hard_left, R.drawable.gg_nr_spokes_soft_left, R.drawable.gg_nr_spokes_straight, R.drawable.gg_nr_spokes_soft_right, R.drawable.gg_nr_spokes_air),
+            "knobby" to strip(R.drawable.gg_nr_knobby_hard_left, R.drawable.gg_nr_knobby_soft_left, R.drawable.gg_nr_knobby_straight, R.drawable.gg_nr_knobby_soft_right, R.drawable.gg_nr_knobby_air),
         )
     }
     private val heads: Map<String, ImageBitmap> by lazy {
@@ -93,7 +100,7 @@ internal class GgSprites(
         id: String,
         pose: Int,
         night: Boolean,
-    ): ImageBitmap = if (night) nightRiders.getValue(id) else riders.getValue(id)[pose.coerceIn(0, 4)]
+    ): ImageBitmap = (if (night) nightRiders else riders).getValue(id)[pose.coerceIn(0, 4)]
 
     fun head(id: String): ImageBitmap = heads.getValue(id)
 
@@ -147,6 +154,17 @@ internal object GgArt {
             filterQuality = FilterQuality.Medium,
         )
     }
+
+    /** A rider at [tile] size: every pose of a strip shares one scale, so a lean or a jump keeps the rider's size. */
+    fun DrawScope.riderProp(
+        image: ImageBitmap,
+        foot: Offset,
+        tile: Float,
+        alpha: Float = 1f,
+    ) = prop(image, foot, image.height * tile * RIDER_TILES / RIDER_PX, alpha, anchor = 0.87f)
+
+    private const val RIDER_PX = 300f
+    private const val RIDER_TILES = 1.15f
 
     /** Same, but sized by width: used for logs, berms and the gate flags. */
     fun DrawScope.propWide(
