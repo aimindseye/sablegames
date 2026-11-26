@@ -5,6 +5,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.jbox2d.common.Vec2
+import kotlin.math.abs
+import kotlin.math.hypot
 import org.junit.Test
 
 class MelonsWorldTest {
@@ -68,6 +70,25 @@ class MelonsWorldTest {
                 "2-7" to listOf(24f to 76f, 22f to 72f, 16f to 100f),
                 "2-8" to listOf(60f to 72f),
                 "2-9" to listOf(20f to 80f),
+                "3-1" to listOf(14f to 96f),
+                "3-2" to listOf(60f to 72f),
+                "3-3" to listOf(18f to 84f),
+                "3-4" to listOf(46f to 64f),
+                "3-5" to listOf(8f to 100f),
+                "3-6" to listOf(70f to 88f),
+                "3-7" to listOf(0f to 100f),
+                "3-8" to listOf(0f to 80f),
+                "3-9" to listOf(62f to 72f),
+                "4-1" to listOf(22f to 88f),
+                "4-2" to listOf(38f to 80f),
+                "4-3" to listOf(30f to 80f),
+                "4-4" to listOf(34f to 88f),
+                "4-5" to listOf(36f to 72f),
+                "4-6" to listOf(20f to 96f),
+                "4-7" to listOf(40f to 84f),
+                // The firewall turns while you aim, so the shots before the last set when it goes through the gap.
+                "4-8" to listOf(0f to 20f, 72f to 100f, 64f to 84f, 50f to 68f),
+                "4-9" to listOf(24f to 96f),
             )
         assertEquals(MelonsLevels.all.map { it.id }.toSet(), plans.keys)
         for (level in MelonsLevels.all) {
@@ -181,12 +202,140 @@ class MelonsWorldTest {
     }
 
     @Test
-    fun worldTwoBringsTheSplitCantaloupe() {
-        assertEquals(2, MelonsLevels.worlds.size)
-        assertEquals(MelonsLevels.PER_WORLD, MelonsLevels.world(1).size)
-        assertEquals(MelonsLevels.PER_WORLD, MelonsLevels.world(2).size)
+    fun eachWorldHasNineLevelsAndItsNewMelon() {
+        assertEquals(4, MelonsLevels.worlds.size)
+        for (n in 1..4) assertEquals(MelonsLevels.PER_WORLD, MelonsLevels.world(n).size)
         assertTrue(MelonsLevels.world(1).all { level -> level.queue.all { it == MelonKind.Bitter } })
         assertTrue(MelonsLevels.world(2).any { level -> MelonKind.Split in level.queue })
+        assertTrue(MelonsLevels.world(3).any { level -> MelonKind.Heavy in level.queue })
+        assertTrue(MelonsLevels.world(4).any { level -> MelonKind.Overripe in level.queue })
+    }
+
+    @Test
+    fun theOverripeMelonBurstsInAShockwave() {
+        val world = MelonsWorld(level("4-1"))
+        assertEquals(MelonKind.Overripe, world.loaded)
+        world.setAim(45f, 60f)
+        world.launch()
+        repeat(BURST_STEPS) { world.tick() }
+        assertTrue(world.ability())
+        // The melon is gone, a blast goes off where it was, and it can't burst twice.
+        assertEquals(0, world.pieces.count { it.kind == PieceKind.Melon })
+        assertEquals(1, world.blasts.size)
+        assertFalse(world.ability())
+    }
+
+    @Test
+    fun anOverripeMelonBurstsWhenItHitsHard() {
+        // Fired flat into the ground in front of the slingshot, it bursts on landing without a key press.
+        val world = MelonsWorld(level("4-1"))
+        world.setAim(0f, 100f)
+        world.launch()
+        val melon = world.melon!!
+        melon.body.linearVelocity = Vec2(5f, -30f)
+        repeat(BOUNCE_STEPS) { world.tick() }
+        assertTrue(melon.dead)
+        assertTrue(world.burstUsed)
+    }
+
+    @Test
+    fun aShieldStopsMelonsButNotTheStructure() {
+        val world = MelonsWorld(level("4-1"))
+        val shield = world.pieces.single { it.kind == PieceKind.Shield }
+        // Nothing inside touches the ring: the structure stood still while the level settled.
+        assertTrue(world.pieces.filter { it.kind == PieceKind.Slop }.all { hypot(it.x - shield.x, it.y - shield.y) < shield.w / 2 })
+        // A melon flung at the ring from outside bounces off it rather than passing through.
+        world.setAim(0f, 20f)
+        world.launch()
+        val melon = world.melon!!
+        melon.body.setTransform(Vec2(shield.x - shield.w / 2 - 3f, shield.y + 2f), 0f)
+        melon.body.linearVelocity = Vec2(20f, 0f)
+        var minX = Float.MAX_VALUE
+        repeat(BOUNCE_STEPS) {
+            world.tick()
+            if (!melon.dead) minX = minOf(minX, abs(melon.x - shield.x))
+        }
+        assertTrue("got within $minX m of the middle", melon.dead || minX > shield.w / 2 - 2f)
+    }
+
+    @Test
+    fun aDroneHoldsItsSlopUntilItsThrustersBreak() {
+        val world = MelonsWorld(level("4-2"))
+        val drones = world.pieces.filter { it.drone }
+        assertEquals(2, drones.size)
+        // Its Prompt Bot stands on the deck, and both hover still.
+        val riders = world.pieces.filter { it.slop == SlopKind.Prompt }
+        assertTrue(riders.all { it.y > 18f })
+        repeat(IDLE_STEPS) { world.tick() }
+        assertTrue(drones.all { it.hanging && abs(it.y - 18f) < 0.01f })
+        // A hard hit from below breaks one's thrusters, and it falls.
+        world.setAim(0f, 20f)
+        world.launch()
+        val melon = world.melon!!
+        val drone = drones[0]
+        melon.body.setTransform(Vec2(drone.x, drone.y - 4f), 0f)
+        melon.body.linearVelocity = Vec2(0f, 28f)
+        repeat(BOUNCE_STEPS) { world.tick() }
+        assertFalse(drone.hanging)
+        assertTrue(drone.y < 17.5f)
+    }
+
+    @Test
+    fun aFanLiftsTheMelonAndTheAimFollowsIt() {
+        // 3-2's fan blows from 42 to 50 m. Past it, the aimed flight is well above the plain arc.
+        val world = MelonsWorld(level("3-2"))
+        world.setAim(45f, 60f)
+        val rad = Math.toRadians(45.0)
+        val v = world.launchSpeed
+        var t = 0f
+        while (world.preview(t).first < 51f) t += 0.01f
+        val aimedY = world.preview(t).second
+        val plainY = (MelonsWorld.SLING_Y + v * Math.sin(rad) * t - MelonsWorld.GRAVITY * t * t / 2).toFloat()
+        assertTrue("aimed $aimedY vs plain $plainY", aimedY > plainY + 1f)
+        // The real flight passes 51 m where the aim said, within a metre.
+        world.launch()
+        var flownY = Float.NaN
+        repeat(600) {
+            world.tick()
+            val m = world.melon
+            if (flownY.isNaN() && m != null && !m.dead && m.x >= 51f) flownY = m.y
+        }
+        assertEquals(aimedY, flownY, 1f)
+    }
+
+    @Test
+    fun aHangingBeamHoldsUntilItsCablesSnap() {
+        val world = MelonsWorld(level("3-3"))
+        val beams = world.pieces.filter { it.hanging }
+        assertEquals(2, beams.size)
+        // It hangs still, however long.
+        repeat(IDLE_STEPS) { world.tick() }
+        assertTrue(beams.all { it.hanging && abs(it.y - 24f) < 0.01f })
+        // A melon thrown up into one snaps its cables, and it falls.
+        world.setAim(0f, 20f)
+        world.launch()
+        val melon = world.melon!!
+        val beam = beams[0]
+        melon.body.setTransform(Vec2(beam.x, beam.y - 4f), 0f)
+        melon.body.linearVelocity = Vec2(0f, 25f)
+        repeat(BOUNCE_STEPS) { world.tick() }
+        assertFalse(beam.hanging)
+        assertTrue(beam.y < 23f)
+    }
+
+    @Test
+    fun theHoneydewSlamsStraightDown() {
+        val world = MelonsWorld(level("3-1"))
+        assertEquals(MelonKind.Heavy, world.loaded)
+        world.setAim(45f, 80f)
+        world.launch()
+        val melon = world.melon!!
+        assertEquals(1f, melon.w / 2, 0.001f)
+        repeat(BURST_STEPS) { world.tick() }
+        assertTrue(world.ability())
+        assertTrue(melon.body.linearVelocity.y < -20f)
+        assertTrue(abs(melon.body.linearVelocity.x) < 6f)
+        assertFalse(world.ability())
     }
 
     @Test

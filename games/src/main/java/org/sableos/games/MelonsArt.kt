@@ -26,8 +26,9 @@ internal enum class MelonPose { Ready, Flying, Landed }
 
 /**
  * Bitter Melons' sprites, cut from the owner's art sheets (2026-11-25) by tools/melons/cut_sprites.py: the
- * Bitter Melon in three poses and four rage levels, the Split Cantaloupe in three poses, the four enemies whole
- * and hit, glass, wood and stone in four wear stages, the slingshot, the AD banner and each world's background.
+ * Bitter Melon in three poses and four rage levels, the Split Cantaloupe, Heavy Honeydew and Overripe Melon in
+ * three poses, the five enemies whole and hit, glass, wood, stone and steel in four wear stages, the slingshot, the AD
+ * banner, the cooling fan, the hanging beam, the drone platform and each world's background.
  * Each sheet's sprites share one scale.
  */
 internal class MelonsSprites(
@@ -35,9 +36,12 @@ internal class MelonsSprites(
 ) {
     private fun all(vararg ids: Int) = ids.map(load)
 
-    private val worlds = all(R.drawable.melons_world1, R.drawable.melons_world2)
+    private val worlds = all(R.drawable.melons_world1, R.drawable.melons_world2, R.drawable.melons_world3, R.drawable.melons_world4)
     val slingshot = load(R.drawable.melons_slingshot)
     val banner = load(R.drawable.melons_banner)
+    val fan = load(R.drawable.melons_fan)
+    val beam = load(R.drawable.melons_beam)
+    val drone = load(R.drawable.melons_drone)
     private val ready =
         all(
             R.drawable.melons_melon_ready_0,
@@ -61,12 +65,19 @@ internal class MelonsSprites(
         )
 
     /** The Split Cantaloupe: ready, flying and landed. */
-    private val split =
-        all(R.drawable.melons_split_ready, R.drawable.melons_split_flying, R.drawable.melons_split_landed)
+    private val split = all(R.drawable.melons_split_ready, R.drawable.melons_split_flying, R.drawable.melons_split_landed)
+
+    /** The Overripe Melon, its lit fuse painted out: ready, flying and landed. */
+    private val overripe =
+        all(R.drawable.melons_overripe_ready, R.drawable.melons_overripe_flying, R.drawable.melons_overripe_landed)
+
+    /** The Heavy Honeydew: ready, flying and landed. */
+    private val heavy = all(R.drawable.melons_heavy_ready, R.drawable.melons_heavy_flying, R.drawable.melons_heavy_landed)
     private val app = all(R.drawable.melons_enemy_app, R.drawable.melons_enemy_app_hit)
     private val bot = all(R.drawable.melons_enemy_bot, R.drawable.melons_enemy_bot_hit)
     private val ad = all(R.drawable.melons_enemy_ad, R.drawable.melons_enemy_ad_hit)
     private val battery = all(R.drawable.melons_enemy_battery, R.drawable.melons_enemy_battery_hit)
+    private val prompt = all(R.drawable.melons_enemy_prompt, R.drawable.melons_enemy_prompt_hit)
     private val glass =
         all(
             R.drawable.melons_block_glass_0,
@@ -88,6 +99,13 @@ internal class MelonsSprites(
             R.drawable.melons_block_stone_2,
             R.drawable.melons_block_stone_3,
         )
+    private val steel =
+        all(
+            R.drawable.melons_block_steel_0,
+            R.drawable.melons_block_steel_1,
+            R.drawable.melons_block_steel_2,
+            R.drawable.melons_block_steel_3,
+        )
 
     /** World [n]'s background, from 1. */
     fun world(n: Int): ImageBitmap = worlds[(n - 1).coerceIn(worlds.indices)]
@@ -99,6 +117,8 @@ internal class MelonsSprites(
         kind: MelonKind = MelonKind.Bitter,
     ): ImageBitmap {
         if (kind == MelonKind.Split) return split[pose.ordinal]
+        if (kind == MelonKind.Heavy) return heavy[pose.ordinal]
+        if (kind == MelonKind.Overripe) return overripe[pose.ordinal]
         return when (pose) {
             MelonPose.Ready -> ready
             MelonPose.Flying -> flying
@@ -115,6 +135,7 @@ internal class MelonsSprites(
             kind == PieceKind.Battery -> battery
             slop == SlopKind.Bot -> bot
             slop == SlopKind.Ad -> ad
+            slop == SlopKind.Prompt -> prompt
             else -> app
         }
 
@@ -126,6 +147,7 @@ internal class MelonsSprites(
         when (material) {
             MelonMaterial.Glass -> glass
             MelonMaterial.Wood -> wood
+            MelonMaterial.Steel -> steel
             else -> stone
         }[wear.coerceIn(0, 3)]
 
@@ -155,7 +177,7 @@ internal object MelonsArt {
     private const val MELON_BODY_PX = 100f
 
     /** Where each world's ground starts, as a share of its background's height: the path, then the mall floor. */
-    private val PATH_TOP = floatArrayOf(0.86f, 0.9f)
+    private val PATH_TOP = floatArrayOf(0.86f, 0.9f, 0.8f, 0.9f)
 
     private fun pathTop(world: Int) = PATH_TOP[(world - 1).coerceIn(PATH_TOP.indices)]
 
@@ -269,6 +291,91 @@ internal object MelonsArt {
         val h = w * BANNER_HEIGHT
         rotate(degrees, center) {
             sprite(image, center.x - w / 2, center.y - h * BANNER_PAD_Y, w, h)
+        }
+    }
+
+    /**
+     * A cooling fan on the floor at [base] ([w] px wide, its updraft [high] px tall): a pale column with streaks
+     * rising through it at [time] seconds, and the fan housing at its foot.
+     */
+    fun DrawScope.fan(
+        sprites: MelonsSprites,
+        base: Offset,
+        w: Float,
+        high: Float,
+        time: Float,
+    ) {
+        drawRect(Updraft.copy(alpha = 0.12f), Offset(base.x - w / 2, base.y - high), Size(w, high))
+        val streak = high / FAN_STREAKS
+        for (i in 0 until FAN_STREAKS) {
+            val rise = ((i + time * FAN_STREAK_SPEED) % FAN_STREAKS) * streak
+            val x = base.x + w * ((i * 0.37f) % 1f - 0.5f) * 0.8f
+            val y = base.y - rise
+            drawLine(Updraft.copy(alpha = 0.45f), Offset(x, y), Offset(x, y - streak * 0.5f), w * 0.03f, StrokeCap.Round)
+        }
+        val image = sprites.fan
+        val fw = w * FAN_SIZE
+        val fh = fw * image.height / image.width
+        sprite(image, base.x - fw / 2, base.y - fh, fw, fh)
+    }
+
+    /**
+     * A beam still on its cables, [w] by [h] px with its middle at [center]: the beam sprite's I-beam over the
+     * piece, and its two cables running on up to the top of the screen.
+     */
+    fun DrawScope.hangingBeam(
+        sprites: MelonsSprites,
+        center: Offset,
+        w: Float,
+        h: Float,
+    ) {
+        val image = sprites.beam
+        // The sprite's I-beam (its lower part) is drawn over the piece, a little deeper than it; the hooks above.
+        val iw = w / BEAM_SHARE
+        val ih = h * BEAM_DEEP / BEAM_PART
+        val top = center.y + h / 2 * BEAM_DEEP - ih
+        sprite(image, center.x - iw / 2, top, iw, ih)
+        for (side in listOf(CABLE_LEFT, CABLE_RIGHT)) {
+            val x = center.x - iw / 2 + iw * side
+            drawLine(Ink, Offset(x, 0f), Offset(x, top + ih * 0.02f), (h * 0.08f).coerceAtLeast(1f))
+        }
+    }
+
+    /** A drone platform [w] by [h] px at [center]: its deck over the piece, thrusters and flames below. */
+    fun DrawScope.drone(
+        sprites: MelonsSprites,
+        center: Offset,
+        w: Float,
+        h: Float,
+    ) {
+        val image = sprites.drone
+        val iw = w * DRONE_WIDE
+        // A wide drone keeps its thrusters short rather than growing as tall as it is wide.
+        val ih = minOf(iw * image.height / image.width, h * DRONE_TALL)
+        sprite(image, center.x - iw / 2, center.y - h / 2 - ih * DRONE_DECK, iw, ih)
+    }
+
+    /**
+     * A firewall shield: a glowing ring of radius [r] px round [center], turned by [degrees], in the purple of the
+     * owner's firewall art. The ring is drawn where the physics ring is, as thin as it, so a shot that looks clear is.
+     * Its [gap] in degrees is centred at [MelonsWorld.GAP_AT].
+     */
+    fun DrawScope.shield(
+        center: Offset,
+        r: Float,
+        m: Float,
+        degrees: Float,
+        gap: Float,
+    ) {
+        val box = Size(r * 2, r * 2)
+        val corner = Offset(center.x - r, center.y - r)
+        // Screen angles run clockwise from the right, as y points down; the ring runs anticlockwise from the gap.
+        val start = -(MelonsWorld.GAP_AT + gap / 2)
+        val sweep = -(360f - gap)
+        rotate(degrees, center) {
+            for ((color, width) in listOf(ShieldGlow to m * 1.2f, ShieldBand to m * 0.5f, ShieldCore to m * 0.16f)) {
+                drawArc(color, start, sweep, false, corner, box, style = Stroke(width, cap = StrokeCap.Round))
+            }
         }
     }
 
@@ -424,6 +531,29 @@ internal object MelonsArt {
 
     /** A tile may stretch to three times its width, so a long plank reads as a plank, not a row of crates. */
     private const val TILE_STRETCH = 3f
+
+    private val Updraft = Color(0xFFBFEFFF)
+
+    /** The drone sprite is a little wider than its deck, and the deck's top is this far down it. */
+    private const val DRONE_WIDE = 1.15f
+    private const val DRONE_DECK = 0.12f
+
+    private val ShieldGlow = Color(0x55963CFF)
+    private val ShieldBand = Color(0xFFA64DFF)
+    private val ShieldCore = Color(0xFFF3DDFF)
+
+    /** The drone sprite's height at most, as a multiple of its deck's thickness: deck, thrusters and flames. */
+    private const val DRONE_TALL = 4.5f
+    private const val FAN_STREAKS = 8
+    private const val FAN_STREAK_SPEED = 3f
+    private const val FAN_SIZE = 0.45f
+
+    /** The I-beam's share of the beam sprite's width and height, how much deeper than the piece it is drawn, and the cables. */
+    private const val BEAM_SHARE = 0.95f
+    private const val BEAM_PART = 0.42f
+    private const val BEAM_DEEP = 1.4f
+    private const val CABLE_LEFT = 0.3f
+    private const val CABLE_RIGHT = 0.81f
 
     /** The banner's drawn height as a share of its length, and where its pad's middle is down the sprite. */
     private const val BANNER_HEIGHT = 0.5f

@@ -5,6 +5,7 @@ import org.jbox2d.callbacks.ContactListener
 import org.jbox2d.collision.Manifold
 import org.jbox2d.collision.WorldManifold
 import org.jbox2d.collision.shapes.CircleShape
+import org.jbox2d.collision.shapes.EdgeShape
 import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.Body
@@ -23,7 +24,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
-internal enum class PieceKind { Block, Slop, Battery, Melon, Seed, Banner }
+internal enum class PieceKind { Block, Slop, Battery, Melon, Seed, Banner, Shield }
 
 /** One body in the world, with what it is and the hit points it has left. */
 internal class MelonPiece(
@@ -44,6 +45,17 @@ internal class MelonPiece(
     /** A battery's blast. */
     var blastRadius = 0f
     var blastDamage = 0f
+
+    /** A beam still hanging on its cables, the hit points its cables have left, and how much heavier it falls. */
+    var hanging = false
+    var cableHp = 0f
+    var dropMass = 1f
+
+    /** A drone platform: held up by thrusters rather than cables. */
+    var drone = false
+
+    /** A firewall shield's gap, in degrees. */
+    var gapDegrees = 0f
 
     /** Seconds since a melon or seed was fired, used to clear seeds away. */
     var age = 0f
@@ -127,15 +139,20 @@ internal class MelonsWorld(
     private val closing = IdentityHashMap<Contact, Float>()
     private val pendingBlasts = mutableListOf<Pair<MelonBlast, Float>>()
     private val worldManifold = WorldManifold()
+    private var popping: MelonPiece? = null
 
     init {
         world.setContactListener(Hits())
         ground()
         level.blocks.forEach(::addBlock)
         level.banners.forEach(::addBanner)
+        level.hanging.forEach(::addHanging)
+        level.drones.forEach(::addDrone)
         placeLoose()
         // Let everything settle on the ground before anything can break.
         repeat(SETTLE_STEPS) { world.step(STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS) }
+        // The shields go in last, so they draw over the structure; they only meet melons, so settling can't move them.
+        level.shields.forEach(::addShield)
         damage.clear()
         armed = true
     }
@@ -175,10 +192,50 @@ internal class MelonsWorld(
 
     /** Where the melon would be [t] seconds after launch, ignoring what it hits. */
     fun preview(t: Float): Pair<Float, Float> {
+        if (level.fans.isNotEmpty()) return fanPath(t)
         val rad = angle * PI.toFloat() / 180f
         val v = launchSpeed
         return (SLING_X + v * cos(rad) * t) to (SLING_Y + v * sin(rad) * t - GRAVITY * t * t / 2)
     }
+
+    private var pathAim = Float.NaN to Float.NaN
+    private var path = FloatArray(0)
+
+    /**
+     * The flight through the fans' updrafts, stepped as the physics steps it and kept until the aim changes. [t]
+     * past the end holds at the end.
+     */
+    private fun fanPath(t: Float): Pair<Float, Float> {
+        if (pathAim != angle to power) {
+            pathAim = angle to power
+            val steps = (LANDING_MAX_TIME / STEP).toInt() + 1
+            path = FloatArray(steps * 2)
+            val rad = angle * PI.toFloat() / 180f
+            var x = SLING_X
+            var y = SLING_Y
+            var vx = launchSpeed * cos(rad)
+            var vy = launchSpeed * sin(rad)
+            for (i in 0 until steps) {
+                path[i * 2] = x
+                path[i * 2 + 1] = y
+                vy += (lift(x, y) - GRAVITY) * STEP
+                x += vx * STEP
+                y += vy * STEP
+            }
+        }
+        val i = (t / STEP).toInt().coerceIn(0, path.size / 2 - 1)
+        return path[i * 2] to path[i * 2 + 1]
+    }
+
+    /** The upward pull of any fan's updraft at [x], [y], in m/s². */
+    private fun lift(
+        x: Float,
+        y: Float,
+    ): Float =
+        level.fans.sumOf { fan ->
+            val inside = abs(x - fan.x) <= fan.w / 2 && y >= fan.y && y <= fan.y + fan.high
+            if (inside) fan.lift.toDouble() else 0.0
+        }.toFloat()
 
     /**
      * Where and when the aimed shot first meets a standing block, enemy or battery, or the ground: its flight
@@ -193,7 +250,7 @@ internal class MelonsWorld(
             val (x, y) = preview(t)
             val hit =
                 y <= MELON_R || x >= STAGE_W ||
-                    targets.any { touches(it, x, y) }
+                    targets.any { if (it.kind == PieceKind.Shield) onRing(it, x, y) else touches(it, x, y) }
             if (hit) return Triple(t, x, y.coerceAtLeast(MELON_R))
         }
         val (x, y) = preview(t)
@@ -213,6 +270,22 @@ internal class MelonsWorld(
         val lx = dx * c - dy * s
         val ly = dx * s + dy * c
         return abs(lx) <= piece.w / 2 + MELON_R && abs(ly) <= piece.h / 2 + MELON_R
+    }
+
+    /** Whether a melon centred at [x], [y] touches a shield's ring, outside its gap as the ring is turned now. */
+    private fun onRing(
+        shield: MelonPiece,
+        x: Float,
+        y: Float,
+    ): Boolean {
+        val r = shield.w / 2
+        val dx = x - shield.x
+        val dy = y - shield.y
+        if (abs(hypot(dx, dy) - r) > MELON_R + RING_T) return false
+        if (shield.gapDegrees <= 0f) return true
+        val at = (atan2(dy, dx) - shield.angle) * 180f / PI.toFloat()
+        val fromGap = abs(((at - GAP_AT) % 360f + 540f) % 360f - 180f)
+        return fromGap > shield.gapDegrees / 2
     }
 
     /** Fires the melon on the slingshot. False if there is none, or one is still in the air. */
@@ -247,6 +320,15 @@ internal class MelonsWorld(
         burstUsed = true
         if (m.melonKind == MelonKind.Split) {
             split(m)
+            return true
+        }
+        if (m.melonKind == MelonKind.Overripe) {
+            pop(m)
+            return true
+        }
+        if (m.melonKind == MelonKind.Heavy) {
+            // The slam: straight down, hard.
+            m.body.linearVelocity = Vec2(m.body.linearVelocity.x * SLAM_KEEP, -SLAM_SPEED)
             return true
         }
         val v = m.body.linearVelocity
@@ -314,9 +396,13 @@ internal class MelonsWorld(
             return
         }
         time += STEP
+        blow()
         world.step(STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS)
         closing.clear()
         applyDamage()
+        // An Overripe Melon that hit something hard bursts.
+        popping?.let { if (it === melon && !it.dead && !burstUsed && phase == MelonPhase.Flying) pop(it) }
+        popping = null
         fireBlasts()
         dropLost()
         age(STEP)
@@ -369,10 +455,45 @@ internal class MelonsWorld(
         for ((piece, amount) in hits) hurt(piece, amount)
     }
 
+    /** An Overripe Melon bursts: it is gone, and its juice shockwave pushes and breaks what is near. */
+    private fun pop(m: MelonPiece) {
+        burstUsed = true
+        val blast = MelonBlast(m.x, m.y, POP_RADIUS, POP_DAMAGE)
+        remove(m)
+        blasts += blast
+        explode(blast)
+    }
+
+    /** The fans lift every melon and seed in their updrafts. */
+    private fun blow() {
+        if (level.fans.isEmpty()) return
+        for (piece in pieces) {
+            if (piece.kind != PieceKind.Melon && piece.kind != PieceKind.Seed) continue
+            val up = lift(piece.x, piece.y)
+            if (up > 0f) piece.body.applyForceToCenter(Vec2(0f, piece.body.mass * up))
+        }
+    }
+
+    /** A hanging beam's cables snap: it falls, heavier than plain steel. */
+    private fun snap(piece: MelonPiece) {
+        piece.hanging = false
+        val fixture = piece.body.fixtureList
+        fixture.density = fixture.density * piece.dropMass
+        piece.body.type = BodyType.DYNAMIC
+        piece.body.resetMassData()
+        piece.body.isAwake = true
+        popups += MelonPopup(piece.x, piece.y + 1f, if (piece.drone) "CRASH" else "SNAP")
+    }
+
     private fun hurt(
         piece: MelonPiece,
         amount: Float,
     ) {
+        if (piece.hanging) {
+            piece.cableHp -= amount
+            if (piece.cableHp <= 0f) snap(piece)
+            return
+        }
         if (piece.dead || piece.fixed || piece.maxHp <= 0f) return
         piece.hp -= amount
         if (piece.hp <= 0f) destroy(piece)
@@ -521,6 +642,7 @@ internal class MelonsWorld(
                 this.density = density
                 friction = MELON_FRICTION
                 restitution = MELON_BOUNCE
+                if (kind == PieceKind.Melon || kind == PieceKind.Seed) filter.categoryBits = MELON_BIT
             },
         )
         val piece = MelonPiece(kind, body, r * 2, r * 2, hp, slop = slop, melonKind = melonKind)
@@ -531,6 +653,58 @@ internal class MelonsWorld(
 
     private fun addBlock(b: MelonBlock) {
         box(PieceKind.Block, b.x, b.y, b.w, b.h, b.material.density, b.material.hp, b.fixed, material = b.material)
+    }
+
+    /** A steel beam held still by its cables until they snap. */
+    private fun addHanging(b: MelonHangingBeam) {
+        val steel = MelonMaterial.Steel
+        val piece = box(PieceKind.Block, b.x, b.y, b.w, HANGING_H, steel.density, steel.hp, material = steel)
+        piece.body.type = BodyType.STATIC
+        piece.hanging = true
+        piece.cableHp = b.cableHp
+        piece.dropMass = b.massFactor
+    }
+
+    /** A drone platform: steel held still by its thrusters until they break. */
+    private fun addDrone(d: MelonDrone) {
+        val steel = MelonMaterial.Steel
+        val piece = box(PieceKind.Block, d.x, d.y, d.w, DRONE_H, steel.density, steel.hp, material = steel)
+        piece.body.type = BodyType.STATIC
+        piece.hanging = true
+        piece.drone = true
+        piece.cableHp = d.thrusterHp
+    }
+
+    /** A firewall shield: a turning ring of edges, with its gap, that only melons and seeds collide with. */
+    private fun addShield(sh: MelonShield) {
+        val def =
+            BodyDef().apply {
+                type = BodyType.KINEMATIC
+                position.set(sh.x, sh.y)
+                angularVelocity = sh.turn * PI.toFloat() / 180f
+            }
+        val body = world.createBody(def)
+        val start = GAP_AT + sh.gap / 2
+        val sweep = 360f - sh.gap
+        val segments = (sweep / RING_SEGMENT).toInt().coerceAtLeast(1)
+        for (i in 0 until segments) {
+            val a0 = (start + sweep * i / segments) * PI.toFloat() / 180f
+            val a1 = (start + sweep * (i + 1) / segments) * PI.toFloat() / 180f
+            val edge = EdgeShape().apply { set(Vec2(sh.r * cos(a0), sh.r * sin(a0)), Vec2(sh.r * cos(a1), sh.r * sin(a1))) }
+            body.createFixture(
+                FixtureDef().apply {
+                    shape = edge
+                    restitution = SHIELD_BOUNCE
+                    friction = 0f
+                    filter.categoryBits = SHIELD_BIT
+                    filter.maskBits = MELON_BIT
+                },
+            )
+        }
+        val piece = MelonPiece(PieceKind.Shield, body, sh.r * 2, sh.r * 2, sh.hp)
+        piece.gapDegrees = sh.gap
+        body.userData = piece
+        pieces += piece
     }
 
     /** A banner is a bolted, springy plate: it can't break, and throws a melon back harder than it came. */
@@ -555,7 +729,11 @@ internal class MelonsWorld(
      * lowest first, so the data's heights only need to name the floor and stacked slop stays stacked.
      */
     private fun placeLoose() {
-        val tops = level.blocks.map { Triple(it.x - it.w / 2, it.x + it.w / 2, it.y + it.h / 2) }.toMutableList()
+        val tops =
+            (
+                level.blocks.map { Triple(it.x - it.w / 2, it.x + it.w / 2, it.y + it.h / 2) } +
+                    level.drones.map { Triple(it.x - it.w / 2, it.x + it.w / 2, it.y + DRONE_H / 2) }
+            ).toMutableList()
         val loose =
             level.slop.map { Triple(it.x, it.y, it as Any) } + level.batteries.map { Triple(it.x, it.y, it as Any) }
         for ((x, y, thing) in loose.sortedBy { it.second }) {
@@ -631,6 +809,7 @@ internal class MelonsWorld(
             total: Float,
         ) {
             if (piece == null) return
+            if (piece.kind == PieceKind.Melon && piece.melonKind == MelonKind.Overripe && total >= POP_IMPULSE) popping = piece
             val scale =
                 when (piece.kind) {
                     PieceKind.Slop -> {
@@ -639,6 +818,10 @@ internal class MelonsWorld(
 
                     PieceKind.Battery -> {
                         BATTERY_FRAGILITY
+                    }
+
+                    PieceKind.Shield -> {
+                        1f
                     }
 
                     PieceKind.Block -> {
@@ -714,6 +897,21 @@ internal class MelonsWorld(
         const val SPLIT_R = 0.65f
         private const val SPLIT_TIME = 5f
         const val BANNER_T = 0.5f
+        const val HANGING_H = 1.4f
+        const val DRONE_H = 1f
+
+        /** A shield's gap is centred this many degrees round from its right, as its sprite draws it. */
+        const val GAP_AT = 50f
+        private const val RING_T = 0.3f
+        private const val RING_SEGMENT = 10f
+        private const val SHIELD_BOUNCE = 0.5f
+        private const val SHIELD_BIT = 0x0002
+        private const val MELON_BIT = 0x0004
+        private const val POP_RADIUS = 5.5f
+        private const val POP_DAMAGE = 140f
+        private const val POP_IMPULSE = 40f
+        private const val SLAM_SPEED = 28f
+        private const val SLAM_KEEP = 0.2f
         private const val BANNER_FRICTION = 0.2f
 
         private const val STILL_SPEED = 0.25f

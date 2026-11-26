@@ -51,10 +51,14 @@ import org.sableos.games.MelonsArt.band
 import org.sableos.games.MelonsArt.banner
 import org.sableos.games.MelonsArt.block
 import org.sableos.games.MelonsArt.buttonLabel
+import org.sableos.games.MelonsArt.drone
 import org.sableos.games.MelonsArt.enemy
+import org.sableos.games.MelonsArt.fan
+import org.sableos.games.MelonsArt.hangingBeam
 import org.sableos.games.MelonsArt.melon
 import org.sableos.games.MelonsArt.popup
 import org.sableos.games.MelonsArt.seed
+import org.sableos.games.MelonsArt.shield
 import org.sableos.games.MelonsArt.slingTies
 import org.sableos.games.MelonsArt.slingshot
 import kotlin.math.PI
@@ -342,6 +346,14 @@ internal fun MelonsScreen() {
                     "${world.score} · Space splits"
                 }
 
+                world.phase == MelonPhase.Flying && !world.burstUsed && world.melon?.melonKind == MelonKind.Heavy -> {
+                    "${world.score} · Space slams"
+                }
+
+                world.phase == MelonPhase.Flying && !world.burstUsed && world.melon?.melonKind == MelonKind.Overripe -> {
+                    "${world.score} · Space bursts it"
+                }
+
                 world.phase == MelonPhase.Flying && !world.burstUsed -> {
                     "${world.score} · Space bursts"
                 }
@@ -447,6 +459,7 @@ private fun DrawScope.drawWorld(
         band(left, right, pouch, m)
     }
 
+    drawFans(world, sprites, m, ::at)
     drawPieces(world, sprites, m, flyingRage, ::at)
 
     for (blast in world.blasts) {
@@ -551,6 +564,16 @@ private fun DrawScope.resultPanel(
     buttonLabel(label, Offset(cx, bTop + bh * 0.68f), m * 1f)
 }
 
+/** The level's cooling fans and their updrafts, [m] px per metre, placed by [at]. */
+private fun DrawScope.drawFans(
+    world: MelonsWorld,
+    sprites: MelonsSprites,
+    m: Float,
+    at: (Float, Float) -> Offset,
+) {
+    for (f in world.level.fans) fan(sprites, at(f.x, f.y - 1f), f.w * m, f.high * m, world.time)
+}
+
 /** Every block, enemy, melon and seed, [m] px per metre, placed by [at]. */
 private fun DrawScope.drawPieces(
     world: MelonsWorld,
@@ -565,7 +588,13 @@ private fun DrawScope.drawPieces(
         val deg = degreesOf(piece.angle)
         when (piece.kind) {
             PieceKind.Block -> {
-                block(sprites, c, piece.w * m, piece.h * m, deg, piece.material, piece.hp, piece.maxHp, piece.fixed)
+                if (piece.hanging && piece.drone) {
+                    drone(sprites, c, piece.w * m, piece.h * m)
+                } else if (piece.hanging) {
+                    hangingBeam(sprites, c, piece.w * m, piece.h * m)
+                } else {
+                    block(sprites, c, piece.w * m, piece.h * m, deg, piece.material, piece.hp, piece.maxHp, piece.fixed)
+                }
             }
 
             PieceKind.Slop, PieceKind.Battery -> {
@@ -594,6 +623,10 @@ private fun DrawScope.drawPieces(
 
             PieceKind.Banner -> {
                 banner(sprites, c, piece.w * m, deg)
+            }
+
+            PieceKind.Shield -> {
+                shield(c, piece.w / 2 * m, m, deg, piece.gapDegrees)
             }
         }
     }
@@ -640,6 +673,7 @@ private fun DrawScope.targetView(
             x: Float,
             y: Float,
         ) = Offset(originX + x * k, ground - y * k)
+        drawFans(world, sprites, k, ::inBox)
         drawPieces(world, sprites, k, 0, ::inBox)
         // The aimed arc across the window, and a ring where the melon first meets the structure or the ground.
         val (time, landX, landY) = world.landing()
