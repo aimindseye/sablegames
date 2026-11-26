@@ -297,6 +297,67 @@ internal object GameCatalog {
             timed = true,
         )
 
+    val gravelGears =
+        GameSpec(
+            id = "gravelgears",
+            title = "Gravel & Gears",
+            tagline = "Draw cards, carve the trail, hit the gates.",
+            palette = GamePalette(Color(0xFF0E3A3F), Color(0xFF0A2A2E), Color(0xFFFFB347)),
+            howTo =
+                listOf(
+                    HowToPage(
+                        "Play a card, ride the trail",
+                        listOf(
+                            "Your hand is four cards. Press a card's key to see its path on the trail, press it again to ride it.",
+                            "A white dashed line is a safe ride. A cyan arrow is a bump that throws you aside. A red X is a crash.",
+                            "Ride through the two-tile orange gates for 100 points. Each gate in a row raises your combo, up to x8.",
+                            "R spends a Redraw to swap your whole hand. U takes the last card back (three times a ride).",
+                        ),
+                    ),
+                    HowToPage(
+                        "The trail",
+                        listOf(
+                            "Pines and the trail edge are a crash. Boulders and logs are a crash too, but a hop or a ramp clears them for +75.",
+                            "Stumps bounce you aside and cost your combo, unless the bounce lands in a gate (Bank Shot, +100).",
+                            "Ramps throw you two tiles on. Berms sling you inward. Mud shortens your next card. Gravel slides you sideways.",
+                            "Every third gate lets you add a card to your deck. Escape skips it.",
+                        ),
+                    ),
+                    HowToPage(
+                        "Riders and wildlife",
+                        listOf(
+                            "Gravel the goat keeps his combo when he bounces off a stump. Spokes the fox gets a free Redraw every three gates in a row.",
+                            "Knobby the badger smashes small rocks for +50. Spokes unlocks at 15 gates in a ride and Night Ride at gate 18.",
+                            "Marmots walk across the trail a tile a turn: a bump costs your combo. A deer sees you, then bolts across its whole row: hop it or wait.",
+                            "Night Ride shows only a cone ahead of the rider, and scores 1.5 times.",
+                        ),
+                    ),
+                ),
+            controls =
+                listOf(
+                    GameControls(
+                        "gravelgears",
+                        listOf(
+                            action("slot1", "Card 1", GameCommand.Digit(1), K_A),
+                            action("slot2", "Card 2", GameCommand.Digit(2), K_S),
+                            action("slot3", "Card 3", GameCommand.Digit(3), K_D),
+                            action("slot4", "Card 4", GameCommand.Digit(4), KeyEvent.KEYCODE_F),
+                            action("ride", "Ride the picked card", GameCommand.Primary, K_SPACE),
+                            action("redraw", "Redraw the hand", GameCommand.Draw, KeyEvent.KEYCODE_R),
+                            action("undo", "Take the card back", GameCommand.Undo, KeyEvent.KEYCODE_U),
+                            pause,
+                            newGame,
+                        ),
+                        listOf(
+                            FixedKey("Pick a card") { if (it.letterMoves) "J L (set above)" else "Trackpad left, right" },
+                            FixedKey("Look ahead") { if (it.letterMoves) "I K" else "Trackpad up, down" },
+                            menuKey,
+                        ),
+                    ),
+                ),
+            timed = true,
+        )
+
     val game2048 =
         GameSpec(
             id = "2048",
@@ -603,6 +664,7 @@ internal object GameCatalog {
             GameKind.Mahjong -> mahjong
             GameKind.Words -> words
             GameKind.Melons -> melons
+            GameKind.GravelGears -> gravelGears
             GameKind.Indian -> null
         }?.controls?.firstOrNull()
 
@@ -622,6 +684,7 @@ internal object GameCatalog {
             ludo,
             cards,
             melons,
+            gravelGears,
         )
 }
 

@@ -1,0 +1,31 @@
+<!-- Gravel & Gears: a bike wheel with a gear in the same frame as the other Sable game icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.171875"
+        android:scaleY="0.171875"
+        android:translateX="32"
+        android:translateY="32">
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="18"
+            android:pathData="M128,40a88,88 0 1,0 0.1,0z" />
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="9"
+            android:strokeLineCap="round"
+            android:pathData="M128,40L128,216M40,128L216,128M66,66L190,190M190,66L66,190" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M128,98a30,30 0 1,0 0.1,0z" />
+        <path
+            android:fillColor="#000000"
+            android:pathData="M128,114a14,14 0 1,0 0.1,0z" />
+    </group>
+    <path
+        android:fillColor="#FFB347"
+        android:pathData="M38,76.5h32v1.5H38z" />
+</vector>
