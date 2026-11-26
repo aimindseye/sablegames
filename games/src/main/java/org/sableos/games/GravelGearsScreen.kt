@@ -512,7 +512,16 @@ private fun GgBoard(
         }
         val rider = GgRider.byId(run.rider.id)
         val shownY = run.y
-        things += shownY to { drawRider(run, sprites.rider(rider.id, riderPose(run), night), view, night) }
+        things += shownY to {
+            val pose = riderPose(run)
+            val image =
+                if (pose == 2 && run.phase == GgPhase.Riding) {
+                    sprites.pedal(rider.id, if (sin(run.y * 2f * PI.toFloat() * PEDAL_PER_ROW) >= 0f) 0 else 1, night)
+                } else {
+                    sprites.rider(rider.id, pose, night)
+                }
+            drawRider(run, image, view, night)
+        }
         things.sortedBy { it.first }.forEach { it.second(this) }
 
         // A deer that has seen the rider: its row pulses red until it has run across.
