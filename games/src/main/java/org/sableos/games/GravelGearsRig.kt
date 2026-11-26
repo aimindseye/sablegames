@@ -392,9 +392,9 @@ internal fun paintRig(
 
         GgLook.Ears.POINTED -> {
             for (s in listOf(-1f, 1f)) {
-                val a = at(head[0] - 0.1f, s * 0.08f, head[1] + 0.1f)
-                val b = at(head[0] - 0.12f, s * 0.11f, head[1] + 0.32f)
-                val c = at(head[0] + 0.02f, s * 0.08f, head[1] + 0.14f)
+                val a = at(head[0] - 0.1f, s * 0.04f, head[1] + 0.1f)
+                val b = at(head[0] - 0.12f, s * 0.15f, head[1] + 0.32f)
+                val c = at(head[0] + 0.02f, s * 0.14f, head[1] + 0.12f)
                 pen.shape(look.fur.copy(alpha = alpha), listOf(a, b, c))
             }
         }
@@ -410,7 +410,7 @@ internal fun paintRig(
     if (look.stripe) line(look.belly, at(head[0] - 0.12f, 0f, head[1] + 0.12f), snout, 0.06f)
     dot(look.belly, snout, 0.08f)
     dot(dark, at(head[0] + 0.24f, 0f, head[1] - 0.04f), 0.035f)
-    dot(dark, at(head[0] + 0.07f, near * 0.12f, head[1] + 0.04f), 0.028f)
+    for (side in listOf(-1f, 1f)) dot(dark, at(head[0] + 0.09f, side * 0.075f, head[1] + 0.05f), 0.028f)
     // The helmet: a dome over the top of the head with a peak at the front.
     val dome =
         (0..12).map { i ->
@@ -418,6 +418,13 @@ internal fun paintRig(
             at(head[0] - 0.02f + 0.19f * cos(t), 0f, head[1] + 0.03f + 0.17f * sin(t))
         }
     pen.shape(look.helmet.copy(alpha = alpha), dome)
+    // The same dome across the head, so the helmet reads from the front as well as the side.
+    val across =
+        (0..12).map { i ->
+            val t = PI.toFloat() * i / 12f
+            at(head[0] - 0.02f, 0.19f * cos(t), head[1] + 0.03f + 0.17f * sin(t))
+        }
+    pen.shape(look.helmet.copy(alpha = alpha), across)
     line(look.helmet, at(head[0] + 0.12f, 0f, head[1] + 0.06f), at(head[0] + 0.26f, 0f, head[1] + 0.04f), 0.05f)
     line(dark.copy(alpha = 0.5f), at(head[0] - 0.08f, 0f, head[1] + 0.06f), at(head[0] + 0.02f, 0f, head[1] + 0.16f), 0.025f)
     if (night) dot(Color(0xFFFFF2B0), at(head[0] + 0.15f, 0f, head[1] + 0.12f), 0.035f)

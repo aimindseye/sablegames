@@ -47,15 +47,20 @@ class GravelGearsRigTest {
     }
 
     @Test
-    fun steeringLeftSwingsTheBikeRound() {
+    fun theBikeFacesDownTheTrailAndTurnsOnlyWhileSteered() {
         val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
-        assertEquals(1f, run.facing, 0.001f)
         var t = 0f
         while (t < 2.2f) {
             run.step(1f / 60f, if (t > 1.6f) -1f else 0f)
             t += 1f / 60f
+            if (t in 1.5f..1.6f) assertEquals("rides straight with no steer", 0f, run.facing, 0.001f)
         }
         assertTrue("facing ${run.facing}", run.facing < -0.5f)
+        while (t < 3.4f) {
+            run.step(1f / 60f, 0f)
+            t += 1f / 60f
+        }
+        assertTrue("straightens again: ${run.facing}", kotlin.math.abs(run.facing) < 0.1f)
     }
 
     @Test

@@ -225,6 +225,7 @@ class GravelGearsRulesTest {
     @Test
     fun aFreshTrailIsDifferentEveryRideAndAlwaysRideable() {
         val layouts = HashSet<List<Pair<Int, Int>>>()
+        val dirs = HashSet<Int>()
         for (seed in 1L..6L) {
             for (night in listOf(false, true)) {
                 val course = GgCourse(night, seed = seed, fresh = true)
@@ -238,10 +239,19 @@ class GravelGearsRulesTest {
                 assertTrue("gate spacing varies", gaps.size >= 3)
                 val all = known.flatMap { it.obstacles }
                 assertTrue("obstacles sit off the grid", all.any { it.shift != 0f })
-                assertTrue("ramps kick both ways", all.any { it.dir < 0 } && all.any { it.dir > 0 })
+                val ramps = all.filter { it.kind == GgKind.RAMP }
+                assertTrue("seed $seed has kickers", ramps.size >= 3)
+                dirs += ramps.map { it.dir }
+                // A kicker stands clear of the trail edge (unless the trail is too narrow for that) and lands on open trail.
+                for (r in ramps) {
+                    val t = course.trail(r.y)
+                    if (t.last - t.first >= 2) assertTrue("ramp at the edge", r.x > t.first && r.x < t.last)
+                    assertNull(course.obstacleAt(r.x + r.dir, r.y + 2))
+                }
             }
         }
         assertEquals(6, layouts.size)
+        assertEquals("kickers go left, straight and right", setOf(-1, 0, 1), dirs)
     }
 
     @Test

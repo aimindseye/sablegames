@@ -87,7 +87,12 @@ internal data class GgStage(
     val gates: List<GgGate>,
 )
 
-internal enum class GgAnimalKind { MARMOT, DEER }
+/**
+ * The trail's wildlife. Day: marmots scurry across, deer freeze then bolt. Night: raccoons and stags do the same,
+ * owls swoop low across the trail (a danger only in the air), skunks spray a rider who brushes past, and a swirl of
+ * fireflies is a prize that lights the trail.
+ */
+internal enum class GgAnimalKind { MARMOT, DEER, RACCOON, STAG, OWL, SKUNK, FIREFLIES }
 
 internal enum class GgDeerState { IDLE, ALERT, GONE }
 
@@ -180,23 +185,55 @@ internal class GgCourse(
         } else {
             stages.forEach { s -> s.gates.forEach { add(it) } }
         }
+        val rnd = Random(seed * 7 + 3)
+
+        // On a fresh trail the wildlife goes on a row with nothing on it, clear of gates and kickers.
+        fun quietRow(g: GgGate): Int? {
+            val prev = gates.getOrNull(g.number - 2) ?: return null
+            val ramps = g.obstacles.filter { it.kind == GgKind.RAMP }.map { it.y }
+            return (prev.row + 1 until g.row - 1).firstOrNull { r ->
+                g.obstacles.none { it.y == r } && ramps.none { r in it - 1..it + 3 } && animalList.none { it.y == r }
+            }
+        }
+
+        fun pick(
+            stage: GgStage?,
+            count: Int,
+            fixed: Set<Int> = emptySet(),
+        ): List<GgGate> {
+            val gs = stage?.gates?.map { gateByNumber(it.number) } ?: return emptyList()
+            return if (fresh) gs.drop(1).shuffled(rnd).filter { quietRow(it) != null }.take(count) else gs.filter { it.number in fixed }
+        }
+
+        fun place(
+            kind: GgAnimalKind,
+            g: GgGate,
+            fixedRow: Int,
+        ) {
+            val row = if (fresh) quietRow(g) ?: return else fixedRow
+            val t = trail(row)
+            val dir = if (rnd.nextBoolean()) 1 else -1
+            val x =
+                when (kind) {
+                    // An owl comes in from beyond the trees on one side.
+                    GgAnimalKind.OWL -> if (dir > 0) t.first - 2 else t.last + 2
+                    GgAnimalKind.FIREFLIES, GgAnimalKind.SKUNK -> t.first + rnd.nextInt(t.last - t.first + 1)
+                    else -> g.centerX
+                }
+            animalList += GgAnimal(kind, x, row, dir)
+        }
         if (!night) {
             // Marmots from Stage 2 and deer from Stage 3: on fixed gates on the hand-made trail, anywhere on a fresh one.
-            val rnd = Random(seed * 7 + 3)
-            fun pick(
-                stage: GgStage?,
-                fixed: Set<Int>,
-            ): List<GgGate> {
-                val gs = stage?.gates?.map { gateByNumber(it.number) } ?: return emptyList()
-                return if (fresh) gs.drop(1).shuffled(rnd).take(fixed.size) else gs.filter { it.number in fixed }
-            }
-            pick(stages.getOrNull(1), MARMOT_GATES).forEach {
-                animalList += GgAnimal(GgAnimalKind.MARMOT, it.centerX, it.row - 2, if (it.number % 2 == 0) 1 else -1)
-            }
-            pick(stages.getOrNull(2), DEER_GATES).forEach {
-                val prev = gates[it.number - 2]
-                animalList += GgAnimal(GgAnimalKind.DEER, it.centerX, if (fresh) prev.row + 1 else it.row - 4)
-            }
+            pick(stages.getOrNull(1), MARMOT_GATES.size, MARMOT_GATES).forEach { place(GgAnimalKind.MARMOT, it, it.row - 2) }
+            pick(stages.getOrNull(2), DEER_GATES.size, DEER_GATES).forEach { place(GgAnimalKind.DEER, it, it.row - 4) }
+        } else if (fresh) {
+            // Twilight: raccoons and the first fireflies. Midnight Ridge: stags, owls and skunks, and more fireflies.
+            pick(stages.getOrNull(0), 2).forEach { place(GgAnimalKind.RACCOON, it, 0) }
+            pick(stages.getOrNull(0), 2).forEach { place(GgAnimalKind.FIREFLIES, it, 0) }
+            pick(stages.getOrNull(1), 2).forEach { place(GgAnimalKind.STAG, it, 0) }
+            pick(stages.getOrNull(1), 2).forEach { place(GgAnimalKind.OWL, it, 0) }
+            pick(stages.getOrNull(1), 2).forEach { place(GgAnimalKind.SKUNK, it, 0) }
+            pick(stages.getOrNull(1), 2).forEach { place(GgAnimalKind.FIREFLIES, it, 0) }
         }
     }
 
@@ -328,24 +365,44 @@ internal class GgCourse(
             return l..(l + stage.width - 1)
         }
 
+        // Tiles kept empty: a kicker's run-up and landing.
+        val reserved = HashSet<Int>()
+
+        fun taken(
+            x: Int,
+            y: Int,
+        ) = obstacleMap[y * KEY + x] != null || out.any { it.y == y && it.covers(x) } || (y * KEY + x) in reserved
+
         fun free(
             x: Int,
             y: Int,
-        ) = obstacleMap[y * KEY + x] == null && out.none { it.y == y && it.covers(x) } && x in band(y)
+        ) = !taken(x, y) && x in band(y)
+
+        // Room to breathe: nothing in the tiles around, so obstacles don't pile up or hide each other.
+        // [row] lets a rock garden line up side by side across one row.
+        fun roomy(
+            x: Int,
+            y: Int,
+            row: Boolean,
+        ) = (y - 1..y + 1).all { yy -> (x - 1..x + 1).all { xx -> (row && yy == y) || (xx == x && yy == y) || !taken(xx, yy) } }
 
         fun put(
             x: Int,
             y: Int,
             kind: GgKind,
             span: Int = 1,
+            row: Boolean = false,
         ) {
-            if ((0 until span).all { free(x + it, y) }) out += GgObstacle(x, y, kind, span, if (span == 1) shift(rnd) else 0f)
+            val ok = (0 until span).all { free(x + it, y) && roomy(x + it, y, row || span > 1) }
+            if (ok) out += GgObstacle(x, y, kind, span, if (span == 1) shift(rnd) else 0f)
         }
         val bumpers = listOf(GgKind.STUMP, GgKind.SMALL_ROCK)
         val terrain = if (tier >= 2) listOf(GgKind.MUD, GgKind.GRAVEL) else listOf(GgKind.MUD)
-        val first = last.row + 1
-        val end = row - 1
-        val patterns = 1 + (if (rnd.nextFloat() < stage.density * 2f) 1 else 0)
+        // A clear row after each gate and before the next, so a gate is never jammed against a rock.
+        val first = last.row + 2
+        val end = row - 2
+        if (end < first) return out
+        val patterns = 1 + (if (rnd.nextFloat() < 0.45f + stage.density) 1 else 0)
         repeat(patterns) {
             val y = rnd.nextInt(first, end + 1)
             val b = band(y)
@@ -361,16 +418,17 @@ internal class GgCourse(
                 // A rock garden across the trail with one gap to thread.
                 2 -> {
                     val gapAt = b.first + rnd.nextInt(b.last - b.first + 1)
-                    for (x in b) if (x != gapAt) put(x, y, if (rnd.nextBoolean()) GgKind.BOULDER else bumpers.random(rnd))
+                    for (x in b) if (x != gapAt) put(x, y, if (rnd.nextBoolean()) GgKind.BOULDER else bumpers.random(rnd), row = true)
                 }
-                // A kicker: a ramp, and something to fly over behind it. Most kick left or right, toward open trail.
+                // A kicker: a ramp away from the trail edge, something to fly over behind it, and open trail to land on.
+                // Most kick left or right, toward the side with room.
                 3 -> {
-                    val x = b.first + rnd.nextInt(b.last - b.first + 1)
-                    if (y + 1 <= end) {
-                        val dirs = listOf(-1, 1, -1, 1, 0).filter { x + it in band(y + 2) }
-                        val dir = dirs.random(rnd)
-                        if (free(x, y)) out += GgObstacle(x, y, GgKind.RAMP, 1, 0f, dir)
-                        put(x, y + 1, if (tier >= 2 && rnd.nextBoolean()) GgKind.LOG else GgKind.BOULDER)
+                    kicker(y, end, ::band, ::taken, rnd, tier)?.let { k ->
+                        out += k
+                        val ramp = k.first()
+                        val land = ramp.x + ramp.dir
+                        for (yy in ramp.y + 2..ramp.y + 3) reserved += yy * KEY + land
+                        reserved += (ramp.y - 1) * KEY + ramp.x
                     }
                 }
                 // A chicane: one side, then the other.
@@ -383,7 +441,7 @@ internal class GgCourse(
                     val k = terrain.random(rnd)
                     val x = b.first + rnd.nextInt(b.last - b.first + 1)
                     put(x, y, k)
-                    put(x + (if (rnd.nextBoolean()) 1 else -1), y, k)
+                    put(x + (if (rnd.nextBoolean()) 1 else -1), y, k, row = true)
                 }
                 // A fallen log with a way round.
                 6 -> {
@@ -396,6 +454,58 @@ internal class GgCourse(
             }
         }
         return out
+    }
+
+    /**
+     * A kicker at row [y]: the ramp on an inner column, the boulder or log it jumps right behind it, and the tiles
+     * the rider flies over and lands on left clear. Null when there is no room for one.
+     */
+    private fun kicker(
+        y: Int,
+        end: Int,
+        band: (Int) -> IntRange,
+        taken: (Int, Int) -> Boolean,
+        rnd: Random,
+        tier: Int,
+    ): List<GgObstacle>? {
+        if (y + 2 > end + 1) return null
+        val b = band(y)
+        val inner = if (b.last - b.first >= 2) (b.first + 1)..(b.last - 1) else b
+        val x = inner.random(rnd)
+        // Kick toward the wider side of the trail; straight on only when both sides are tight.
+        val room = listOf(-1, 1).filter { d -> x + d in band(y + 2) && x + d in band(y + 3) }
+        val dir =
+            when (room.size) {
+                0 -> 0
+                1 -> room.first()
+                // Both sides open: toward the wider one, or either when they match; now and then straight on.
+                else -> {
+                    val lb = band(y + 2)
+                    val leftRoom = x - lb.first
+                    val rightRoom = lb.last - x
+                    when {
+                        rnd.nextInt(4) == 0 -> 0
+                        leftRoom > rightRoom -> -1
+                        rightRoom > leftRoom -> 1
+                        else -> room.random(rnd)
+                    }
+                }
+            }
+        val land = x + dir
+        // The run-up, the ramp, what it jumps and the tiles beside them, then the landing: all empty.
+        val around = (y - 1..y + 2).flatMap { yy -> (x - 1..x + 1).map { it to yy } }
+        val clear = (around + listOf(land to y + 2, land to y + 3)).all { (cx, cy) -> !taken(cx, cy) } && land in band(y + 2)
+        if (!clear) return null
+        val jumped = if (tier >= 2 && rnd.nextInt(3) == 0) GgKind.LOG else GgKind.BOULDER
+        val ramp = GgObstacle(x, y, GgKind.RAMP, 1, 0f, dir)
+        // A log lies across the line of the jump; it needs its second tile clear too, so it falls back to a boulder.
+        val behind =
+            if (jumped == GgKind.LOG && x + 1 in band(y + 1) && !taken(x + 1, y + 1)) {
+                GgObstacle(x, y + 1, GgKind.LOG, 2)
+            } else {
+                GgObstacle(x, y + 1, GgKind.BOULDER, 1)
+            }
+        return listOf(ramp, behind)
     }
 
     private fun shift(rnd: Random) = (rnd.nextFloat() - 0.5f) * 2f * MAX_SHIFT
@@ -429,8 +539,8 @@ internal class GgCourse(
         private val DEER_GATES = setOf(17, 20, 23)
 
         /** Rows between gates on a generated trail: one more on the wide first stage. */
-        private const val GAP_MIN = 4
-        private const val GAP_MAX = 6
+        private const val GAP_MIN = 5
+        private const val GAP_MAX = 7
 
         /** How far, in tiles, a generated rock or stump may sit off its column. */
         const val MAX_SHIFT = 0.22f
@@ -531,12 +641,13 @@ internal object GgSim {
             // A deer bolting across this row is fatal to anyone on the ground in it.
             val animal = ctx.animals.firstOrNull { a ->
                 when (a.kind) {
-                    GgAnimalKind.MARMOT -> a.x == nx && a.y == ny
-                    GgAnimalKind.DEER -> a.state == GgDeerState.ALERT && a.y == ny && !s.air
+                    GgAnimalKind.MARMOT, GgAnimalKind.RACCOON, GgAnimalKind.SKUNK -> a.x == nx && a.y == ny
+                    GgAnimalKind.DEER, GgAnimalKind.STAG -> a.state == GgDeerState.ALERT && a.y == ny && !s.air
+                    GgAnimalKind.OWL, GgAnimalKind.FIREFLIES -> false
                 }
             }
             if (animal != null) {
-                if (animal.kind == GgAnimalKind.DEER) {
+                if (animal.kind == GgAnimalKind.DEER || animal.kind == GgAnimalKind.STAG) {
                     crash = cell
                     break
                 }
