@@ -63,7 +63,15 @@ class GravelGearsRulesTest {
             val course = GgCourse(night)
             for (i in 1 until course.handcraftedGates) {
                 val g = course.gate(i)
-                assertTrue("gate ${g.number} (night=$night) cannot be reached", GgSim.canReach(course, null, course.gate(i - 1), g))
+                assertTrue(
+                    "gate ${g.number} (night=$night) cannot be reached",
+                    GgSim.canReach(
+                        course,
+                        null,
+                        course.gate(i - 1),
+                        g,
+                    ),
+                )
             }
         }
     }
@@ -79,18 +87,84 @@ class GravelGearsRulesTest {
         }
     }
 
-    @Test
-    fun runPlaysAGateAndScores() {
-        val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
-        assertEquals(4, run.hand.size)
-        assertEquals(11, run.deckSize)
-        var guard = 0
-        while (run.gates < 1 && run.phase == GgPhase.Riding && guard++ < 6) {
-            val slot = run.hand.indices.firstOrNull { s -> run.preview(s)?.let { it.crash == null && it.gatesHit.isNotEmpty() } == true }
-                ?: run.hand.indices.firstOrNull { s -> run.preview(s)?.crash == null } ?: break
-            run.play(slot)
+    /** Runs [run] for [seconds] at 60 frames a second with a constant [steer]. */
+    private fun ride(
+        run: GgRun,
+        seconds: Float,
+        steer: Float = 0f,
+        until: (GgRun) -> Boolean = { false },
+    ) {
+        var t = 0f
+        while (t < seconds && !until(run)) {
+            run.step(1f / 60f, steer)
+            t += 1f / 60f
         }
-        assertTrue(run.gates >= 1 || run.phase == GgPhase.Wiped)
+    }
+
+    @Test
+    fun theRideRollsOnItsOwnAfterTheCount() {
+        val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
+        assertEquals(GgPhase.Ready, run.phase)
+        ride(run, 1.4f)
+        assertEquals(0f, run.y, 0.001f)
+        ride(run, 1.2f)
+        assertEquals(GgPhase.Riding, run.phase)
+        assertTrue("the rider rolls downhill with no key pressed", run.y > 1.2f)
+    }
+
+    @Test
+    fun rollingStraightTakesTheRampOverTheBoulderAndScoresGates() {
+        val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
+        // Stage 1: gate 1 (row 5) and gate 2 (row 10) both span column 4, with a ramp at (4,7) before a boulder at (4,8).
+        ride(run, 10f, until = { it.y > 10.5f || it.phase != GgPhase.Riding && it.phase != GgPhase.Ready })
+        assertEquals(GgPhase.Riding, run.phase)
+        assertEquals(2, run.gates)
+        assertTrue(run.events.any { it.text.startsWith("Air clear") } || run.score > 300)
+        assertEquals(3, run.combo)
+    }
+
+    @Test
+    fun steeringOffTheTrailCrashes() {
+        val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
+        ride(run, 6f, steer = -1f, until = { it.phase == GgPhase.Wiped })
+        assertEquals(GgPhase.Wiped, run.phase)
+        assertEquals("Off the trail", run.wipeReason)
+    }
+
+    @Test
+    fun aBunnyHopClearsABoulder() {
+        val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
+        ride(run, 10f, until = { it.y >= 6.6f })
+        run.ride(card("bunny_hop"))
+        assertTrue(run.airborne || run.move != null)
+        ride(run, 2f, until = { it.y > 9.2f || it.phase == GgPhase.Wiped })
+        assertEquals(GgPhase.Riding, run.phase)
+        assertTrue(run.events.any { it.text.startsWith("Air clear") })
+    }
+
+    @Test
+    fun aCardMoveFollowsItsPath() {
+        val hard = GgMove(card("hard_left"), 0f, card("hard_left").steps)
+        assertEquals(-2f, hard.offset(1f), 0.001f)
+        val soft = GgMove(card("soft_left"), 0f, card("soft_left").steps)
+        assertEquals(-1f, soft.offset(1f), 0.001f)
+        assertEquals(-1f, soft.offset(2f), 0.001f)
+        val hop = GgMove(card("bunny_hop"), 0f, card("bunny_hop").steps)
+        assertTrue(hop.air(1f))
+        assertFalse(hop.air(2f))
+        assertFalse(hop.air(0.1f))
+    }
+
+    @Test
+    fun aPlayedSlotRefillsAfterTheCooldown() {
+        val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
+        ride(run, 1.6f)
+        val slot = run.hand.indices.first { run.hand[it]?.fx("NEXT_TURN_EXTRA_DRAW") == null }
+        assertTrue(run.fire(slot))
+        assertNull(run.hand[slot])
+        assertFalse(run.fire(slot))
+        ride(run, GgRun.COOLDOWN + 0.1f)
+        assertNotNull(run.hand[slot])
     }
 
     @Test
@@ -104,15 +178,15 @@ class GravelGearsRulesTest {
     @Test
     fun wipeoutRetriesFromTheLastGate() {
         val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
-        val slot = run.hand.indices.firstOrNull { run.preview(it)?.crash != null }
-        if (slot != null) {
-            run.play(slot)
-            assertEquals(GgPhase.Wiped, run.phase)
-            run.retry()
-            assertEquals(GgPhase.Riding, run.phase)
-            assertEquals(0, run.y)
-            assertFalse(run.hand.isEmpty())
-        }
+        ride(run, 10f, until = { it.gates >= 1 })
+        assertEquals(1, run.gates)
+        ride(run, 6f, steer = 1f, until = { it.phase == GgPhase.Wiped })
+        assertEquals(GgPhase.Wiped, run.phase)
+        run.retry()
+        assertEquals(GgPhase.Ready, run.phase)
+        assertEquals(5f, run.y, 0.1f)
+        assertEquals(1, run.combo)
+        assertTrue(run.hand.all { it != null })
     }
 
     @Test
@@ -122,6 +196,6 @@ class GravelGearsRulesTest {
         assertTrue(run.redraw())
         assertEquals(0, run.redraws)
         assertFalse(run.redraw())
-        assertEquals(4, run.hand.size)
+        assertEquals(4, run.hand.count { it != null })
     }
 }

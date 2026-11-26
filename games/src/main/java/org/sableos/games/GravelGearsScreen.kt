@@ -22,9 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -57,14 +58,13 @@ import org.sableos.games.GgArt.propWide
 import org.sableos.games.GgArt.riderProp
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.sin
 
 private const val GG_PREFS = "sable_gravelgears"
 private const val GG_NANOS = 1_000_000_000f
 private const val GG_COLUMNS = 9
-private const val RIDER_ROW = 2.4f
-private const val MOVE_SECONDS = 0.45f
 private const val DOCK_SHARE = 0.14f
 
 /** What the player has earned, kept between rides. */
@@ -98,18 +98,41 @@ private fun saveProgress(
 
 private enum class GgScreen { Select, Ride }
 
-/** Where the rider is drawn while a card plays: cell positions to glide through, and whether each leg is airborne. */
-private class GgGlide(
-    val points: List<Offset>,
-    val air: List<Boolean>,
-) {
-    var t = 0f
+private fun loadTiltOn(c: Context) = c.getSharedPreferences(GG_PREFS, Context.MODE_PRIVATE).getBoolean("tilt", true)
+
+private fun saveTiltOn(
+    c: Context,
+    on: Boolean,
+) = c.getSharedPreferences(GG_PREFS, Context.MODE_PRIVATE).edit().putBoolean("tilt", on).apply()
+
+/** A steering key held down (J, L or an arrow), until its key-up or until it stops repeating. */
+private class GgHold {
+    var dir = 0
+    var at = 0L
+
+    fun press(
+        d: Int,
+        now: Long,
+    ) {
+        dir = d
+        at = now
+    }
+
+    fun steer(now: Long): Float = if (dir != 0 && now - at < HOLD_MS) dir.toFloat() else 0f
+
+    companion object {
+        /** A held key repeats well inside this; a lost key-up stops steering after it. */
+        const val HOLD_MS = 650L
+    }
 }
+
+private val GG_STEER_KEYS = setOf(KeyEvent.KEYCODE_J, KeyEvent.KEYCODE_L, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT)
 
 @Composable
 internal fun GravelGearsScreen() {
     val context = LocalContext.current
     val shell = LocalGameShell.current
+    val host = LocalGameKeyHost.current
     val sprites = rememberGgSprites()
     var progress by remember { mutableStateOf(loadProgress(context)) }
     var screen by remember { mutableStateOf(GgScreen.Select) }
@@ -117,14 +140,13 @@ internal fun GravelGearsScreen() {
     var night by remember { mutableStateOf(false) }
     var run by remember { mutableStateOf<GgRun?>(null) }
     var selected by remember { mutableIntStateOf(-1) }
-    var scout by remember { mutableFloatStateOf(0f) }
-    var camY by remember { mutableFloatStateOf(0f) }
-    var glide by remember { mutableStateOf<GgGlide?>(null) }
     var frame by remember { mutableIntStateOf(0) }
-    var clock by remember { mutableFloatStateOf(0f) }
     var hud by remember { mutableStateOf(0) }
     var seedCounter by remember { mutableIntStateOf(1) }
     var saved by remember { mutableStateOf(false) }
+    val tilt = remember { GgTilt(context) }
+    var tiltOn by remember { mutableStateOf(loadTiltOn(context)) }
+    val hold = remember { GgHold() }
 
     fun startRun() {
         val rider = GgRider.all[riderIndex]
@@ -132,17 +154,14 @@ internal fun GravelGearsScreen() {
         if (night && !progress.night) return
         run = GgRun(GgCourse(night, seed = System.nanoTime()), rider, seed = System.nanoTime() + seedCounter++)
         selected = -1
-        scout = 0f
-        camY = 0f
-        glide = null
         saved = false
         screen = GgScreen.Ride
+        tilt.level()
         hud++
     }
 
     fun record(r: GgRun) {
         if (saved) return
-        saved = true
         var p = progress
         if (r.unlocks.contains("rider_spokes") || r.gates >= 15) p = p.copy(spokes = true)
         if (r.unlocks.contains("biome_night_ride_oled") || (!r.isNight && r.gates >= 18)) p = p.copy(night = true)
@@ -153,63 +172,70 @@ internal fun GravelGearsScreen() {
             progress = p
             saveProgress(context, p)
         }
+        if (r.phase == GgPhase.Wiped) saved = true
     }
 
-    fun play(slot: Int) {
+    /** Space: a quick hop with the first air card in the hand, if there is one. */
+    fun hop() {
         val r = run ?: return
-        if (r.phase != GgPhase.Riding || glide != null) return
-        val o = r.preview(slot) ?: return
-        val start = Offset(r.x.toFloat(), r.y.toFloat())
-        val pts = listOf(start) + o.path.map { Offset(it.x.toFloat(), it.y.toFloat()) }
-        val airs = o.path.map { it.air }
-        r.play(slot)
-        selected = -1
-        scout = 0f
-        glide = GgGlide(pts, airs)
-        hud++
-        if (r.phase != GgPhase.Riding || r.gates > 0) record(r)
+        val slot = r.hand.indexOfFirst { c -> c != null && c.steps.any { it.air } }
+        if (slot >= 0) r.fire(slot)
     }
 
-    fun pressSlot(slot: Int) {
-        val r = run ?: return
-        if (r.phase != GgPhase.Riding || glide != null || slot !in r.hand.indices) return
-        if (selected == slot) play(slot) else selected = slot
-        hud++
-    }
-
-    fun confirm() {
+    fun confirm(space: Boolean) {
         val r = run
         when {
             screen == GgScreen.Select -> startRun()
             r == null -> Unit
-            glide != null -> glide = null
-            r.phase == GgPhase.Riding -> if (selected >= 0) play(selected) else if (r.hand.isNotEmpty()) selected = 0
+            r.phase == GgPhase.Riding -> if (space) hop()
             r.phase == GgPhase.StageClear -> r.continueRide()
-            r.phase == GgPhase.Wiped -> r.retry()
-            r.phase == GgPhase.Drafting -> if (selected in r.draftChoices.indices) r.pick(selected) else selected = 0
+            r.phase == GgPhase.Wiped -> {
+                r.retry()
+                saved = false
+                tilt.level()
+            }
+            r.phase == GgPhase.Drafting -> if (selected in r.draftChoices.indices) r.pick(selected).also { selected = -1 } else selected = 0
+            else -> Unit
         }
         hud++
     }
 
-    // The run's frame loop: the rider glides through the cells of a card, the camera follows.
+    fun toggleTilt() {
+        tiltOn = !tiltOn
+        saveTiltOn(context, tiltOn)
+        if (tiltOn) tilt.level()
+        run?.let { it.say(if (tiltOn) "Tilt steering on" else "Tilt steering off") }
+        hud++
+    }
+
+    // The accelerometer is read only while a ride is on screen and the game is not paused.
     val held = shell?.suspended == true
+    val tilting = tiltOn && screen == GgScreen.Ride && !held && tilt.available
+    DisposableEffect(tilting) {
+        if (tilting) tilt.start()
+        onDispose { tilt.stop() }
+    }
+    DisposableEffect(host) {
+        host.upHandler = { press -> if (press.keyCode in GG_STEER_KEYS) hold.dir = 0 }
+        onDispose { host.upHandler = null }
+    }
+
+    // The ride's frame loop: the world rolls on by itself; steering comes from tilt and held keys.
     LaunchedEffect(run, held) {
         var last = 0L
         while (!held) {
             withFrameNanos { now ->
                 val dt = if (last == 0L) 0f else ((now - last) / GG_NANOS).coerceAtMost(0.05f)
                 last = now
-                clock += dt
-                val g = glide
-                if (g != null) {
-                    g.t += dt / MOVE_SECONDS
-                    if (g.t >= 1f) glide = null
-                }
                 val r = run
-                if (r != null) {
-                    val shown = riderAt(r, glide).second
-                    val target = shown - RIDER_ROW + scout
-                    camY += (target - camY) * (6f * dt).coerceAtMost(1f)
+                if (r != null && dt > 0f) {
+                    val before = r.phase
+                    val steer = hold.steer(now / 1_000_000L) + (if (tilting) tilt.steer else 0f)
+                    r.step(dt, steer)
+                    if (r.phase != before || r.gates > progress.farthest) {
+                        record(r)
+                        hud++
+                    }
                 }
                 frame++
             }
@@ -226,7 +252,7 @@ internal fun GravelGearsScreen() {
                             if (selected == command.value - 1) r.pick(selected).also { selected = -1 } else selected = command.value - 1
                         }
                     } else {
-                        pressSlot(command.value - 1)
+                        r.fire(command.value - 1)
                     }
                     hud++
                 }
@@ -245,29 +271,29 @@ internal fun GravelGearsScreen() {
                         if (command.dx != 0 && r.draftChoices.isNotEmpty()) selected = (selected.coerceAtLeast(0) + command.dx).mod(r.draftChoices.size)
                     }
 
-                    command.dx != 0 && r.phase == GgPhase.Riding -> {
-                        if (r.hand.isNotEmpty()) selected = (if (selected < 0) 0 else selected + command.dx).mod(r.hand.size)
+                    command.dx != 0 -> {
+                        r.nudge(command.dx)
+                        hold.press(command.dx, System.nanoTime() / 1_000_000L)
                     }
 
-                    command.dy != 0 -> scout = (scout + command.dy).coerceIn(0f, 4f)
+                    command.dy != 0 -> r.pedal(command.dy)
                 }
                 hud++
             }
 
-            GameCommand.Primary -> confirm()
+            GameCommand.Primary -> confirm(space = false)
+
+            GameCommand.Select -> confirm(space = true)
 
             GameCommand.Draw -> {
-                if (r != null && r.phase == GgPhase.Wiped) r.retry() else if (r?.redraw() == true) selected = -1
+                if (r != null && r.phase == GgPhase.Wiped) confirm(space = false) else r?.redraw()
                 hud++
             }
 
-            GameCommand.Undo -> {
-                if (r?.undoLast() == true) glide = null
-                hud++
-            }
+            GameCommand.Hint -> toggleTilt()
 
             GameCommand.Erase -> {
-                if (r != null && r.phase == GgPhase.Drafting) r.skipDraft() else if (screen == GgScreen.Ride && r?.phase == GgPhase.Riding) selected = -1
+                if (r != null && r.phase == GgPhase.Drafting) r.skipDraft()
                 hud++
             }
 
@@ -289,7 +315,7 @@ internal fun GravelGearsScreen() {
     val status =
         when {
             screen == GgScreen.Select || r == null -> ""
-            else -> "${"%,d".format(r.score)}  x${r.combo}  deck ${r.drawPile}"
+            else -> "${"%,d".format(r.score)}  x${r.combo}"
         }
     val label =
         when {
@@ -300,14 +326,14 @@ internal fun GravelGearsScreen() {
         }
     GameFrame(
         title = "Gravel & Gears",
-        subtitle = "Draw cards, carve the trail, hit the gates.",
+        subtitle = "Ride the trail, fire your cards, hit the gates.",
         statusLabel = label,
         status = status,
-        hint = "A S D F pick a card, press again to ride. R redraws.",
+        hint = "Steer with the trackpad, J L or tilt. A S D F fire a card, Space hops.",
         actions =
             listOf(
                 GameAction(tab = true, label = "Pause", key = "P") { shell?.onPause?.invoke() },
-                GameAction(tab = true, label = "Undo", key = "U") { if (run?.undoLast() == true) glide = null },
+                GameAction(tab = true, label = if (tiltOn) "Tilt on" else "Tilt off", key = "T") { toggleTilt() },
                 GameAction(tab = true, label = "New", key = "N") {
                     screen = GgScreen.Select
                     run = null
@@ -316,17 +342,18 @@ internal fun GravelGearsScreen() {
     ) { side ->
         BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             val boardModifier = if (constraints.hasBoundedHeight) Modifier.fillMaxSize() else Modifier.size(side)
-            Box(boardModifier.background(Color.Black)) {
+            Box(boardModifier.clipToBounds().background(Color.Black)) {
                 if (screen == GgScreen.Select || r == null) {
                     GgSelect(sprites, riderIndex, night, progress, onPick = { riderIndex = it }, onNight = { if (progress.night) night = it }, onRide = ::startRun)
                 } else {
-                    GgBoard(r, sprites, camY, clock, glide, selected, frame, onScout = { scout = (scout + it).coerceIn(0f, 4f) })
+                    GgBoard(r, sprites, frame)
                     GgToasts(r)
-                    GgDock(r, selected, onSlot = ::pressSlot, onRedraw = { if (r.redraw()) selected = -1; hud++ })
+                    GgDock(r, frame, onSlot = { r.fire(it); hud++ }, onRedraw = { r.redraw(); hud++ })
                     when (r.phase) {
+                        GgPhase.Ready -> GgCountdown(r)
                         GgPhase.Drafting -> GgDraft(r, selected, onPick = { r.pick(it); selected = -1; hud++ }, onSkip = { r.skipDraft(); hud++ })
                         GgPhase.StageClear -> GgStagePanel(r, onContinue = { r.continueRide(); hud++ })
-                        GgPhase.Wiped -> GgWipePanel(r, progress, onRetry = { r.retry(); hud++ }, onNew = { screen = GgScreen.Select; run = null })
+                        GgPhase.Wiped -> GgWipePanel(r, progress, onRetry = { confirm(space = false) }, onNew = { screen = GgScreen.Select; run = null })
                         else -> Unit
                     }
                 }
@@ -335,22 +362,8 @@ internal fun GravelGearsScreen() {
     }
 }
 
-/** The rider's drawn position (column, row) and whether it is in the air, part-way through a [glide]. */
-private fun riderAt(
-    r: GgRun,
-    glide: GgGlide?,
-): Triple<Float, Float, Boolean> {
-    if (glide == null) return Triple(r.x.toFloat(), r.y.toFloat(), false)
-    val pts = glide.points
-    val segs = pts.size - 1
-    if (segs <= 0) return Triple(r.x.toFloat(), r.y.toFloat(), false)
-    val f = (glide.t.coerceIn(0f, 1f)) * segs
-    val i = min(f.toInt(), segs - 1)
-    val u = f - i
-    val a = pts[i]
-    val b = pts[i + 1]
-    return Triple(a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u, glide.air[i])
-}
+/** How many rows of trail sit above the rider: few, so most of the screen shows what is coming. */
+private const val RIDER_ROW = 1.6f
 
 /** Where the board is looking: the size of a tile and the row at the top of the screen. */
 private class GgView(
@@ -375,27 +388,26 @@ private fun ggHash(
 private fun GgBoard(
     run: GgRun,
     sprites: GgSprites,
-    camY: Float,
-    clock: Float,
-    glide: GgGlide?,
-    selected: Int,
     frame: Int,
-    onScout: (Float) -> Unit,
 ) {
     val night = run.isNight
+    var width by remember { mutableIntStateOf(1) }
     Canvas(
         Modifier
             .fillMaxSize()
-            .pointerInput(Unit) { detectDragGestures { _, d -> onScout(-d.y / 60f) } },
+            .onSizeChanged { width = it.width.coerceAtLeast(1) }
+            .pointerInput(run) { detectDragGestures { _, d -> run.slide(d.x / (width / GG_COLUMNS.toFloat())) } },
     ) {
         if (frame < 0) return@Canvas
         val tile = size.width / GG_COLUMNS
         val rows = size.height / tile
+        val camY = run.y - RIDER_ROW
+        val clock = run.clock
         val course = run.course
         val view = GgView(tile, camY)
         fun sx(x: Float) = view.sx(x)
         fun sy(y: Float) = view.sy(y)
-        val y0 = camY.toInt() - 2
+        val y0 = floor(camY).toInt() - 2
         val y1 = (camY + rows).toInt() + 3
         course.ensure(y1)
         val dirt = if (night) GgArt.NightDirt else GgArt.DayDirt
@@ -404,7 +416,7 @@ private fun GgBoard(
         drawRect(slope)
         // Contour lines: slow waves that scroll with the trail, the topographic look.
         for (k in -1..(rows.toInt() / 2 + 3)) {
-            val baseY = (k * 2.1f - (camY * 0.9f) % 2.1f) * tile
+            val baseY = (k * 2.1f - (camY * 0.9f).mod(2.1f)) * tile
             val p = Path()
             var first = true
             var px = 0f
@@ -448,11 +460,23 @@ private fun GgBoard(
         }
         band.close()
         drawPath(band, dirt)
+        // Speed streaks in the dirt, so the ride reads as moving even on a bare stretch.
+        val streak = (if (night) Color.White else Color(0xFF8A4A2A)).copy(alpha = if (night) 0.08f else 0.18f)
+        for (yy in y0..y1) {
+            val h = ggHash(yy, 7)
+            if (h % 3 != 0) continue
+            val t = course.trail(yy)
+            val sxp = (t.first + ((h ushr 4) % 100) / 100f * (t.last - t.first)) * tile + tile / 2
+            val syp = sy(yy + ((h ushr 12) % 100) / 100f)
+            drawLine(streak, Offset(sxp, syp), Offset(sxp, syp + tile * 0.5f), tile * 0.04f, StrokeCap.Round)
+        }
         drawPath(left, if (night) GgArt.NightEdge else GgArt.DayEdge, style = Stroke(tile * 0.07f, cap = StrokeCap.Round))
         drawPath(right, if (night) GgArt.NightEdge else GgArt.DayEdge, style = Stroke(tile * 0.07f, cap = StrokeCap.Round))
 
+        // The rest of the card being ridden: a short dashed line so the player sees where the move takes them.
+        run.move?.let { m -> drawMovePath(run, m, view, night, clock) }
+
         // Everything standing on the slope, drawn from the top row down so lower things overlap higher ones.
-        val shown = riderAt(run, glide)
         val things = ArrayList<Pair<Float, DrawScope.() -> Unit>>()
         for (yy in y0..y1) {
             val t = course.trail(yy)
@@ -471,80 +495,95 @@ private fun GgBoard(
                     }
                 }
             }
-            for (x in 0 until GG_COLUMNS) {
+            for (x in -1..GG_COLUMNS) {
                 val o = course.obstacleAt(x, yy) ?: continue
                 if (o.x != x) continue
                 things += yy.toFloat() to { drawObstacle(o, sprites, night, view) }
             }
         }
-        for (i in 0 until 4) {
-            val g = course.nextGate(camY.toInt() - 4 + i * 5)
-            if (g.row in y0..y1) {
-                things += g.row.toFloat() - 0.001f to {
-                    val span = (g.right - g.left + 1)
-                    propWide(sprites.flags(night), Offset(sx((g.left + g.right) / 2f), sy(g.row.toFloat()) + tile * 0.4f), tile * (span + 0.35f), anchor = 0.85f)
-                }
+        course.known().filter { it.row in y0..y1 }.forEach { g ->
+            things += g.row.toFloat() - 0.001f to {
+                val span = (g.right - g.left + 1)
+                propWide(sprites.flags(night), Offset(sx((g.left + g.right) / 2f), sy(g.row.toFloat()) + tile * 0.4f), tile * (span + 0.35f), anchor = 0.85f)
             }
         }
-        run.animals.forEach { a ->
+        run.critters.forEach { a ->
             if (a.y !in y0..y1) return@forEach
             things += a.y.toFloat() to {
-                val frameIdx = ((clock * 4f).toInt() + a.x) % 2
-                val foot = Offset(sx(a.x.toFloat()), sy(a.y.toFloat()) + tile * 0.4f)
+                val frameIdx = ((clock * 6f).toInt() + a.y) % 2
+                val foot = Offset(sx(a.x), sy(a.y.toFloat()) + tile * 0.4f)
                 when (a.kind) {
-                    GgAnimalKind.MARMOT -> {
-                        val img = sprites.marmot(if (frameIdx == 0) 0 else 1)
-                        propWide(img, foot, tile * 0.95f, anchor = 0.9f)
-                    }
+                    GgAnimalKind.MARMOT -> propWide(sprites.marmot(if (frameIdx == 0) 0 else 1), foot, tile * 0.95f, anchor = 0.9f)
 
                     GgAnimalKind.DEER -> {
-                        val img = sprites.deer(if (a.state == GgDeerState.ALERT) 1 else 0)
-                        prop(img, foot, tile * 1.15f, anchor = 0.92f)
+                        val pose = if (a.bolting) 2 else if (a.state == GgDeerState.ALERT) 1 else 0
+                        prop(sprites.deer(pose), foot, tile * 1.2f, anchor = 0.92f)
                     }
                 }
             }
         }
         val rider = GgRider.byId(run.rider.id)
-        things += shown.second to {
-            val pose = poseFor(glide, shown.third)
-            val foot = Offset(sx(shown.first), sy(shown.second) + tile * 0.4f - (if (shown.third) tile * 0.35f * sin(PI.toFloat() * ((glide?.t ?: 0f) * 4f).mod(1f)) else 0f))
-            drawOval(Color.Black.copy(alpha = if (night) 0.4f else 0.22f), Offset(sx(shown.first) - tile * 0.32f, sy(shown.second) + tile * 0.25f), Size(tile * 0.64f, tile * 0.2f))
-            riderProp(sprites.rider(rider.id, pose, night), foot, tile)
+        val shownY = run.y
+        things += shownY to {
+            val pose =
+                when {
+                    run.airborne -> 4
+                    run.lean < -0.55f -> 0
+                    run.lean < -0.15f -> 1
+                    run.lean > 0.15f -> 3
+                    else -> 2
+                }
+            val lift = run.lift * tile * 0.45f
+            val foot = Offset(sx(run.x), sy(shownY) + tile * 0.4f - lift)
+            val shadow = 1f - run.lift * 0.4f
+            drawOval(
+                Color.Black.copy(alpha = if (night) 0.4f else 0.22f),
+                Offset(sx(run.x) - tile * 0.32f * shadow, sy(shownY) + tile * 0.25f),
+                Size(tile * 0.64f * shadow, tile * 0.2f * shadow),
+            )
+            riderProp(sprites.rider(rider.id, pose, night), foot, tile * RIDER_SCALE)
+            if (run.phase == GgPhase.Wiped) cross(Offset(sx(run.x), sy(shownY)), tile * 0.25f, GgArt.Lethal, tile * 0.1f)
         }
         things.sortedBy { it.first }.forEach { it.second(this) }
 
-        // The ghost: where the selected card ends, its path, and what it would hit.
-        if (selected >= 0 && glide == null && run.phase == GgPhase.Riding) {
-            run.preview(selected)?.let { o -> drawGhost(o, run, sprites, view, night, clock) }
-        }
-        // A deer about to bolt: the whole row is a danger row for one turn.
-        run.animals.filter { it.kind == GgAnimalKind.DEER && it.state == GgDeerState.ALERT && it.y in y0..y1 }.forEach { a ->
+        // A deer that has seen the rider: its row pulses red until it has run across.
+        run.critters.filter { it.kind == GgAnimalKind.DEER && it.state == GgDeerState.ALERT && !it.met && it.y in y0..y1 }.forEach { a ->
             val t = course.trail(a.y)
-            val pulse = 0.25f + 0.2f * sin(clock * 6f)
+            val pulse = 0.22f + 0.18f * sin(clock * 9f)
             drawRect(GgArt.Lethal.copy(alpha = pulse), Offset(t.first * tile, sy(a.y.toFloat()) - tile * 0.1f), Size((t.last - t.first + 1) * tile, tile * 0.6f))
         }
-        if (night) drawHeadlight(run, shown, view, sprites)
+        if (night) drawHeadlight(run, view, sprites)
     }
 }
 
-private fun poseFor(
-    glide: GgGlide?,
-    air: Boolean,
-): Int {
-    if (air) return 4
-    if (glide != null) {
-        val a = glide.points.first()
-        val b = glide.points.last()
-        val dx = b.x - a.x
-        return when {
-            dx <= -2f -> 0
-            dx < 0f -> 1
-            dx >= 2f -> 3
-            dx > 0f -> 3
-            else -> 2
-        }
+/** The rider's sprite height, in tiles, against the strip's own scale: a touch bigger so the rider reads on the Q25. */
+private const val RIDER_SCALE = 1.25f
+
+/** The rest of the card being ridden, as a dashed line ahead of the rider. */
+private fun DrawScope.drawMovePath(
+    run: GgRun,
+    m: GgMove,
+    view: GgView,
+    night: Boolean,
+    clock: Float,
+) {
+    val tile = view.tile
+    val p0 = run.y - m.y0
+    if (p0 >= m.rows) return
+    val baseX = run.x - m.offset(p0)
+    val colour = (if (night) GgArt.SafeNight else GgArt.Safe).copy(alpha = 0.8f)
+    val outline = (if (night) Color(0xFF001018) else Color(0xFF5A2A1A)).copy(alpha = 0.6f)
+    val path = Path()
+    var p = p0
+    path.moveTo(view.sx(run.x), view.sy(run.y) + tile * 0.2f)
+    while (p < m.rows) {
+        p = min(m.rows, p + 0.1f)
+        val lift = if (m.air(p)) m.lift(p) * tile * 0.35f else 0f
+        path.lineTo(view.sx(baseX + m.offset(p)), view.sy(m.y0 + p) + tile * 0.2f - lift)
     }
-    return 2
+    val dash = PathEffect.dashPathEffect(floatArrayOf(tile * 0.2f, tile * 0.14f), -clock * tile * 2f)
+    drawPath(path, outline, style = Stroke(tile * 0.13f, cap = StrokeCap.Round, pathEffect = dash))
+    drawPath(path, colour, style = Stroke(tile * 0.06f, cap = StrokeCap.Round, pathEffect = dash))
 }
 
 private fun DrawScope.drawObstacle(
@@ -573,60 +612,9 @@ private fun DrawScope.drawObstacle(
     }
 }
 
-private fun DrawScope.drawGhost(
-    o: GgOutcome,
-    run: GgRun,
-    sprites: GgSprites,
-    view: GgView,
-    night: Boolean,
-    clock: Float,
-) {
-    val tile = view.tile
-    fun sx(x: Float) = view.sx(x)
-
-    fun sy(y: Float) = view.sy(y)
-    val safe = if (night) GgArt.SafeNight else GgArt.Safe
-    val outline = if (night) Color(0xFF001018) else Color(0xFF5A2A1A)
-    var from = Offset(sx(run.x.toFloat()), sy(run.y.toFloat()) + tile * 0.2f)
-    val dash = PathEffect.dashPathEffect(floatArrayOf(tile * 0.22f, tile * 0.16f), clock * tile)
-    val width = tile * 0.075f
-    for (c in o.path) {
-        val to = Offset(sx(c.x.toFloat()), sy(c.y.toFloat()) + tile * 0.2f)
-        val isBump = o.bump != null && c.x == o.bump.x && c.y == o.bump.y
-        val color = if (isBump) GgArt.Bounce else safe
-        if (c.air) {
-            // Airborne stretches arc over the ground.
-            val mid = Offset((from.x + to.x) / 2, (from.y + to.y) / 2 - tile * 0.35f)
-            val p = Path().apply { moveTo(from.x, from.y); quadraticTo(mid.x, mid.y, to.x, to.y) }
-            drawPath(p, outline, style = Stroke(width * 2.1f, pathEffect = dash, cap = StrokeCap.Round))
-            drawPath(p, color, style = Stroke(width, pathEffect = dash, cap = StrokeCap.Round))
-        } else {
-            drawLine(outline, from, to, width * 2.1f, StrokeCap.Round, pathEffect = dash)
-            drawLine(color, from, to, width, StrokeCap.Round, pathEffect = dash)
-        }
-        from = to
-    }
-    val end = Offset(sx(o.endX.toFloat()), sy(o.endY.toFloat()) + tile * 0.4f)
-    if (o.crash != null) {
-        val c = Offset(sx(o.crash.x.toFloat()), sy(o.crash.y.toFloat()) + tile * 0.2f)
-        cross(c, tile * (0.2f + 0.03f * sin(clock * 9f)), GgArt.Lethal, tile * 0.1f)
-    } else {
-        if (o.bump != null) {
-            val b = Offset(sx(o.bump.x.toFloat()), sy(o.bump.y.toFloat()) + tile * 0.2f)
-            val before = o.path.dropLast(1).lastOrNull()
-            val a = Offset(sx((before?.x ?: run.x).toFloat()), sy((before?.y ?: run.y).toFloat()) + tile * 0.2f)
-            arrow(a, b, GgArt.Bounce, tile * 0.08f)
-        }
-        // The ghost rider where the card ends.
-        riderProp(sprites.rider(run.rider.id, 2, night), end, tile, alpha = 0.45f)
-        if (o.bankShot) drawCircle(GgArt.Bounce, tile * 0.5f, Offset(sx(o.endX.toFloat()), sy(o.endY.toFloat()) + tile * 0.2f), style = Stroke(tile * 0.05f))
-    }
-}
-
 /** Night Ride: the world is dark except a cone ahead of the rider; gates glow above the dark. */
 private fun DrawScope.drawHeadlight(
     run: GgRun,
-    shown: Triple<Float, Float, Boolean>,
     view: GgView,
     sprites: GgSprites,
 ) {
@@ -634,9 +622,9 @@ private fun DrawScope.drawHeadlight(
     fun sx(x: Float) = view.sx(x)
 
     fun sy(y: Float) = view.sy(y)
-    val cx = sx(shown.first)
-    val cy = sy(shown.second) + tile * 0.2f
-    val full = run.beam > 0
+    val cx = sx(run.x)
+    val cy = sy(run.y) + tile * 0.2f
+    val full = run.beam > 0f
     val depth = (if (full) 12f else 4f) * tile
     val widthAtEnd = (if (full) 12f else 5f) * tile
     val nearW = tile * 1.2f
@@ -681,7 +669,7 @@ private inline fun DrawScope.drawIntoCanvas2(
 
 @Composable
 private fun GgToasts(run: GgRun) {
-    val lines = run.events.takeLast(3)
+    val lines = run.events.filter { run.clock - it.at < TOAST_SECONDS || run.phase != GgPhase.Riding }.takeLast(3)
     if (lines.isEmpty()) return
     Column(Modifier.padding(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         lines.forEach { e ->
@@ -702,10 +690,11 @@ private fun GgToasts(run: GgRun) {
 @Composable
 private fun GgDock(
     run: GgRun,
-    selected: Int,
+    frame: Int,
     onSlot: (Int) -> Unit,
     onRedraw: () -> Unit,
 ) {
+    if (frame < 0) return
     val keys = LocalKeyBindings.current(GameCatalog.gravelGears.controls.first())
     BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
         val h = maxHeight * DOCK_SHARE
@@ -716,7 +705,7 @@ private fun GgDock(
             for (i in 0 until GgRun.HAND) {
                 val card = run.hand.getOrNull(i)
                 val key = keys.keysFor("slot${i + 1}").firstOrNull()?.let { KeyEvent.keyCodeToString(it).removePrefix("KEYCODE_") } ?: "${i + 1}"
-                val on = i == selected && card != null
+                val on = card != null && run.phase == GgPhase.Riding && !run.airborne
                 Surface(
                     onClick = { onSlot(i) },
                     modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -732,6 +721,14 @@ private fun GgDock(
                             }
                             Canvas(Modifier.size(h * 0.62f)) { drawGlyph(card, size, on) }
                         }
+                    } else {
+                        // An empty slot: the bar fills as the next card comes.
+                        val filled = 1f - (run.cooldown[i] / GgRun.COOLDOWN).coerceIn(0f, 1f)
+                        Box(Modifier.fillMaxSize().padding(6.dp), contentAlignment = Alignment.BottomStart) {
+                            Text(key, color = Color(0x80FFE08A), fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.TopStart))
+                            Box(Modifier.fillMaxWidth().height(4.dp).background(Color(0x33FFFFFF), RoundedCornerShape(2.dp)))
+                            Box(Modifier.fillMaxWidth(filled).height(4.dp).background(Color(0xFF3FFFEF), RoundedCornerShape(2.dp)))
+                        }
                     }
                 }
             }
@@ -746,6 +743,21 @@ private fun GgDock(
                     Text("R", color = if (run.redraws > 0) GgArt.Amber else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Text("${run.redraws}", color = Color.White, fontSize = 9.sp)
                 }
+            }
+        }
+    }
+}
+
+private const val TOAST_SECONDS = 2.2f
+
+/** "Ready" before the ride rolls, then "Go!". */
+@Composable
+private fun GgCountdown(run: GgRun) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Surface(shape = RoundedCornerShape(12.dp), color = Color(0xB3000000)) {
+            Column(Modifier.padding(horizontal = 18.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if (run.countdown > 0.5f) "Ready" else "Go!", color = GgArt.Amber, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("Steer: trackpad, J L or tilt  ·  A S D F fire a card  ·  Space hops", color = Color(0xFFE3F3F1), fontSize = 10.sp, textAlign = TextAlign.Center)
             }
         }
     }

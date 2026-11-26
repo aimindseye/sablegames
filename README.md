@@ -23,7 +23,7 @@ Each game is its own app, so you install only the ones you want.
 | Sable Ludo | `io.github.aimindseye.sablegames.ludo` | Four colours: bring your tokens home |
 | Sable Scaffold | `io.github.aimindseye.sablegames.scaffold` | Climb the site, dodge rolling hazards, rescue Juno |
 | Bitter Melons | `io.github.aimindseye.sablegames.melons` | Fling angry melons from a slingshot and topple the AI Slop. Four worlds: 36 levels |
-| Gravel & Gears | `io.github.aimindseye.sablegames.gravelgears` | Turn-based downhill mountain biking with a deck of cards: carve the trail, hit the gates, draft new cards. Day and Night Ride trails, three riders |
+| Gravel & Gears | `io.github.aimindseye.sablegames.gravelgears` | Nonstop downhill mountain biking: steer with the trackpad, keys or tilt, fire cards as moves, hit the gates, draft new cards. Day and Night Ride trails, three riders |
 | Sable Sudoku | `io.github.aimindseye.sablegames.sudoku` | Fill the 9 x 9 grid |
 | Sable Minesweeper | `io.github.aimindseye.sablegames.minesweeper` | Clear the field without hitting a mine |
 | Sable 2048 | `io.github.aimindseye.sablegames.game2048` | Slide tiles to merge them up to 2048 |
