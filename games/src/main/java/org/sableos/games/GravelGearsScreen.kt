@@ -515,7 +515,11 @@ private fun GgBoard(
         course.known().filter { it.row in y0..y1 }.forEach { g ->
             things += g.row.toFloat() - 0.001f to {
                 val span = (g.right - g.left + 1)
-                propWide(sprites.flags(night), Offset(sx((g.left + g.right) / 2f), sy(g.row.toFloat()) + tile * 0.4f), tile * (span + 0.35f), anchor = 0.85f)
+                val foot = Offset(sx((g.left + g.right) / 2f), sy(g.row.toFloat()) + tile * 0.4f)
+                // Kept low and narrow so the gate marks the opening without towering over the rider.
+                withTransform({ scale(1f, FLAG_SQUASH, pivot = foot) }) {
+                    propWide(sprites.flags(night), foot, tile * span * FLAG_WIDTH, anchor = 0.85f)
+                }
             }
         }
         run.critters.forEach { a ->
@@ -551,6 +555,10 @@ private fun GgBoard(
         drawSpeedLines(run, tile, size)
     }
 }
+
+/** The gate flags' width against the opening, and how much shorter than the art they are drawn. */
+private const val FLAG_WIDTH = 0.85f
+private const val FLAG_SQUASH = 0.62f
 
 /** How far, in degrees, an angled ramp is turned toward the way it kicks. */
 private const val RAMP_TURN = 28f
@@ -744,7 +752,7 @@ private fun DrawScope.drawObstacle(
         GgKind.PINE_TREE -> prop(img, foot, tile * 1.6f)
         GgKind.BOULDER -> prop(img, foot, tile * 0.95f, anchor = 0.85f)
         GgKind.SMALL_ROCK -> prop(img, foot, tile * 0.5f, anchor = 0.85f)
-        GgKind.LOG -> propWide(img, foot, tile * o.span * 0.98f, anchor = 0.8f)
+        GgKind.LOG -> propWide(img, foot, tile * o.span * 0.72f, anchor = 0.8f)
         GgKind.STUMP -> prop(img, foot, tile * 0.82f, anchor = 0.85f)
         GgKind.RAMP -> {
             // An angled kicker is turned the way it throws the rider, with a chevron to show it.
