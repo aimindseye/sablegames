@@ -335,7 +335,7 @@ internal object GameCatalog {
                         "Riders and wildlife",
                         listOf(
                             "Gravel the goat keeps his combo when he bounces off a stump. Spokes the fox gets a free Redraw every three gates in a row.",
-                            "Knobby the badger smashes small rocks for +50. Spokes unlocks at 15 gates in a ride and Night Ride at gate 18.",
+                            "Knobby the badger smashes small rocks for +50. All three can be picked from the start; Night Ride opens at gate 18.",
                             "Marmots trot across the trail: a bump costs your combo. A deer freezes when it sees you (its row flashes red), then bolts across: hop it or steer clear.",
                             "Night Ride shows only a cone ahead of the rider, and scores 1.5 times.",
                         ),

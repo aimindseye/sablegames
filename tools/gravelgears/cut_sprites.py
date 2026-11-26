@@ -8,7 +8,9 @@ Needs opencv-python-headless, pillow and numpy. SHEETS_DIR holds, by the names t
   soft right, airborne), riders_night_strips.jpg (the same 5 poses, three riders, one per row),
   rider_night.png (Gravel's older single night picture), heads.png (3 x 3: goat, fox, badger by left, front, right)
   animals_day.jpg (3 x 3: marmot, deer, crow), animals_night.jpg (3 x 3: raccoon, stag, owl),
-  animals_exclusive.jpg (skunk 3 poses over 3 firefly frames).
+  animals_exclusive.jpg (skunk 3 poses over 3 firefly frames),
+  pedal_day.jpg / pedal_night.jpg (4 x 3, one rider a row: goat, fox, badger; the 2nd and 3rd frames are the
+  straight pose with the pedals in two places, cut as a two-frame pedal loop at the straight pose's scale).
 Daytime sheets sit on white (the background is flood-filled from the corners, then the anti-aliased edge is
 un-blended from white). Night sheets sit on black: the sprite's alpha is its brightness, so glows fade out
 over the dark ground.
@@ -127,6 +129,12 @@ def export(sheets, res):
         save_strip(rgba, bx[row * 5:row * 5 + 5], [f"gg_nr_{who}_{p}" for p in poses], res)
     rgba = load(d("gravel_night_strip.jpg"), True)
     save_strip(rgba, boxes(rgba, 5, 1, min_h=120), [f"gg_nr_gravel_{p}" for p in poses], res)
+    # pedal loop: frames 2 and 3 of each row, one scale per rider so the loop does not pulse
+    for sheet, black, pre in (("pedal_day.jpg", False, "gg_"), ("pedal_night.jpg", True, "gg_nr_")):
+        rgba = load(d(sheet), black)
+        bx = boxes(rgba, 4, 3, min_h=120)
+        for row, who in enumerate(("gravel", "spokes", "knobby")):
+            save_strip(rgba, bx[row * 4 + 1:row * 4 + 3], [f"{pre}{who}_pedal_a", f"{pre}{who}_pedal_b"], res, still=0)
     rgba = load(d("heads.png"), False)
     bs = boxes(rgba, 3, 3)
     for i, who in enumerate(["gravel", "spokes", "knobby"]):

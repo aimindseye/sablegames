@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -76,7 +77,8 @@ private data class GgProgress(
     val bestNight: Int = 0,
     val farthest: Int = 0,
 ) {
-    fun riderOpen(r: GgRider) = r == GgRider.Gravel || (r == GgRider.Spokes && spokes) || (r == GgRider.Knobby && knobby)
+    /** Every rider can be picked from the start (owner request 2026-11-26); the old unlock flags stay in saves. */
+    fun riderOpen(r: GgRider) = r in GgRider.all
 
     fun encode() = listOf(spokes, knobby, night, bestDay, bestNight, farthest).joinToString(",")
 
@@ -428,37 +430,17 @@ private fun GgBoard(
             }
             drawPath(p, contour.copy(alpha = if (night) 0.6f else 0.35f), style = Stroke(tile * 0.03f))
         }
-        // The trail band between the pines.
-        val left = Path()
-        val right = Path()
-        var started = false
-        for (yy in y0..y1) {
-            val t = course.trail(yy)
-            val lx = t.first * tile
-            val rx = (t.last + 1) * tile
-            val py = sy(yy.toFloat())
-            if (!started) {
-                left.moveTo(lx, py)
-                right.moveTo(rx, py)
-                started = true
-            } else {
-                left.lineTo(lx, py)
-                right.lineTo(rx, py)
+        // The trail band between the pines, its edges smoothed so the trail bends instead of stepping.
+        val leftPts = (y0..y1).map { Offset(course.trail(it).first * tile, sy(it.toFloat())) }
+        val rightPts = (y0..y1).map { Offset((course.trail(it).last + 1) * tile, sy(it.toFloat())) }
+        val left = Path().apply { smoothThrough(leftPts, start = true) }
+        val right = Path().apply { smoothThrough(rightPts, start = true) }
+        val band =
+            Path().apply {
+                smoothThrough(leftPts, start = true)
+                smoothThrough(rightPts.reversed(), start = false)
+                close()
             }
-        }
-        val band = Path()
-        started = false
-        for (yy in y0..y1) {
-            val t = course.trail(yy)
-            val py = sy(yy.toFloat())
-            if (!started) band.moveTo(t.first * tile, py) else band.lineTo(t.first * tile, py)
-            started = true
-        }
-        for (yy in y1 downTo y0) {
-            val t = course.trail(yy)
-            band.lineTo((t.last + 1) * tile, sy(yy.toFloat()))
-        }
-        band.close()
         drawPath(band, dirt)
         // Speed streaks in the dirt, so the ride reads as moving even on a bare stretch.
         val streak = (if (night) Color.White else Color(0xFF8A4A2A)).copy(alpha = if (night) 0.08f else 0.18f)
@@ -472,6 +454,8 @@ private fun GgBoard(
         }
         drawPath(left, if (night) GgArt.NightEdge else GgArt.DayEdge, style = Stroke(tile * 0.07f, cap = StrokeCap.Round))
         drawPath(right, if (night) GgArt.NightEdge else GgArt.DayEdge, style = Stroke(tile * 0.07f, cap = StrokeCap.Round))
+
+        drawTracks(run, view, night)
 
         // The rest of the card being ridden: a short dashed line so the player sees where the move takes them.
         run.move?.let { m -> drawMovePath(run, m, view, night, clock) }
@@ -513,11 +497,15 @@ private fun GgBoard(
                 val frameIdx = ((clock * 6f).toInt() + a.y) % 2
                 val foot = Offset(sx(a.x), sy(a.y.toFloat()) + tile * 0.4f)
                 when (a.kind) {
-                    GgAnimalKind.MARMOT -> propWide(sprites.marmot(if (frameIdx == 0) 0 else 1), foot, tile * 0.95f, anchor = 0.9f)
+                    GgAnimalKind.MARMOT -> {
+                        drawOval(Color.Black.copy(alpha = 0.18f), Offset(foot.x - tile * 0.22f, foot.y - tile * 0.07f), Size(tile * 0.44f, tile * 0.12f))
+                        prop(sprites.marmot(if (frameIdx == 0) 0 else 1), foot, tile * MARMOT_TILES, anchor = 0.9f)
+                    }
 
                     GgAnimalKind.DEER -> {
                         val pose = if (a.bolting) 2 else if (a.state == GgDeerState.ALERT) 1 else 0
-                        prop(sprites.deer(pose), foot, tile * 1.2f, anchor = 0.92f)
+                        drawOval(Color.Black.copy(alpha = 0.18f), Offset(foot.x - tile * 0.3f, foot.y - tile * 0.08f), Size(tile * 0.6f, tile * 0.14f))
+                        prop(sprites.deer(pose), foot, tile * DEER_TILES, anchor = 0.92f)
                     }
                 }
             }
@@ -525,24 +513,14 @@ private fun GgBoard(
         val rider = GgRider.byId(run.rider.id)
         val shownY = run.y
         things += shownY to {
-            val pose =
-                when {
-                    run.airborne -> 4
-                    run.lean < -0.55f -> 0
-                    run.lean < -0.15f -> 1
-                    run.lean > 0.15f -> 3
-                    else -> 2
+            val pose = riderPose(run)
+            val image =
+                if (pose == 2 && run.phase == GgPhase.Riding) {
+                    sprites.pedal(rider.id, if (sin(run.y * 2f * PI.toFloat() * PEDAL_PER_ROW) >= 0f) 0 else 1, night)
+                } else {
+                    sprites.rider(rider.id, pose, night)
                 }
-            val lift = run.lift * tile * 0.45f
-            val foot = Offset(sx(run.x), sy(shownY) + tile * 0.4f - lift)
-            val shadow = 1f - run.lift * 0.4f
-            drawOval(
-                Color.Black.copy(alpha = if (night) 0.4f else 0.22f),
-                Offset(sx(run.x) - tile * 0.32f * shadow, sy(shownY) + tile * 0.25f),
-                Size(tile * 0.64f * shadow, tile * 0.2f * shadow),
-            )
-            riderProp(sprites.rider(rider.id, pose, night), foot, tile * RIDER_SCALE)
-            if (run.phase == GgPhase.Wiped) cross(Offset(sx(run.x), sy(shownY)), tile * 0.25f, GgArt.Lethal, tile * 0.1f)
+            drawRider(run, image, view, night)
         }
         things.sortedBy { it.first }.forEach { it.second(this) }
 
@@ -556,8 +534,112 @@ private fun GgBoard(
     }
 }
 
+private val GG_SHADOWED = setOf(GgKind.BOULDER, GgKind.STUMP, GgKind.SMALL_ROCK, GgKind.LOG, GgKind.RAMP)
+
+/** Animal heights in tiles, kept under the rider's so the rider stays the biggest thing on the trail. */
+private const val MARMOT_TILES = 0.5f
+private const val DEER_TILES = 0.95f
+
+/** A smooth line through [pts]: each corner becomes a curve through the midpoints, so an edge bends instead of stepping. */
+private fun Path.smoothThrough(
+    pts: List<Offset>,
+    start: Boolean,
+) {
+    if (pts.isEmpty()) return
+    if (start) moveTo(pts[0].x, pts[0].y) else lineTo(pts[0].x, pts[0].y)
+    for (i in 1 until pts.size - 1) {
+        quadraticTo(pts[i].x, pts[i].y, (pts[i].x + pts[i + 1].x) / 2, (pts[i].y + pts[i + 1].y) / 2)
+    }
+    lineTo(pts.last().x, pts.last().y)
+}
+
+/** Pose 0 hard left, 1 soft left, 2 straight, 3 soft right, 4 in the air. */
+private fun riderPose(run: GgRun): Int =
+    when {
+        run.airborne || run.phase == GgPhase.Wiped -> 4
+        run.lean < -0.55f -> 0
+        run.lean < -0.15f -> 1
+        run.lean > 0.15f -> 3
+        else -> 2
+    }
+
+/** Pedal strokes per row of trail: sets how fast the rider bobs. */
+private const val PEDAL_PER_ROW = 0.9f
+
+/**
+ * The rider, alive: the body bobs with each pedal stroke, the bike banks into a turn, a hop grows the rider and
+ * shrinks the shadow, a landing squashes, and a crash tumbles. The art has one picture per pose, so all of this is
+ * done by moving, turning and stretching that picture.
+ */
+private fun DrawScope.drawRider(
+    run: GgRun,
+    image: androidx.compose.ui.graphics.ImageBitmap,
+    view: GgView,
+    night: Boolean,
+) {
+    val tile = view.tile
+    val riding = run.phase == GgPhase.Riding
+    val wiped = run.phase == GgPhase.Wiped
+    val crank = run.y * 2f * PI.toFloat() * PEDAL_PER_ROW
+    val pedalling = riding && !run.airborne
+    val bob = if (pedalling) abs(sin(crank)) * tile * 0.05f else 0f
+    val sway = if (pedalling) sin(crank) * 3f else 0f
+    val lift = run.lift * tile * 0.55f
+    val tumble = if (wiped) (run.sinceWipe / 0.5f).coerceIn(0f, 1f) else 0f
+    val cx = view.sx(run.x) + tumble * tile * 0.35f
+    val groundY = view.sy(run.y) + tile * 0.4f
+    val foot = Offset(cx, groundY - lift - bob)
+    val shadow = 1f - run.lift * 0.5f
+    drawOval(
+        Color.Black.copy(alpha = (if (night) 0.4f else 0.24f) * shadow),
+        Offset(cx - tile * 0.34f * shadow, groundY - tile * 0.15f),
+        Size(tile * 0.68f * shadow, tile * 0.22f * shadow),
+    )
+    val squash = run.landing / GgRun.LAND_TIME
+    val grow = 1f + run.lift * 0.18f
+    val angle = run.lean * 14f + sway + tumble * 200f
+    withTransform({
+        rotate(angle, pivot = Offset(foot.x, foot.y - tile * 0.45f))
+        scale(grow * (1f + squash * 0.1f), grow * (1f - squash * 0.14f), pivot = foot)
+    }) {
+        riderProp(image, foot, tile * RIDER_SCALE, alpha = 1f - tumble * 0.3f)
+    }
+    if (wiped) cross(Offset(cx, groundY - tile * 0.3f), tile * 0.25f, GgArt.Lethal, tile * 0.1f)
+}
+
+/** Tyre tracks behind the rider, and dust kicked up in a hard turn, at speed or on landing. */
+private fun DrawScope.drawTracks(
+    run: GgRun,
+    view: GgView,
+    night: Boolean,
+) {
+    val tile = view.tile
+    val pts = run.tracks.toList() + GgTrack(run.x, run.y, run.airborne)
+    val ink = if (night) Color(0xFF3A5068) else Color(0xFF9C5A36)
+    for (i in 1 until pts.size) {
+        val a = pts[i - 1]
+        val b = pts[i]
+        if (a.air || b.air) continue
+        val fade = i / pts.size.toFloat()
+        val from = Offset(view.sx(a.x), view.sy(a.y) + tile * 0.3f)
+        val to = Offset(view.sx(b.x), view.sy(b.y) + tile * 0.3f)
+        drawLine(ink.copy(alpha = 0.45f * fade), from, to, tile * 0.05f, StrokeCap.Round)
+    }
+    val kicking = run.phase == GgPhase.Riding && !run.airborne && (abs(run.lean) > 0.35f || run.landing > 0f || run.speed > 2.9f)
+    if (!kicking) return
+    val dust = if (night) Color(0xFF9FB4C8) else Color(0xFFF6D7B0)
+    val recent = pts.takeLast(6)
+    recent.forEachIndexed { i, p ->
+        val age = (recent.size - 1 - i).toFloat()
+        val h = ggHash((p.y * 10).toInt(), 3)
+        val jitter = ((h ushr 6) % 100) / 100f - 0.5f
+        val c = Offset(view.sx(p.x) + jitter * tile * 0.3f - run.lean * age * tile * 0.05f, view.sy(p.y) + tile * 0.32f)
+        drawCircle(dust.copy(alpha = (0.4f * (1f - age / recent.size)).coerceAtLeast(0f)), tile * (0.07f + age * 0.035f), c)
+    }
+}
+
 /** The rider's sprite height, in tiles, against the strip's own scale: a touch bigger so the rider reads on the Q25. */
-private const val RIDER_SCALE = 1.25f
+private const val RIDER_SCALE = 1.35f
 
 /** The rest of the card being ridden, as a dashed line ahead of the rider. */
 private fun DrawScope.drawMovePath(
@@ -599,6 +681,11 @@ private fun DrawScope.drawObstacle(
     val img = sprites.prop(o.kind, night)
     val cx = sx(o.x + (o.span - 1) / 2f)
     val foot = Offset(cx, sy(o.y.toFloat()) + tile * 0.42f)
+    // A soft shadow under anything standing on the trail, so it sits on the ground in its own tile.
+    if (o.kind in GG_SHADOWED) {
+        val w = tile * (0.72f * o.span)
+        drawOval(Color.Black.copy(alpha = if (night) 0.35f else 0.16f), Offset(cx - w / 2, foot.y - tile * 0.12f), Size(w, tile * 0.2f))
+    }
     when (o.kind) {
         GgKind.PINE_TREE -> prop(img, foot, tile * 1.6f)
         GgKind.BOULDER -> prop(img, foot, tile * 0.95f, anchor = 0.85f)
@@ -866,8 +953,7 @@ private fun GgWipePanel(
                 Text("Wipeout!  ${run.wipeReason}", color = Color(0xFFFF8A80), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 val bestSoFar = if (run.isNight) progress.bestNight else progress.bestDay
                 Text("Score ${"%,d".format(run.score)}  ·  gates ${run.gates}  ·  best ${"%,d".format(maxOf(bestSoFar, run.score))}", color = Color.White, fontSize = 13.sp)
-                if (!progress.riderOpen(GgRider.Spokes)) Text("Spokes unlocks at 15 gates in one run (${progress.farthest}/15)", color = Color(0xFFD7ECEA), fontSize = 11.sp)
-                else if (!progress.night) Text("Night Ride unlocks at gate 18 (${progress.farthest}/18)", color = Color(0xFFD7ECEA), fontSize = 11.sp)
+                if (!progress.night) Text("Night Ride unlocks at gate 18 (${progress.farthest}/18)", color = Color(0xFFD7ECEA), fontSize = 11.sp)
                 GgButton(if (run.gates == 0) "Retry from the start  (Enter or R)" else "Retry from gate ${run.gates}  (Enter or R)", onRetry)
                 GgButton("New run  (N)", onNew)
             }
@@ -909,14 +995,14 @@ private fun GgSelect(
                         color = Color(0xCC0E3A3F),
                         border = BorderStroke(if (i == index) 3.dp else 1.dp, if (i == index) Color(0xFF3FFFEF) else Color(0xFF3C6A6E)),
                     ) {
-                        Column(Modifier.padding(8.dp).size(width = 104.dp, height = 140.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Canvas(Modifier.size(70.dp).graphicsLayer { alpha = if (open) 1f else 0.3f }) {
+                        Column(Modifier.padding(8.dp).size(width = 104.dp, height = 150.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Canvas(Modifier.size(58.dp).graphicsLayer { alpha = if (open) 1f else 0.3f }) {
                                 prop(sprites.head(r.id), Offset(size.width / 2, size.height), size.height, anchor = 1f)
                             }
                             Text(r.name, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text(r.species, color = Color(0xFFB8D4D2), fontSize = 10.sp)
                             Text(
-                                if (open) r.perkText else if (r == GgRider.Spokes) "Locked: 15 gates in one run" else "Locked: finish Night Stage 1",
+                                r.perkText,
                                 color = Color(0xFFD7ECEA),
                                 fontSize = 9.sp,
                                 lineHeight = 11.sp,

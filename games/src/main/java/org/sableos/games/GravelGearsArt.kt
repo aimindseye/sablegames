@@ -77,6 +77,21 @@ internal class GgSprites(
             "knobby" to strip(R.drawable.gg_nr_knobby_hard_left, R.drawable.gg_nr_knobby_soft_left, R.drawable.gg_nr_knobby_straight, R.drawable.gg_nr_knobby_soft_right, R.drawable.gg_nr_knobby_air),
         )
     }
+    /** Two frames of the straight pose with the pedals in two places, played in step with the bike. */
+    private val pedals: Map<String, List<ImageBitmap>> by lazy {
+        mapOf(
+            "gravel" to listOf(R.drawable.gg_gravel_pedal_a, R.drawable.gg_gravel_pedal_b).map(load),
+            "spokes" to listOf(R.drawable.gg_spokes_pedal_a, R.drawable.gg_spokes_pedal_b).map(load),
+            "knobby" to listOf(R.drawable.gg_knobby_pedal_a, R.drawable.gg_knobby_pedal_b).map(load),
+        )
+    }
+    private val nightPedals: Map<String, List<ImageBitmap>> by lazy {
+        mapOf(
+            "gravel" to listOf(R.drawable.gg_nr_gravel_pedal_a, R.drawable.gg_nr_gravel_pedal_b).map(load),
+            "spokes" to listOf(R.drawable.gg_nr_spokes_pedal_a, R.drawable.gg_nr_spokes_pedal_b).map(load),
+            "knobby" to listOf(R.drawable.gg_nr_knobby_pedal_a, R.drawable.gg_nr_knobby_pedal_b).map(load),
+        )
+    }
     private val heads: Map<String, ImageBitmap> by lazy {
         mapOf(
             "gravel" to load(R.drawable.gg_head_gravel_front),
@@ -101,6 +116,13 @@ internal class GgSprites(
         pose: Int,
         night: Boolean,
     ): ImageBitmap = (if (night) nightRiders else riders).getValue(id)[pose.coerceIn(0, 4)]
+
+    /** The straight pose mid-pedal stroke: [frame] 0 or 1. */
+    fun pedal(
+        id: String,
+        frame: Int,
+        night: Boolean,
+    ): ImageBitmap = (if (night) nightPedals else pedals).getValue(id)[frame and 1]
 
     fun head(id: String): ImageBitmap = heads.getValue(id)
 

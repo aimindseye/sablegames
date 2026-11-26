@@ -95,6 +95,13 @@ internal data class GgCritter(
     val met: Boolean = false,
 )
 
+/** One point of the tyre track. */
+internal data class GgTrack(
+    val x: Float,
+    val y: Float,
+    val air: Boolean,
+)
+
 /** What a run keeps at each gate, so Retry can start from there. */
 private data class GgSnapshot(
     val x: Float,
@@ -176,6 +183,17 @@ internal class GgRun(
     var lean = 0f
         private set
     val unlocks = ArrayList<String>()
+
+    /** Where the wheels have been lately, oldest first, with whether they were in the air: tyre tracks and dust. */
+    val tracks = ArrayDeque<GgTrack>()
+
+    /** Seconds since the wheels touched down, counting down from [LAND_TIME]: the landing squash. */
+    var landing = 0f
+        private set
+
+    /** Seconds since the crash, for the tumble. */
+    var sinceWipe = 0f
+        private set
 
     private var deck = ArrayList<GgCard>()
     private var draw = ArrayList<GgCard>()
@@ -350,6 +368,11 @@ internal class GgRun(
                 Unit
             }
 
+            GgPhase.Wiped -> {
+                sinceWipe += dt
+                return
+            }
+
             else -> {
                 return
             }
@@ -365,6 +388,7 @@ internal class GgRun(
         speed += (target - speed) * min(1f, dt * (if (target < speed) 6f else 2.5f))
         val prevY = y
         val prevX = x
+        val wasAir = airborne
         y += speed * dt
         if (rampRows > 0f) rampRows = max(0f, rampRows - speed * dt)
         // Sideways: the card's path, then the held or tilted steer, a trackpad shove and any bounce.
@@ -385,6 +409,11 @@ internal class GgRun(
         val dx = (x - prevX) / dt.coerceAtLeast(0.001f)
         lean += ((dx / 3f).coerceIn(-1f, 1f) - lean) * min(1f, dt * 10f)
         if (abs(steer) > 0.2f || abs(shove) > 0.001f) lateral = if (x > prevX) 1 else -1
+        landing = if (wasAir && !airborne) LAND_TIME else max(0f, landing - dt)
+        if (tracks.isEmpty() || y - tracks.last().y > TRACK_GAP) {
+            tracks.addLast(GgTrack(x, y, airborne))
+            if (tracks.size > TRACK_KEEP) tracks.removeFirst()
+        }
         moveCritters(dt)
         // Each row the rider's wheel crosses: gates, obstacles and animals on it.
         var r = floor(prevY).toInt() + 1
@@ -681,6 +710,7 @@ internal class GgRun(
     }
 
     private fun wipe(reason: String) {
+        sinceWipe = 0f
         wipeReason = reason
         say(reason, false)
         phase = GgPhase.Wiped
@@ -785,12 +815,17 @@ internal class GgRun(
         mudFor = 0f
         wipeReason = ""
         lean = 0f
+        tracks.clear()
+        landing = 0f
         ready(START_COUNT)
         say(if (gates == 0) "Back at the top" else "Back at gate $gates")
     }
 
     companion object {
         const val HAND = 4
+        const val LAND_TIME = 0.25f
+        const val TRACK_GAP = 0.12f
+        const val TRACK_KEEP = 16
         const val MAX_REDRAWS = 2
         const val MAX_COMBO = 8
         const val RAMP_BONUS = 50

@@ -198,4 +198,27 @@ class GravelGearsRulesTest {
         assertFalse(run.redraw())
         assertEquals(4, run.hand.count { it != null })
     }
+
+    @Test
+    fun theRideLeavesTracksAndSquashesOnLanding() {
+        val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
+        ride(run, 10f, until = { it.y >= 6.6f })
+        assertTrue(run.tracks.size > 5)
+        run.ride(card("bunny_hop"))
+        ride(run, 2f, until = { it.airborne })
+        assertTrue(run.airborne)
+        ride(run, 2f, until = { !it.airborne })
+        assertTrue("a landing starts the squash", run.landing > 0f)
+    }
+
+    @Test
+    fun aCrashTumblesForAMoment() {
+        val run = GgRun(GgCourse(night = false), GgRider.Gravel, seed = 3)
+        ride(run, 6f, steer = -1f, until = { it.phase == GgPhase.Wiped })
+        assertEquals(0f, run.sinceWipe, 0.001f)
+        ride(run, 0.5f)
+        assertTrue(run.sinceWipe > 0.4f)
+        run.retry()
+        assertTrue(run.tracks.isEmpty())
+    }
 }
