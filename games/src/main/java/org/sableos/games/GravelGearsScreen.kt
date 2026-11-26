@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -316,7 +317,7 @@ internal fun GravelGearsScreen() {
     ) { side ->
         BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             val boardModifier = if (constraints.hasBoundedHeight) Modifier.fillMaxSize() else Modifier.size(side)
-            Box(boardModifier.background(Color.Black)) {
+            Box(boardModifier.clipToBounds().background(Color.Black)) {
                 if (screen == GgScreen.Select || r == null) {
                     GgSelect(sprites, riderIndex, night, progress, onPick = { riderIndex = it }, onNight = { if (progress.night) night = it }, onRide = ::startRun)
                 } else {
