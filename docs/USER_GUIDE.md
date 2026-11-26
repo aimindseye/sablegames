@@ -53,7 +53,7 @@ Every game plays from the keyboard or the trackpad (which sends arrow keys), and
 | Words | Guess the five-letter word in six tries: green is right, amber is in the word elsewhere | Type the letters; Del erases; Enter guesses |
 | Scaffold | Climb the building site to rescue Juno, jumping the pipes and rivets Clunk rolls down; three hearts, four levels | A left, K right, T up, V down, Space jumps (arrows and the trackpad too, where the phone has them); P pauses; keys can be changed |
 | Bitter Melons | Fling melons from the slingshot and break every piece of AI Slop; see [below](#bitter-melons) | Up/down aim; left/right set the power; Space fires, and again in the air for a Seed Burst; V looks ahead; R restarts the level; P pauses |
-| Gravel & Gears | Ride a mountain bike down a trail by playing cards; see [below](#gravel--gears) | A S D F pick a card, press it again (or Enter) to ride; left/right cycle the cards; up/down look ahead; R redraws; U takes the card back; P pauses |
+| Gravel & Gears | Ride a mountain bike down a trail nonstop, firing cards as moves; see [below](#gravel--gears) | Trackpad, arrows, I J K L or tilt steer; up pedals, down brakes; A S D F fire a card; Space hops; R redraws; T turns tilt on or off; P pauses |
 
 <p>
 <img src="images/sudoku.png" alt="Sudoku" width="150">
@@ -89,15 +89,16 @@ A slingshot physics game. AI Slop has taken over the hills, and every level is a
 
 ## Gravel & Gears
 
-A turn-based downhill ride. You hold four cards, each a short path down the trail. Press a card's key to see where it would take you, and press it again to ride.
+A nonstop downhill ride. The bike rolls on its own, you steer it across the trail, and your four cards are moves you fire on the spot.
 
-- **The preview.** A white dashed line is a safe ride. A cyan arrow shows a bump that throws you aside, and a red X marks a crash. The preview uses the same rules as the ride, so what you see is what happens.
-- **Gates.** Ride through the two-tile orange gates (cyan on the Night Ride) for 100 points. Each gate in a row raises your combo from x1 to x8. Missing a gate resets it. Every third gate lets you add a card to your deck (1, 2 or 3 to pick, Esc to skip).
-- **Obstacles.** Pines and the trail edge are a crash. Boulders and logs crash you too, unless a Bunny Hop, a Tabletop Jump or a ramp takes you over them (+75 each). Stumps bounce you sideways and cost your combo, unless the bounce lands inside a gate (Bank Shot, +100). Berms sling you inward, mud shortens your next card and loose gravel slides you sideways.
-- **Wildlife.** From Stage 2, marmots walk across the trail a tile a turn; a bump costs your combo. From Stage 3, a deer that sees you bolts across its whole row on your next turn: the row flashes red and the preview shows the crash. Hop over it or wait.
+- **Steering.** The trackpad, the arrow keys or I J K L steer; hold J or L to keep turning. Tilting the phone steers too: the phone is levelled the way you hold it when a ride starts, and T turns tilt on and off. Up pedals harder and down brakes. On a touch screen, drag across the trail.
+- **Cards.** A S D F fire a card at once. A carve swings you across, a hop lifts you over a boulder or a log (+75), Tuck & Bomb speeds you up and doubles a gate, Skid Stop brakes and clears mud. A dashed line shows where the move takes you. The slot fills again from your deck after about a second. Space hops with the first air card in your hand, and R spends a Redraw to swap all four.
+- **Gates.** Ride through the two-tile orange gates (cyan on the Night Ride) for 100 points. Each gate in a row raises your combo from x1 to x8. Missing a gate resets it. Every third gate pauses the ride so you can add a card to your deck (1, 2 or 3 to pick, Esc to skip).
+- **Obstacles.** Pines and the trail edge are a crash. Boulders and logs crash you too, unless a hop or a ramp takes you over them. Stumps and small rocks bounce you sideways and cost your combo. Berms sling you inward, mud slows you and shortens your next card, and loose gravel slides you sideways. Passing close to a boulder or a pine is a Close call (+25).
+- **Wildlife.** From Stage 2, marmots trot across the trail; a bump costs your combo. From Stage 3, a deer freezes when it sees you (its row flashes red), then bolts across. Hop over it or steer clear.
 - **Riders.** Gravel the goat keeps his combo when he bounces off a stump. Spokes the fox (unlocked at 15 gates in one ride) gets a free Redraw for every three gates in a row. Knobby the badger (unlocked by Night Stage 1) smashes small rocks for +50.
 - **Night Ride.** Unlocked at gate 18 of the day trail. You only see a cone ahead of the rider, the gates stay lit, and every score counts 1.5 times.
-- **Between gates.** Clearing a stage shows a panel with Continue. A crash shows Retry from the last gate you cleared (Enter or R), or a new run (N).
+- **Between gates.** Clearing a stage shows a panel with Continue. A crash shows Retry from the last gate you cleared (Enter or R), or a new run (N). Each start has a short Ready count so you can get your hands set.
 - **Keys.** The four card keys, Redraw, Take back and Pause can be changed in Controls. R redraws your hand (you start with 1 Redraw, up to 2); U takes the last card back, three times a ride. On the Q25 the trackpad cycles the cards (left, right) and looks ahead (up, down). Touch works too: tap a card to pick it and tap again to ride.
 
 ## Sable Card Games

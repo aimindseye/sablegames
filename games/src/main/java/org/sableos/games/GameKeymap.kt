@@ -82,7 +82,8 @@ internal object GameKeymap {
             }
             if (press.keyCode in bound.controls.defaultKeys(profile)) return null
         }
-        if (profile.letterMoves && game != GameKind.Words && !press.alt) {
+        if ((profile.letterMoves && game != GameKind.Words || game == GameKind.GravelGears) && !press.alt) {
+            // Gravel & Gears steers with I J K L on every phone, and a held key keeps steering.
             DeviceProfile.LETTER_MOVES[press.keyCode]?.let { return it }
         }
         // A held key repeats only cursor moves.
@@ -228,16 +229,18 @@ internal object GameKeymap {
         }
 
     /**
-     * Gravel & Gears: A S D F (or 1 to 4) pick a card and play it, Enter or Space rides the picked card, R redraws,
-     * U takes a card back, Del or Esc skips a draft. The card keys can be rebound in Controls.
+     * Gravel & Gears, a nonstop ride: A S D F (or 1 to 4) fire a card at once, Space hops with the first air card,
+     * Enter continues or retries, R redraws, T turns tilt steering on and off, Del or Esc skips a draft. The trackpad,
+     * the arrows or I J K L steer (above). The card keys can be rebound in Controls.
      */
     private fun gravelGears(press: GameKeyPress): GameCommand? =
         when {
             press.alt -> null
             press.char in '1'..'4' -> GameCommand.Digit(press.char!! - '0')
+            press.keyCode == KeyEvent.KEYCODE_SPACE -> GameCommand.Select
             isPrimary(press.keyCode) -> GameCommand.Primary
             press.keyCode == KeyEvent.KEYCODE_R -> GameCommand.Draw
-            press.keyCode == KeyEvent.KEYCODE_U -> GameCommand.Undo
+            press.keyCode == KeyEvent.KEYCODE_T -> GameCommand.Hint
             press.keyCode == KeyEvent.KEYCODE_P -> GameCommand.Pause
             press.keyCode == KeyEvent.KEYCODE_DEL || press.keyCode == KeyEvent.KEYCODE_ESCAPE -> GameCommand.Erase
             else -> common(press)
