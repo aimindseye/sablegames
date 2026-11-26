@@ -4,7 +4,6 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -183,8 +182,8 @@ internal class GgRun(
     /** How hard the rider is leaning, -1 (left) to 1 (right), for the pose. */
     var lean = 0f
         private set
-    /** Which way the drawn bike faces, -1 (left) to 1 (right): it swings round when the rider steers the other way. */
-    var facing = 1f
+    /** Which way the drawn bike faces: 0 straight down the trail, -1 turned left, 1 turned right while steering. */
+    var facing = 0f
         private set
     val unlocks = ArrayList<String>()
 
@@ -420,7 +419,7 @@ internal class GgRun(
         push -= bounce
         val dx = (x - prevX) / dt.coerceAtLeast(0.001f)
         lean += ((dx / 3f).coerceIn(-1f, 1f) - lean) * min(1f, dt * 10f)
-        val face = if (lean > FACE_TURN) 1f else if (lean < -FACE_TURN) -1f else sign(facing)
+        val face = if (lean > FACE_TURN) 1f else if (lean < -FACE_TURN) -1f else 0f
         facing += (face - facing) * min(1f, dt * FACE_SPEED)
         if (abs(steer) > 0.2f || abs(shove) > 0.001f) lateral = if (x > prevX) 1 else -1
         landing = if (wasAir && !airborne) LAND_TIME else max(0f, landing - dt)
@@ -841,6 +840,7 @@ internal class GgRun(
         mudFor = 0f
         wipeReason = ""
         lean = 0f
+        facing = 0f
         tracks.clear()
         landing = 0f
         ready(START_COUNT)
@@ -879,13 +879,13 @@ internal class GgRun(
         const val RAMP_ROWS = 2.4f
         const val RIDER_HALF = 0.12f
 
-        /** How hard a lean swings the bike round to face the other way, and how fast it swings. */
-        const val FACE_TURN = 0.3f
+        /** How hard a lean turns the bike to face across the trail, and how fast it turns and straightens. */
+        const val FACE_TURN = 0.15f
 
         /** Rows a second added for every gate passed, up to a cap. */
         const val RAMP_UP = 0.025f
         const val RAMP_UP_MAX = 0.6f
-        const val FACE_SPEED = 9f
+        const val FACE_SPEED = 7f
         const val CLOSE_CALL_GAP = 0.35f
         const val ANIMAL_REACH = 0.6f
         const val GATE_SLACK = 0.5f

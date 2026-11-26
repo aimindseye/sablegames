@@ -649,7 +649,7 @@ private fun ggRigPose(run: GgRun): GgRigPose {
     val stand = if (air) 0.8f else sprint * 0.7f
     val tuck = ((run.speed - 3.3f) / 1.0f).coerceIn(0f, 1f)
     return GgRigPose(
-        yaw = (run.facing * 55f + run.lean * 20f) * DEG,
+        yaw = (run.facing * 50f + run.lean * 15f) * DEG,
         roll = run.lean * 0.42f + sin(crank) * 0.05f * stand,
         pitch = run.lift * 0.28f,
         crank = crank,
