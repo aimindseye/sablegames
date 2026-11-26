@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +36,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -45,8 +51,7 @@ import kotlin.math.hypot
 import kotlin.math.sin
 import kotlin.random.Random
 
-private val SEATS_HEIGHT = 34.dp
-private val LINES_HEIGHT = 44.dp
+private val SEATS_HEIGHT = 30.dp
 
 /** Ludo is drawn on a classic light board in both themes, so the track always shows. */
 private val LUDO_BOARD = Color(0xFFFBF7EC)
@@ -79,6 +84,31 @@ internal fun boardSideFor(
     room: Dp?,
     extra: Dp,
 ): Dp = minOf(side, (room ?: side) - extra).coerceAtLeast(side / 2)
+
+/**
+ * The latest move, over the foot of the board in a small translucent pill, so the board can fill
+ * the whole square under the bar (owner photos, 2026-11-26) instead of leaving a strip for the move lines.
+ */
+@Composable
+private fun MoveToast(lines: List<MoveLine>) {
+    val line = lines.lastOrNull() ?: return
+    val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val color = TOKEN_COLORS[line.player].let { if (dark) lighten(it, 0.3f) else darken(it, 0.1f) }
+    Text(
+        line.text,
+        modifier =
+            Modifier
+                .padding(bottom = 3.dp)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.82f), RoundedCornerShape(6.dp))
+                .padding(horizontal = 6.dp, vertical = 1.dp),
+        fontSize = 11.sp,
+        lineHeight = 13.sp,
+        fontWeight = FontWeight.Medium,
+        color = color,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
 
 /** A token part way between two places, [t] from 0 to 1. */
 private data class Glide<T>(
@@ -229,7 +259,7 @@ internal fun SnakesScreen(random: Random) {
                 GameAction("Players $players", "2 3 4") { restart(if (players == 4) 2 else players + 1) },
             ),
     ) { side ->
-        BoardRoom(side, SEATS_HEIGHT + LINES_HEIGHT) { boardSide ->
+        BoardRoom(side, SEATS_HEIGHT) { boardSide ->
             Row(
                 Modifier.fillMaxWidth().height(SEATS_HEIGHT),
                 horizontalArrangement = Arrangement.spacedBy(3.dp),
@@ -249,8 +279,10 @@ internal fun SnakesScreen(random: Random) {
                 }
                 DiceFace(dice, TOKEN_COLORS[diceBy], 30.dp)
             }
-            SnakesBoard(game, glide, shake, trail, boardSide)
-            MoveLines(lines)
+            Box(Modifier.size(boardSide), contentAlignment = Alignment.BottomCenter) {
+                SnakesBoard(game, glide, shake, trail, boardSide)
+                MoveToast(lines)
+            }
         }
     }
 }
@@ -628,8 +660,8 @@ internal fun LudoScreen(random: Random) {
                 GameAction("New", "N", tab = true) { newGame() },
             ),
     ) { side ->
-        BoardRoom(side, LINES_HEIGHT) { boardSide ->
-            Box(Modifier.size(boardSide), contentAlignment = Alignment.Center) {
+        BoardRoom(side, 0.dp) { boardSide ->
+            Box(Modifier.size(boardSide), contentAlignment = Alignment.BottomCenter) {
                 LudoBoard(
                     game = game,
                     choice = choice,
@@ -641,8 +673,8 @@ internal fun LudoScreen(random: Random) {
                     busy = busy,
                     side = boardSide,
                 )
+                MoveToast(lines)
             }
-            MoveLines(lines)
         }
     }
 }
