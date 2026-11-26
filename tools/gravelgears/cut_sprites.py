@@ -103,25 +103,6 @@ def load(path, black):
     img = cv2.imread(path)
     return alpha_black(img) if black else alpha_white(img)
 
-def drop_beam(path, rgba):
-    """Clears the painted headlight beam from the night riders: the game draws its own cone."""
-    hsv = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2HSV)
-    h, s, v = [hsv[..., i].astype(int) for i in range(3)]
-    beam = (h >= 8) & (h <= 24) & (s > 150) & (v < 190) & (v > 20)
-    out = rgba.copy()
-    out[beam, 3] = 0
-    return out
-
-def largest(rgba):
-    """The box round the biggest shape, so beam crumbs left over do not widen the sprite."""
-    m = (rgba[..., 3] > 40).astype(np.uint8)
-    m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
-    n, lab, st, _ = cv2.connectedComponentsWithStats(m)
-    i = 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA]))
-    rgba[lab != i, 3] = 0
-    x, y, w, h = st[i, :4]
-    return (int(x), int(y), int(w), int(h))
-
 def export(sheets, res):
     d = lambda n: f"{sheets}/{n}"
     # obstacles: tall props share a scale so a pine is taller than a boulder
@@ -141,12 +122,11 @@ def export(sheets, res):
     rgba = load(d("riders_night_strips.jpg"), True)
     bx = boxes(rgba, 5, 3, min_h=120)
     for row, who in enumerate(("gravel", "spokes", "knobby")):
+        if who == "gravel":
+            continue
         save_strip(rgba, bx[row * 5:row * 5 + 5], [f"gg_nr_{who}_{p}" for p in poses], res)
-    # Gravel's older night picture, one pose with the beam cleared, until a goat night strip arrives
-    rgba = load(d("rider_night.png"), True)
-    rgba = drop_beam(d("rider_night.png"), rgba)
-    part = rgba[:, 60:440].copy()
-    save(part, largest(part), f"{res}/gg_nightrider_gravel.webp", 300)
+    rgba = load(d("gravel_night_strip.jpg"), True)
+    save_strip(rgba, boxes(rgba, 5, 1, min_h=120), [f"gg_nr_gravel_{p}" for p in poses], res)
     rgba = load(d("heads.png"), False)
     bs = boxes(rgba, 3, 3)
     for i, who in enumerate(["gravel", "spokes", "knobby"]):

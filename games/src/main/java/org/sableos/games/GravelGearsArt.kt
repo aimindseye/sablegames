@@ -71,10 +71,8 @@ internal class GgSprites(
             d: Int,
             e: Int,
         ) = listOf(a, b, c, d, e).map(load)
-        val gravel = load(R.drawable.gg_nightrider_gravel)
         mapOf(
-            // Gravel's night strip is still to come: one picture for every pose until then.
-            "gravel" to List(5) { gravel },
+            "gravel" to strip(R.drawable.gg_nr_gravel_hard_left, R.drawable.gg_nr_gravel_soft_left, R.drawable.gg_nr_gravel_straight, R.drawable.gg_nr_gravel_soft_right, R.drawable.gg_nr_gravel_air),
             "spokes" to strip(R.drawable.gg_nr_spokes_hard_left, R.drawable.gg_nr_spokes_soft_left, R.drawable.gg_nr_spokes_straight, R.drawable.gg_nr_spokes_soft_right, R.drawable.gg_nr_spokes_air),
             "knobby" to strip(R.drawable.gg_nr_knobby_hard_left, R.drawable.gg_nr_knobby_soft_left, R.drawable.gg_nr_knobby_straight, R.drawable.gg_nr_knobby_soft_right, R.drawable.gg_nr_knobby_air),
         )
