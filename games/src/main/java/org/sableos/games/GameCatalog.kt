@@ -264,6 +264,14 @@ internal object GameCatalog {
                             "A beam hanging on cables drops when you hit it, and crushes what is under it.",
                         ),
                     ),
+                    HowToPage(
+                        "World 4: Storm Citadel",
+                        listOf(
+                            "The Overripe Melon bursts in a juice shockwave when you press Space, or when it hits hard.",
+                            "Firewall shields ring the structures and stop melons. Some break; others turn, so wait for the gap.",
+                            "Drone platforms hold Slop up in the air. Hit one hard to break its thrusters and drop it.",
+                        ),
+                    ),
                 ),
             controls =
                 listOf(

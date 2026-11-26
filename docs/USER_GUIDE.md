@@ -79,6 +79,7 @@ A slingshot physics game. AI Slop has taken over the hills, and every level is a
 - **Seeds.** A cleared level earns one to three seeds by score, and the next level opens. A panel shows the result: press Space or tap for Next level, or Try again if you ran out of melons. N (Levels) shows the nine levels of a world with the seeds won on each; moving down past the last row goes on to the next world.
 - **World 2, Slop Mall.** Clearing World 1's last level opens the mall. It brings the Split Cantaloupe, which splits into three smaller melons when you press Space in the air, and gold AD banners, which throw a melon off faster than it hit them. The melons waiting their turn sit at the bottom left, in the order they load.
 - **World 3, Server Foundry.** Steel blocks, the orange Prompt Bot (150), and the Heavy Honeydew, which you slam straight down with Space. Cooling fans blow a melon upward while it is over them, and the aim dots and target ring follow the updraft. A steel beam hanging on cables drops when you hit it.
+- **World 4, Storm Citadel.** The Overripe Melon bursts in a juice shockwave when you press Space, or when it hits something hard. Firewall shields ring the structures and stop melons: some break after enough hits, and others turn, so time your shot through the gap. Drone platforms hold Slop in the air until a hit breaks their thrusters.
 
 ## Sable Card Games
 

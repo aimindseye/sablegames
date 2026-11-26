@@ -19,8 +19,8 @@ internal enum class MelonMaterial(
 
 /**
  * The melons a level can load, each [r] metres from its middle to its edge: the Bitter Melon (Space bursts three
- * seeds), the Split Cantaloupe (Space splits it into three smaller melons) and the Heavy Honeydew (heavy; Space slams
- * it straight down).
+ * seeds), the Split Cantaloupe (Space splits it into three smaller melons), the Heavy Honeydew (heavy; Space slams
+ * it straight down) and the Overripe Melon (Space, or a hard hit, bursts it in a juice shockwave).
  */
 internal enum class MelonKind(
     val r: Float,
@@ -30,6 +30,7 @@ internal enum class MelonKind(
     Bitter(0.9f, 3f, "Bitter Melon"),
     Split(0.9f, 3f, "Split Cantaloupe"),
     Heavy(1f, 8f, "Heavy Honeydew"),
+    Overripe(0.95f, 3f, "Overripe Melon"),
 }
 
 /** A gold AD banner trampoline: a springy plate [w] metres long at [x], [y], turned [degrees] anticlockwise. */
@@ -54,6 +55,27 @@ internal data class MelonFan(
  * A steel beam [w] metres long hung by cables at [x], [y]: hits wear its cables, and when they snap it drops,
  * [massFactor] times as heavy as steel.
  */
+/** A drone platform [w] metres wide hovering at [x], [y]: it holds what stands on it until its thrusters break. */
+internal data class MelonDrone(
+    val x: Float,
+    val y: Float,
+    val w: Float = 8f,
+    val thrusterHp: Float = 25f,
+)
+
+/**
+ * A firewall shield: a ring of radius [r] round [x], [y] that only melons hit. It has a [gap] in degrees, turning
+ * [turn] degrees a second; with [hp] above 0 enough hits break it, otherwise it never breaks.
+ */
+internal data class MelonShield(
+    val x: Float,
+    val y: Float,
+    val r: Float,
+    val gap: Float = 0f,
+    val turn: Float = 0f,
+    val hp: Float = 0f,
+)
+
 internal data class MelonHangingBeam(
     val x: Float,
     val y: Float,
@@ -119,6 +141,8 @@ internal data class MelonLevel(
     val banners: List<MelonBanner> = emptyList(),
     val fans: List<MelonFan> = emptyList(),
     val hanging: List<MelonHangingBeam> = emptyList(),
+    val drones: List<MelonDrone> = emptyList(),
+    val shields: List<MelonShield> = emptyList(),
 ) {
     init {
         require(queue.size == melons) { "$world-$number: the queue must hold $melons melons" }
@@ -191,6 +215,7 @@ internal object MelonsLevels {
             "Prompt Valley" to "Sunny hills, wood, glass and stone. Learn to aim.",
             "Slop Mall" to "Neon shops, bouncy AD banners and the Split Cantaloupe.",
             "Server Foundry" to "Steel, cooling fans, hanging beams and the Heavy Honeydew.",
+            "Storm Citadel" to "Firewall shields, drone platforms and the Overripe Melon.",
         )
 
     /**
@@ -202,7 +227,7 @@ internal object MelonsLevels {
     /** The levels of world [n], from 1. */
     fun world(n: Int): List<MelonLevel> = all.filter { it.world == n }
 
-    private val ALL: List<MelonLevel> by lazy { world1 + MelonsWorld2.levels + MelonsWorld3.levels }
+    private val ALL: List<MelonLevel> by lazy { world1 + MelonsWorld2.levels + MelonsWorld3.levels + MelonsWorld4.levels }
 
     private val world1: List<MelonLevel> =
         listOf(
