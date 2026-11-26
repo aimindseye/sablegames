@@ -1,5 +1,6 @@
 package org.sableos.games
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -40,6 +41,13 @@ class GravelGearsLayoutTest {
                 for (xx in o.x - 1..o.x + 1) if (xx != o.x) at(xx, o.y)?.let { out += "ramp at ${o.x},${o.y} crowded by a ${it.kind}" }
             }
         }
+        // Wildlife lives on a quiet row: nothing standing on it, not a gate row, clear of every kicker.
+        val ramps = obstacles.filter { it.kind == GgKind.RAMP }
+        for (a in course.animals) {
+            if (a.y in gateRows) out += "${a.kind} on gate row ${a.y}"
+            obstacles.firstOrNull { it.y == a.y }?.let { out += "${a.kind} on row ${a.y} with a ${it.kind}" }
+            ramps.firstOrNull { a.y in it.y - 1..it.y + 3 }?.let { out += "${a.kind} on row ${a.y} in a kicker's way" }
+        }
         // Nothing stacked straight behind something else, apart from a kicker and what it jumps.
         for (o in obstacles) {
             val below = at(o.x, o.y + 1) ?: continue
@@ -61,5 +69,97 @@ class GravelGearsLayoutTest {
             }
         }
         assertTrue("${all.size} placement problems, first: ${all.take(5)}", all.isEmpty())
+    }
+
+    @Test
+    fun theNightRideHasItsOwnWildlife() {
+        val seen = HashSet<GgAnimalKind>()
+        for (seed in 1L..20L) {
+            val night = GgCourse(true, seed = seed, fresh = true)
+            seen += night.animals.map { it.kind }
+            assertTrue(night.animals.none { it.kind == GgAnimalKind.MARMOT || it.kind == GgAnimalKind.DEER })
+            val day = GgCourse(false, seed = seed, fresh = true)
+            assertTrue(day.animals.all { it.kind == GgAnimalKind.MARMOT || it.kind == GgAnimalKind.DEER })
+        }
+        val nightKinds = setOf(GgAnimalKind.RACCOON, GgAnimalKind.STAG, GgAnimalKind.OWL, GgAnimalKind.SKUNK, GgAnimalKind.FIREFLIES)
+        assertTrue("missing ${nightKinds - seen}", seen.containsAll(nightKinds))
+    }
+
+    /** Rides [run] steering toward [target] each frame until it passes [row] or the ride stops. */
+    private fun rideTo(
+        run: GgRun,
+        target: () -> Float,
+        row: Int,
+    ) {
+        var t = 0f
+        while (t < 120f && run.y < row + 0.5f && run.phase != GgPhase.Wiped) {
+            if (run.phase == GgPhase.Drafting) run.skipDraft()
+            if (run.phase == GgPhase.StageClear) run.continueRide()
+            run.step(1f / 60f, ((target() - run.x) * 2f).coerceIn(-1f, 1f))
+            t += 1f / 60f
+        }
+    }
+
+    @Test
+    fun firefliesScoreAndLightTheTrail() {
+        var collected = 0
+        for (seed in 1L..30L) {
+            val course = GgCourse(true, seed = seed, fresh = true)
+            val ff = course.animals.firstOrNull { it.kind == GgAnimalKind.FIREFLIES } ?: continue
+            val run = GgRun(course, GgRider.Gravel, seed = 3)
+            rideTo(run, { if (run.y > ff.y - 3) ff.x.toFloat() else course.nextGate(run.y.toInt()).let { (it.left + it.right) / 2f } }, ff.y)
+            if (run.events.any { it.text.startsWith("Fireflies") }) {
+                collected++
+                assertTrue(run.beam > 0f)
+            }
+        }
+        assertTrue("fireflies collected in $collected rides", collected > 0)
+    }
+
+    @Test
+    fun aSkunkSpraysARiderWhoBrushesPast() {
+        var sprayed = 0
+        for (seed in 1L..40L) {
+            val course = GgCourse(true, seed = seed, fresh = true)
+            val sk = course.animals.firstOrNull { it.kind == GgAnimalKind.SKUNK } ?: continue
+            val run = GgRun(course, GgRider.Gravel, seed = 3)
+            rideTo(run, {
+                val live = run.critters.firstOrNull { it.kind == GgAnimalKind.SKUNK && it.y == sk.y }
+                if (run.y > sk.y - 2 && live != null) live.x else course.nextGate(run.y.toInt()).let { (it.left + it.right) / 2f }
+            }, sk.y)
+            if (run.events.any { it.text.startsWith("Skunked") }) {
+                sprayed++
+                assertTrue(run.stink > 0f)
+                assertTrue(run.muddy)
+                assertEquals(1, run.combo)
+            }
+        }
+        assertTrue("sprayed in $sprayed rides", sprayed > 0)
+    }
+
+    /** An owl on row 4 of the hand-made first stage, coming in from the right; the rider steers under it. */
+    private fun owlRun(hop: Boolean): GgRun {
+        val course = GgCourse(night = false)
+        val owl = GgAnimal(GgAnimalKind.OWL, course.trail(4).last + 2, 4, -1)
+        val run = GgRun(course, GgRider.Gravel, seed = 3, animals = listOf(owl))
+        var hopped = false
+        rideTo(run, {
+            val live = run.critters.firstOrNull { it.kind == GgAnimalKind.OWL }
+            if (hop && !hopped && run.phase == GgPhase.Riding && run.y > 2.7f) {
+                hopped = true
+                run.ride(GravelGearsData.cards.first { it.id == "bunny_hop" })
+            }
+            if (live != null && live.bolting) live.x.coerceIn(3f, 6f) else 4f
+        }, 4)
+        return run
+    }
+
+    @Test
+    fun anOwlSwoopsLowAndOnlyCatchesARiderInTheAir() {
+        val ground = owlRun(hop = false)
+        assertTrue(ground.events.map { it.text }.toString(), ground.events.any { it.text.startsWith("Ducked the owl") })
+        val air = owlRun(hop = true)
+        assertTrue(air.events.map { it.text }.toString(), air.events.any { it.text.startsWith("Owl strike") })
+        assertEquals(1, air.combo)
     }
 }

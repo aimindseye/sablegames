@@ -338,6 +338,8 @@ internal object GameCatalog {
                             "Knobby the badger smashes small rocks for +50. All three can be picked from the start; Night Ride opens at gate 18.",
                             "Marmots trot across the trail: a bump costs your combo. A deer freezes when it sees you (its row flashes red), then bolts across: hop it or steer clear.",
                             "Night Ride shows only a cone ahead of the rider, and scores 1.5 times.",
+                            "At night raccoons scurry like marmots and stags bolt like deer. An owl swoops low across the trail: it only catches you in the air.",
+                            "Brush past a skunk and it sprays: slowed and combo lost (hop it for style). Ride through a swirl of fireflies for +150 and a lit trail.",
                         ),
                     ),
                 ),

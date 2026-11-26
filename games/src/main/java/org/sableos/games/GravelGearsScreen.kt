@@ -533,27 +533,58 @@ private fun GgBoard(
                 val centre = (t.first + t.last) / 2f
                 val facing =
                     when {
-                        a.kind == GgAnimalKind.MARMOT -> a.dir
+                        a.kind in GG_WANDERERS -> a.dir
                         a.bolting -> a.dir
                         a.x < centre -> 1
                         else -> -1
                     }
+                fun shadow(w: Float) =
+                    drawOval(Color.Black.copy(alpha = if (night) 0.35f else 0.18f), Offset(foot.x - tile * w / 2, foot.y - tile * 0.07f), Size(tile * w, tile * 0.13f))
+
+                // Draws [img] at [h] tiles, mirrored to face the way the animal heads (the art faces right).
+                fun facingProp(
+                    img: androidx.compose.ui.graphics.ImageBitmap,
+                    at: Offset,
+                    h: Float,
+                    anchor: Float,
+                    flip: Int = facing,
+                ) = withTransform({ scale(flip.toFloat(), 1f, pivot = at) }) { prop(img, at, tile * h, anchor = anchor) }
+                // A scurry: the running picture, bobbing on each step.
+                val hop = abs(sin(clock * 14f + a.y)) * tile * 0.05f
                 when (a.kind) {
                     GgAnimalKind.MARMOT -> {
-                        // A scurry: the running picture, bobbing on each step.
-                        val hop = abs(sin(clock * 14f + a.y)) * tile * 0.05f
-                        drawOval(Color.Black.copy(alpha = 0.18f), Offset(foot.x - tile * 0.22f, foot.y - tile * 0.07f), Size(tile * 0.44f, tile * 0.12f))
-                        withTransform({ scale(facing.toFloat(), 1f, pivot = foot) }) {
-                            prop(sprites.marmot(1), Offset(foot.x, foot.y - hop), tile * MARMOT_TILES, anchor = 0.9f)
-                        }
+                        shadow(0.44f)
+                        facingProp(sprites.marmot(1), Offset(foot.x, foot.y - hop), MARMOT_TILES, 0.9f)
+                    }
+
+                    GgAnimalKind.RACCOON -> {
+                        shadow(0.5f)
+                        facingProp(sprites.raccoon(if (a.met) 2 else 1), Offset(foot.x, foot.y - hop), RACCOON_TILES, 0.9f)
                     }
 
                     GgAnimalKind.DEER -> {
                         val pose = if (a.bolting) 2 else if (a.state == GgDeerState.ALERT) 1 else 0
-                        drawOval(Color.Black.copy(alpha = 0.18f), Offset(foot.x - tile * 0.3f, foot.y - tile * 0.08f), Size(tile * 0.6f, tile * 0.14f))
-                        withTransform({ scale(facing.toFloat(), 1f, pivot = foot) }) {
-                            prop(sprites.deer(pose), foot, tile * DEER_TILES, anchor = 0.92f)
-                        }
+                        shadow(0.6f)
+                        facingProp(sprites.deer(pose), foot, DEER_TILES, 0.92f)
+                    }
+
+                    GgAnimalKind.STAG -> {
+                        val pose = if (a.bolting) 2 else if (a.state == GgDeerState.ALERT) 1 else 0
+                        shadow(0.6f)
+                        facingProp(sprites.stag(pose), foot, STAG_TILES, 0.92f)
+                    }
+
+                    GgAnimalKind.SKUNK -> {
+                        shadow(0.5f)
+                        val pose = if (a.bolting) 2 else if (a.state == GgDeerState.ALERT) 1 else 0
+                        // The spraying picture faces left, so it is mirrored the other way.
+                        val flip = if (pose == 2) -facing else facing
+                        facingProp(sprites.skunk(pose), Offset(foot.x, foot.y - if (pose == 0) hop * 0.5f else 0f), SKUNK_TILES, 0.9f, flip)
+                    }
+
+                    // The owl and the fireflies are drawn over the dark below, so they stay seen at night.
+                    GgAnimalKind.OWL, GgAnimalKind.FIREFLIES -> {
+                        Unit
                     }
                 }
             }
@@ -569,7 +600,16 @@ private fun GgBoard(
             drawRect(GgArt.Lethal.copy(alpha = pulse), Offset(t.first * tile, sy(a.y.toFloat()) - tile * 0.1f), Size((t.last - t.first + 1) * tile, tile * 0.6f))
         }
         if (night) drawHeadlight(run, view, sprites)
+        drawFlyers(run, view, sprites, night, y0, y1)
+        // A stag that has seen the rider: its row pulses red over the dark until it has run across.
+        run.critters.filter { it.kind == GgAnimalKind.STAG && it.state == GgDeerState.ALERT && !it.met && !it.bolting && it.y in y0..y1 }.forEach { a ->
+            val t = course.trail(a.y)
+            val pulse = 0.18f + 0.14f * sin(clock * 9f)
+            drawRect(GgArt.Lethal.copy(alpha = pulse), Offset(t.first * tile, sy(a.y.toFloat()) - tile * 0.1f), Size((t.last - t.first + 1) * tile, tile * 0.6f))
+        }
+        if (!night) drawCrows(view, sprites, clock, size)
         drawSpeedLines(run, tile, size)
+        if (run.stink > 0f) drawRect(Color(0xFF7CFF4F).copy(alpha = 0.22f * run.stink / GgRun.STINK_TIME))
     }
 }
 
@@ -682,6 +722,81 @@ private val GG_SHADOWED = setOf(GgKind.BOULDER, GgKind.STUMP, GgKind.SMALL_ROCK,
 /** Animal heights in tiles, kept under the rider's so the rider stays the biggest thing on the trail. */
 private const val MARMOT_TILES = 0.5f
 private const val DEER_TILES = 0.95f
+private const val RACCOON_TILES = 0.5f
+private const val STAG_TILES = 1.0f
+private const val SKUNK_TILES = 0.45f
+private const val OWL_TILES = 0.55f
+private const val FIREFLY_TILES = 0.85f
+
+/** Animals that wander to and fro, facing the way they walk. */
+private val GG_WANDERERS = setOf(GgAnimalKind.MARMOT, GgAnimalKind.RACCOON, GgAnimalKind.SKUNK, GgAnimalKind.OWL)
+
+/**
+ * What flies or glows: owls swooping low over the trail with a shadow on the ground, and swirls of fireflies that
+ * burst when ridden through. Drawn over the Night Ride's dark so they are seen beyond the headlight.
+ */
+private fun DrawScope.drawFlyers(
+    run: GgRun,
+    view: GgView,
+    sprites: GgSprites,
+    night: Boolean,
+    y0: Int,
+    y1: Int,
+) {
+    val tile = view.tile
+    val clock = run.clock
+    for (a in run.critters) {
+        if (a.y !in y0..y1) continue
+        val foot = Offset(view.sx(a.x), view.sy(a.y.toFloat()) + tile * 0.4f)
+        when (a.kind) {
+            GgAnimalKind.OWL -> {
+                if (!a.bolting) continue
+                drawOval(Color.Black.copy(alpha = if (night) 0.4f else 0.2f), Offset(foot.x - tile * 0.25f, foot.y - tile * 0.06f), Size(tile * 0.5f, tile * 0.12f))
+                val air = Offset(foot.x, foot.y - tile * 0.75f)
+                withTransform({ scale(a.dir.toFloat(), 1f, pivot = air) }) {
+                    prop(sprites.owl((a.alertFor * 9f).toInt()), air, tile * OWL_TILES, anchor = 0.5f)
+                }
+            }
+
+            GgAnimalKind.FIREFLIES -> {
+                val burst = a.met
+                val fade = if (burst) (1f - a.alertFor / GgRun.FIREFLY_BURST).coerceIn(0f, 1f) else 0.75f + 0.25f * sin(clock * 5f + a.y)
+                val frame = if (burst) 2 else ((clock * 3f).toInt() + a.y) % 2
+                val c = Offset(foot.x + sin(clock * 1.3f + a.y) * tile * 0.08f, foot.y - tile * 0.35f)
+                prop(sprites.firefly(frame), c, tile * FIREFLY_TILES * (if (burst) 1.3f else 1f), alpha = fade, anchor = 0.5f)
+            }
+
+            else -> {
+                Unit
+            }
+        }
+    }
+}
+
+/** Daytime crows: now and then one flaps across high over the trail, just for the scene. */
+private fun DrawScope.drawCrows(
+    view: GgView,
+    sprites: GgSprites,
+    clock: Float,
+    size: Size,
+) {
+    val tile = view.tile
+    val period = 11f
+    val cross = 4f
+    val n = (clock / period).toInt()
+    val t = clock - n * period
+    if (t > cross) return
+    val h = ggHash(n, 41)
+    val dir = if (h and 1 == 0) 1 else -1
+    val u = t / cross
+    val x = if (dir > 0) -tile + u * (size.width + 2 * tile) else size.width + tile - u * (size.width + 2 * tile)
+    val y = tile * (1.2f + ((h ushr 4) % 100) / 100f * 2.5f) + sin(t * 3f) * tile * 0.15f
+    val at = Offset(x, y)
+    // The art faces right.
+    withTransform({ scale(dir.toFloat(), 1f, pivot = at) }) {
+        prop(sprites.crow((clock * 8f).toInt()), at, tile * 0.42f, anchor = 0.5f)
+    }
+}
 
 /** A smooth line through [pts]: each corner becomes a curve through the midpoints, so an edge bends instead of stepping. */
 private fun Path.smoothThrough(

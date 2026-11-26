@@ -126,6 +126,8 @@ internal class GgRun(
     val rider: GgRider,
     seed: Long = 7L,
     val biomeMult: Float = if (course.night) 1.5f else 1.0f,
+    /** The wildlife on the trail: the course's own, or a test's. */
+    animals: List<GgAnimal> = course.animals,
 ) {
     private val rnd = Random(seed)
     var x = course.gate(0).centerX.toFloat()
@@ -160,7 +162,7 @@ internal class GgRun(
     /** Seconds until each empty slot gets its next card. */
     var cooldown = FloatArray(HAND)
         private set
-    var critters: List<GgCritter> = course.animals.map { GgCritter(it.kind, it.x.toFloat(), it.y, it.dir) }
+    var critters: List<GgCritter> = animals.map { GgCritter(it.kind, it.x.toFloat(), it.y, it.dir) }
         private set
     var draftChoices: List<GgCard> = emptyList()
         private set
@@ -192,6 +194,10 @@ internal class GgRun(
 
     /** Seconds since the wheels touched down, counting down from [LAND_TIME]: the landing squash. */
     var landing = 0f
+        private set
+
+    /** Seconds left of a skunk's stink over the screen. */
+    var stink = 0f
         private set
 
     /** Seconds since the crash, for the tumble. */
@@ -389,6 +395,7 @@ internal class GgRun(
         if (boostFor > 0f) boostFor -= dt else boost = 1f
         if (mudFor > 0f) mudFor -= dt
         if (beam > 0f) beam = max(0f, beam - dt)
+        if (stink > 0f) stink = max(0f, stink - dt)
         pedal *= (1f - min(1f, dt * 0.8f))
         val target = cruise() * boost * (if (muddy) MUD_SLOW else 1f) * (1f + pedal)
         speed += (target - speed) * min(1f, dt * (if (target < speed) 6f else 2.5f))
@@ -486,29 +493,59 @@ internal class GgRun(
             if (c.y != row || c.met) continue
             val d = abs(x - c.x)
             when (c.kind) {
-                GgAnimalKind.MARMOT -> {
+                GgAnimalKind.MARMOT, GgAnimalKind.RACCOON -> {
+                    val name = if (c.kind == GgAnimalKind.MARMOT) "marmot" else "raccoon"
                     if (d < ANIMAL_REACH) {
                         meet(c)
+                        if (air) style("Over the $name", AIR_CLEAR) else bump("A $name! Combo lost", keepCombo = false, from = c.x)
+                    }
+                }
+
+                GgAnimalKind.DEER, GgAnimalKind.STAG -> {
+                    val name = if (c.kind == GgAnimalKind.DEER) "deer" else "stag"
+                    if (c.bolting && d < ANIMAL_REACH + 0.15f) {
+                        meet(c)
                         if (air) {
-                            style(
-                                "Over the marmot",
-                                AIR_CLEAR,
-                            )
+                            style("Hopped the $name", AIR_CLEAR)
                         } else {
-                            bump("A marmot! Combo lost", keepCombo = false, from = c.x)
+                            wipe("Hit by a $name")
+                            return
                         }
                     }
                 }
 
-                GgAnimalKind.DEER -> {
-                    if (c.bolting && d < ANIMAL_REACH + 0.15f) {
+                // An owl skims low: it only catches a rider who is up in the air.
+                GgAnimalKind.OWL -> {
+                    if (c.bolting && d < ANIMAL_REACH + 0.1f) {
                         meet(c)
+                        if (air) bump("Owl strike! Combo lost", keepCombo = false, from = c.x) else style("Ducked the owl", CLOSE_CALL)
+                    }
+                }
+
+                // Brush past a skunk and it sprays: slowed like mud, combo lost. Hop it for style.
+                GgAnimalKind.SKUNK -> {
+                    if (d < SKUNK_REACH) {
                         if (air) {
-                            style("Hopped the deer", AIR_CLEAR)
+                            meet(c)
+                            style("Hopped the skunk", AIR_CLEAR)
                         } else {
-                            wipe("Hit by a deer")
-                            return
+                            critters = critters.map { if (it === c) it.copy(met = true, bolting = true, alertFor = 0f) else it }
+                            mudFor = MUD_SECONDS
+                            stink = STINK_TIME
+                            combo = 1
+                            chain = 0
+                            say("Skunked! Slowed, combo lost", false)
                         }
+                    }
+                }
+
+                // Fireflies: ride or hop through the swirl for points, and they light the trail a while.
+                GgAnimalKind.FIREFLIES -> {
+                    if (d < ANIMAL_REACH + 0.1f) {
+                        critters = critters.map { if (it === c) it.copy(met = true, alertFor = 0f) else it }
+                        score += Math.round(FIREFLY_POINTS * biomeMult)
+                        beam = max(beam, FIREFLY_BEAM)
+                        say("Fireflies +$FIREFLY_POINTS, trail lit")
                     }
                 }
             }
@@ -690,18 +727,31 @@ internal class GgRun(
         critters =
             critters.mapNotNull { c ->
                 when (c.kind) {
-                    GgAnimalKind.MARMOT -> {
+                    GgAnimalKind.MARMOT, GgAnimalKind.RACCOON, GgAnimalKind.SKUNK -> {
+                        // Scurries to and fro across the trail; a skunk ambles, and lifts its tail when the rider nears.
+                        val speed =
+                            when (c.kind) {
+                                GgAnimalKind.SKUNK -> SKUNK_SPEED
+                                GgAnimalKind.RACCOON -> RACCOON_SPEED
+                                else -> MARMOT_SPEED
+                            }
                         val (l, r) = edges(c.y.toFloat())
                         var d = c.dir
-                        var nx = c.x + d * MARMOT_SPEED * dt
+                        var nx = if (c.kind == GgAnimalKind.SKUNK && c.bolting) c.x else c.x + d * speed * dt
                         if (nx < l + 0.5f || nx > r - 0.5f) {
                             d = -d
                             nx = nx.coerceIn(l + 0.5f, r - 0.5f)
                         }
-                        c.copy(x = nx, dir = d)
+                        val near = c.y > y && c.y - y <= SKUNK_SIGHT
+                        c.copy(
+                            x = nx,
+                            dir = d,
+                            alertFor = c.alertFor + dt,
+                            state = if (c.kind == GgAnimalKind.SKUNK && near) GgDeerState.ALERT else c.state,
+                        )
                     }
 
-                    GgAnimalKind.DEER -> {
+                    GgAnimalKind.DEER, GgAnimalKind.STAG -> {
                         when {
                             c.bolting -> {
                                 val nx = c.x + c.dir * DEER_SPEED * dt
@@ -728,6 +778,31 @@ internal class GgRun(
                                 c
                             }
                         }
+                    }
+
+                    // An owl waits beyond the trees and swoops across once the rider comes within sight.
+                    GgAnimalKind.OWL -> {
+                        when {
+                            c.bolting -> {
+                                val nx = c.x + c.dir * OWL_SPEED * dt
+                                val (l, r) = edges(c.y.toFloat())
+                                if (nx < l - 3f || nx > r + 3f) null else c.copy(x = nx, alertFor = c.alertFor + dt)
+                            }
+
+                            c.y > y && c.y - y <= OWL_SIGHT -> {
+                                c.copy(bolting = true)
+                            }
+
+                            else -> {
+                                c
+                            }
+                        }
+                    }
+
+                    // Fireflies drift in place; once collected they burst and are gone.
+                    GgAnimalKind.FIREFLIES -> {
+                        val t = c.alertFor + dt
+                        if (c.met && t > FIREFLY_BURST) null else c.copy(alertFor = t)
                     }
                 }
             }
@@ -841,6 +916,7 @@ internal class GgRun(
         wipeReason = ""
         lean = 0f
         facing = 0f
+        stink = 0f
         tracks.clear()
         landing = 0f
         ready(START_COUNT)
@@ -891,6 +967,24 @@ internal class GgRun(
         const val GATE_SLACK = 0.5f
         const val EDGE_GRACE = 0.05f
         const val MARMOT_SPEED = 1.1f
+        const val RACCOON_SPEED = 1.3f
+        const val SKUNK_SPEED = 0.5f
+
+        /** Rows ahead a skunk lifts its tail, and how close a rider must brush past to be sprayed. */
+        const val SKUNK_SIGHT = 3
+        const val SKUNK_REACH = 0.85f
+
+        /** Seconds the green stink hangs over the screen after a spray. */
+        const val STINK_TIME = 2f
+
+        /** Rows ahead an owl takes off, and its speed in tiles a second. */
+        const val OWL_SIGHT = 3
+        const val OWL_SPEED = 3.4f
+
+        /** Fireflies: points, seconds of full headlight, and how long their burst shows. */
+        const val FIREFLY_POINTS = 150
+        const val FIREFLY_BEAM = 3f
+        const val FIREFLY_BURST = 0.6f
         const val DEER_SPEED = 4.5f
         const val DEER_FREEZE = 0.45f
         private const val GG_COLS = 9

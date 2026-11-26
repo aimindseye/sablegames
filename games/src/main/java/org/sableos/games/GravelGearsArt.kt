@@ -59,6 +59,11 @@ internal class GgSprites(
     private val marmot by lazy { listOf(R.drawable.gg_marmot_idle, R.drawable.gg_marmot_run, R.drawable.gg_marmot_tumble).map(load) }
     private val deer by lazy { listOf(R.drawable.gg_deer_stand, R.drawable.gg_deer_crouch, R.drawable.gg_deer_leap).map(load) }
     private val crow by lazy { listOf(R.drawable.gg_crow_a, R.drawable.gg_crow_b, R.drawable.gg_crow_c).map(load) }
+    private val raccoon by lazy { listOf(R.drawable.gg_raccoon_idle, R.drawable.gg_raccoon_run, R.drawable.gg_raccoon_tumble).map(load) }
+    private val stag by lazy { listOf(R.drawable.gg_stag_stand, R.drawable.gg_stag_freeze, R.drawable.gg_stag_leap).map(load) }
+    private val owl by lazy { listOf(R.drawable.gg_owl_a, R.drawable.gg_owl_b, R.drawable.gg_owl_c).map(load) }
+    private val skunk by lazy { listOf(R.drawable.gg_skunk_walk, R.drawable.gg_skunk_alert, R.drawable.gg_skunk_spray).map(load) }
+    private val firefly by lazy { listOf(R.drawable.gg_firefly_a, R.drawable.gg_firefly_b, R.drawable.gg_firefly_c).map(load) }
 
     fun prop(
         kind: GgKind,
@@ -74,6 +79,21 @@ internal class GgSprites(
     fun deer(frame: Int) = deer[frame.coerceIn(0, 2)]
 
     fun crow(frame: Int) = crow[frame.mod(3)]
+
+    /** Night Ride: 0 idle, 1 running, 2 tumbling. */
+    fun raccoon(frame: Int) = raccoon[frame.coerceIn(0, 2)]
+
+    /** 0 standing, 1 frozen with its antlers aglow, 2 leaping. */
+    fun stag(frame: Int) = stag[frame.coerceIn(0, 2)]
+
+    /** Three wingbeats. */
+    fun owl(frame: Int) = owl[frame.mod(3)]
+
+    /** 0 walking, 1 tail up, 2 spraying (this one faces left in the art). */
+    fun skunk(frame: Int) = skunk[frame.coerceIn(0, 2)]
+
+    /** 0 and 1 the swirl, 2 the burst when collected. */
+    fun firefly(frame: Int) = firefly[frame.coerceIn(0, 2)]
 }
 
 @Composable

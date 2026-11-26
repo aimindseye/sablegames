@@ -87,7 +87,12 @@ internal data class GgStage(
     val gates: List<GgGate>,
 )
 
-internal enum class GgAnimalKind { MARMOT, DEER }
+/**
+ * The trail's wildlife. Day: marmots scurry across, deer freeze then bolt. Night: raccoons and stags do the same,
+ * owls swoop low across the trail (a danger only in the air), skunks spray a rider who brushes past, and a swirl of
+ * fireflies is a prize that lights the trail.
+ */
+internal enum class GgAnimalKind { MARMOT, DEER, RACCOON, STAG, OWL, SKUNK, FIREFLIES }
 
 internal enum class GgDeerState { IDLE, ALERT, GONE }
 
@@ -180,23 +185,55 @@ internal class GgCourse(
         } else {
             stages.forEach { s -> s.gates.forEach { add(it) } }
         }
+        val rnd = Random(seed * 7 + 3)
+
+        // On a fresh trail the wildlife goes on a row with nothing on it, clear of gates and kickers.
+        fun quietRow(g: GgGate): Int? {
+            val prev = gates.getOrNull(g.number - 2) ?: return null
+            val ramps = g.obstacles.filter { it.kind == GgKind.RAMP }.map { it.y }
+            return (prev.row + 1 until g.row - 1).firstOrNull { r ->
+                g.obstacles.none { it.y == r } && ramps.none { r in it - 1..it + 3 } && animalList.none { it.y == r }
+            }
+        }
+
+        fun pick(
+            stage: GgStage?,
+            count: Int,
+            fixed: Set<Int> = emptySet(),
+        ): List<GgGate> {
+            val gs = stage?.gates?.map { gateByNumber(it.number) } ?: return emptyList()
+            return if (fresh) gs.drop(1).shuffled(rnd).filter { quietRow(it) != null }.take(count) else gs.filter { it.number in fixed }
+        }
+
+        fun place(
+            kind: GgAnimalKind,
+            g: GgGate,
+            fixedRow: Int,
+        ) {
+            val row = if (fresh) quietRow(g) ?: return else fixedRow
+            val t = trail(row)
+            val dir = if (rnd.nextBoolean()) 1 else -1
+            val x =
+                when (kind) {
+                    // An owl comes in from beyond the trees on one side.
+                    GgAnimalKind.OWL -> if (dir > 0) t.first - 2 else t.last + 2
+                    GgAnimalKind.FIREFLIES, GgAnimalKind.SKUNK -> t.first + rnd.nextInt(t.last - t.first + 1)
+                    else -> g.centerX
+                }
+            animalList += GgAnimal(kind, x, row, dir)
+        }
         if (!night) {
             // Marmots from Stage 2 and deer from Stage 3: on fixed gates on the hand-made trail, anywhere on a fresh one.
-            val rnd = Random(seed * 7 + 3)
-            fun pick(
-                stage: GgStage?,
-                fixed: Set<Int>,
-            ): List<GgGate> {
-                val gs = stage?.gates?.map { gateByNumber(it.number) } ?: return emptyList()
-                return if (fresh) gs.drop(1).shuffled(rnd).take(fixed.size) else gs.filter { it.number in fixed }
-            }
-            pick(stages.getOrNull(1), MARMOT_GATES).forEach {
-                animalList += GgAnimal(GgAnimalKind.MARMOT, it.centerX, it.row - 2, if (it.number % 2 == 0) 1 else -1)
-            }
-            pick(stages.getOrNull(2), DEER_GATES).forEach {
-                val prev = gates[it.number - 2]
-                animalList += GgAnimal(GgAnimalKind.DEER, it.centerX, if (fresh) prev.row + 1 else it.row - 4)
-            }
+            pick(stages.getOrNull(1), MARMOT_GATES.size, MARMOT_GATES).forEach { place(GgAnimalKind.MARMOT, it, it.row - 2) }
+            pick(stages.getOrNull(2), DEER_GATES.size, DEER_GATES).forEach { place(GgAnimalKind.DEER, it, it.row - 4) }
+        } else if (fresh) {
+            // Twilight: raccoons and the first fireflies. Midnight Ridge: stags, owls and skunks, and more fireflies.
+            pick(stages.getOrNull(0), 2).forEach { place(GgAnimalKind.RACCOON, it, 0) }
+            pick(stages.getOrNull(0), 2).forEach { place(GgAnimalKind.FIREFLIES, it, 0) }
+            pick(stages.getOrNull(1), 2).forEach { place(GgAnimalKind.STAG, it, 0) }
+            pick(stages.getOrNull(1), 2).forEach { place(GgAnimalKind.OWL, it, 0) }
+            pick(stages.getOrNull(1), 2).forEach { place(GgAnimalKind.SKUNK, it, 0) }
+            pick(stages.getOrNull(1), 2).forEach { place(GgAnimalKind.FIREFLIES, it, 0) }
         }
     }
 
@@ -604,12 +641,13 @@ internal object GgSim {
             // A deer bolting across this row is fatal to anyone on the ground in it.
             val animal = ctx.animals.firstOrNull { a ->
                 when (a.kind) {
-                    GgAnimalKind.MARMOT -> a.x == nx && a.y == ny
-                    GgAnimalKind.DEER -> a.state == GgDeerState.ALERT && a.y == ny && !s.air
+                    GgAnimalKind.MARMOT, GgAnimalKind.RACCOON, GgAnimalKind.SKUNK -> a.x == nx && a.y == ny
+                    GgAnimalKind.DEER, GgAnimalKind.STAG -> a.state == GgDeerState.ALERT && a.y == ny && !s.air
+                    GgAnimalKind.OWL, GgAnimalKind.FIREFLIES -> false
                 }
             }
             if (animal != null) {
-                if (animal.kind == GgAnimalKind.DEER) {
+                if (animal.kind == GgAnimalKind.DEER || animal.kind == GgAnimalKind.STAG) {
                     crash = cell
                     break
                 }
