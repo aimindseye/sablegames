@@ -3,8 +3,9 @@
 #
 #   bash tools/build-release.sh KEYSTORE ALIAS [VERSION]
 #
-# The version comes from versionName in games/build.gradle.kts. VERSION, if given (or
-# $SABLEGAMES_VERSION), must match it, so a release is never built from the wrong commit.
+# VERSION (or $SABLEGAMES_VERSION), such as 1.0.1 or v1.0.1, is passed to Gradle as
+# -PsablegamesVersion, which sets versionName and versionCode (major*100 + minor*10 + patch), so
+# a release needs no edit to games/build.gradle.kts. Without it the script uses the Gradle default.
 # KEYSTORE and ALIAS are required: as arguments, or as $SABLEGAMES_KEYSTORE and $SABLEGAMES_KEY_ALIAS.
 # The repository names no keystore. Gradle builds unsigned release APKs, then apksigner signs each
 # one, as for TenSeven Launcher. The password is asked once and is never written to disk: it lives
@@ -29,12 +30,13 @@ bt="$(find "$sdk/build-tools" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort
 apksigner="$bt/apksigner"
 [[ -x "$apksigner" ]] || { echo "ERROR: apksigner not found under $sdk/build-tools (set ANDROID_HOME)" >&2; exit 2; }
 
-version="$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' games/build.gradle.kts | head -n1)"
-[[ -n "$version" ]] || { echo "ERROR: no versionName in games/build.gradle.kts" >&2; exit 2; }
-if [[ -n "$want_version" && "${want_version#v}" != "$version" ]]; then
-    echo "ERROR: asked for $want_version but games/build.gradle.kts has versionName $version" >&2
-    exit 2
+version="${want_version#v}"
+if [[ -z "$version" ]]; then
+    version="$(sed -n 's/^val sableVersionDefault = "\(.*\)"/\1/p' games/build.gradle.kts | head -n1)"
+    [[ -n "$version" ]] || { echo "ERROR: no VERSION given and no sableVersionDefault in games/build.gradle.kts" >&2; exit 2; }
+    echo "No VERSION given; using the default, $version."
 fi
+[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "ERROR: version must look like 1.2.3, got $version" >&2; exit 2; }
 
 read -rs -p "Password for $keystore ($alias_name): " SABLEGAMES_KS_PASS
 echo
@@ -42,7 +44,7 @@ export SABLEGAMES_KS_PASS
 trap 'unset SABLEGAMES_KS_PASS' EXIT
 
 # Gradle builds unsigned APKs and never sees the password.
-env -u SABLEGAMES_KS_PASS ./gradlew --no-daemon clean assembleRelease \
+env -u SABLEGAMES_KS_PASS ./gradlew --no-daemon -PsablegamesVersion="$version" clean assembleRelease \
     :design:testDebugUnitTest :games:testSudokuDebugUnitTest :games:testConsoleDebugUnitTest :games:testCardsDebugUnitTest \
     :games:testMelonsDebugUnitTest
 

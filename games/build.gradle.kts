@@ -4,6 +4,24 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// The release version is a build input, not a constant: pass -PsablegamesVersion=1.0.1 (what
+// tools/build-release.sh does) or set SABLEGAMES_VERSION. Without either, local and CI builds use
+// the default below. versionCode is major * 100 + minor * 10 + patch, so 1.0.0 is 100 and 1.2.3 is 123.
+val sableVersionDefault = "1.0.0"
+val sableVersionName: String = providers.gradleProperty("sablegamesVersion")
+    .orElse(providers.environmentVariable("SABLEGAMES_VERSION"))
+    .orElse(sableVersionDefault)
+    .get().trim().removePrefix("v")
+val sableVersionCode: Int = run {
+    val m = Regex("""(\d+)\.(\d+)\.(\d+)""").matchEntire(sableVersionName)
+        ?: throw GradleException("sablegamesVersion must look like 1.2.3, got '$sableVersionName'")
+    val (major, minor, patch) = m.destructured.toList().map { it.toInt() }
+    if (minor > 9 || patch > 9) {
+        throw GradleException("versionCode is major*100 + minor*10 + patch, so minor and patch must be 0-9: $sableVersionName")
+    }
+    major * 100 + minor * 10 + patch
+}
+
 // Release APKs are always unsigned here; tools/build-release.sh signs them with apksigner on the
 // owner's computer and asks for the password, so no password is ever stored (docs/RELEASING.md).
 android {
@@ -13,9 +31,8 @@ android {
     defaultConfig {
         minSdk = 30
         targetSdk = 36
-        // versionCode is major * 100 + minor * 10 + patch, so 1.0.0 is 100 and 1.2.3 is 123.
-        versionCode = 100
-        versionName = "1.0.0"
+        versionCode = sableVersionCode
+        versionName = sableVersionName
     }
 
     flavorDimensions += "game"
