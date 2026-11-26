@@ -34,6 +34,15 @@ Each game is its own app, so you install only the ones you want.
 | Sable Mahjong | `io.github.aimindseye.sablegames.mahjong` | Remove matching free tiles in pairs |
 | Sable Words | `io.github.aimindseye.sablegames.words` | Guess the five-letter word in six tries |
 
+<p>
+<img src="docs/images/console.png" alt="Sable Games Console" width="120">
+<img src="docs/images/cards-teen-patti.png" alt="Teen Patti" width="120">
+<img src="docs/images/melons.png" alt="Bitter Melons" width="120">
+<img src="docs/images/scaffold.png" alt="Sable Scaffold" width="120">
+<img src="docs/images/ludo.png" alt="Sable Ludo" width="120">
+<img src="docs/images/snakesladders.png" alt="Sable Snakes & Ladders" width="120">
+</p>
+
 Each game reads which phone it runs on and fits its keys to it: the Q25's trackpad, or I J K L on the Titan 2, which has no arrows (see the [User Guide](docs/USER_GUIDE.md#your-phone)). Coming next: an installer that sets up the games you pick in one go.
 
 ## Install
