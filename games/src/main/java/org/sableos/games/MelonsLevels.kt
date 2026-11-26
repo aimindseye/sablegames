@@ -18,8 +18,9 @@ internal enum class MelonMaterial(
 }
 
 /**
- * The melons a level can load, each [r] metres across its middle: the Bitter Melon (Space bursts three seeds) and
- * the Split Cantaloupe (Space splits it into three smaller melons).
+ * The melons a level can load, each [r] metres from its middle to its edge: the Bitter Melon (Space bursts three
+ * seeds), the Split Cantaloupe (Space splits it into three smaller melons) and the Heavy Honeydew (heavy; Space slams
+ * it straight down).
  */
 internal enum class MelonKind(
     val r: Float,
@@ -28,6 +29,7 @@ internal enum class MelonKind(
 ) {
     Bitter(0.9f, 3f, "Bitter Melon"),
     Split(0.9f, 3f, "Split Cantaloupe"),
+    Heavy(1f, 8f, "Heavy Honeydew"),
 }
 
 /** A gold AD banner trampoline: a springy plate [w] metres long at [x], [y], turned [degrees] anticlockwise. */
@@ -37,6 +39,27 @@ internal data class MelonBanner(
     val degrees: Float,
     val w: Float = 7f,
     val bounce: Float = 1.15f,
+)
+
+/** A cooling fan on the floor at [x]: [w] metres wide, blowing melons up with [lift] m/s² for [high] metres. */
+internal data class MelonFan(
+    val x: Float,
+    val y: Float,
+    val w: Float = 8f,
+    val high: Float = 26f,
+    val lift: Float = 16f,
+)
+
+/**
+ * A steel beam [w] metres long hung by cables at [x], [y]: hits wear its cables, and when they snap it drops,
+ * [massFactor] times as heavy as steel.
+ */
+internal data class MelonHangingBeam(
+    val x: Float,
+    val y: Float,
+    val cableHp: Float = 10f,
+    val massFactor: Float = 2f,
+    val w: Float = 7f,
 )
 
 /** The AI Slop: [w] by [h] metres; the Premium Ad-Slop is round, [w] across. */
@@ -50,6 +73,7 @@ internal enum class SlopKind(
     App(50, 18f, 2f, 2f),
     Bot(100, 40f, 2.4f, 2.4f),
     Ad(300, 60f, 2.4f, 2.4f, round = true),
+    Prompt(150, 70f, 2.4f, 2.2f),
 }
 
 internal data class MelonBlock(
@@ -93,6 +117,8 @@ internal data class MelonLevel(
     /** The melons in the order they load; World 1 has Bitter Melons only. */
     val queue: List<MelonKind> = List(melons) { MelonKind.Bitter },
     val banners: List<MelonBanner> = emptyList(),
+    val fans: List<MelonFan> = emptyList(),
+    val hanging: List<MelonHangingBeam> = emptyList(),
 ) {
     init {
         require(queue.size == melons) { "$world-$number: the queue must hold $melons melons" }
@@ -139,6 +165,19 @@ internal fun bot(
     y: Float,
 ) = MelonSlop(SlopKind.Bot, x, y)
 
+internal fun steel(
+    x: Float,
+    y: Float,
+    w: Float,
+    h: Float,
+    fixed: Boolean = false,
+) = MelonBlock(MelonMaterial.Steel, x, y, w, h, fixed)
+
+internal fun prompt(
+    x: Float,
+    y: Float,
+) = MelonSlop(SlopKind.Prompt, x, y)
+
 internal fun ad(
     x: Float,
     y: Float,
@@ -151,6 +190,7 @@ internal object MelonsLevels {
         listOf(
             "Prompt Valley" to "Sunny hills, wood, glass and stone. Learn to aim.",
             "Slop Mall" to "Neon shops, bouncy AD banners and the Split Cantaloupe.",
+            "Server Foundry" to "Steel, cooling fans, hanging beams and the Heavy Honeydew.",
         )
 
     /**
@@ -162,7 +202,7 @@ internal object MelonsLevels {
     /** The levels of world [n], from 1. */
     fun world(n: Int): List<MelonLevel> = all.filter { it.world == n }
 
-    private val ALL: List<MelonLevel> by lazy { world1 + MelonsWorld2.levels }
+    private val ALL: List<MelonLevel> by lazy { world1 + MelonsWorld2.levels + MelonsWorld3.levels }
 
     private val world1: List<MelonLevel> =
         listOf(

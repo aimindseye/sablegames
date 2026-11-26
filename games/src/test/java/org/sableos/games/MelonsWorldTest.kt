@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.jbox2d.common.Vec2
+import kotlin.math.abs
 import org.junit.Test
 
 class MelonsWorldTest {
@@ -68,6 +69,15 @@ class MelonsWorldTest {
                 "2-7" to listOf(24f to 76f, 22f to 72f, 16f to 100f),
                 "2-8" to listOf(60f to 72f),
                 "2-9" to listOf(20f to 80f),
+                "3-1" to listOf(14f to 96f),
+                "3-2" to listOf(60f to 72f),
+                "3-3" to listOf(18f to 84f),
+                "3-4" to listOf(46f to 64f),
+                "3-5" to listOf(8f to 100f),
+                "3-6" to listOf(70f to 88f),
+                "3-7" to listOf(0f to 100f),
+                "3-8" to listOf(0f to 80f),
+                "3-9" to listOf(62f to 72f),
             )
         assertEquals(MelonsLevels.all.map { it.id }.toSet(), plans.keys)
         for (level in MelonsLevels.all) {
@@ -181,12 +191,70 @@ class MelonsWorldTest {
     }
 
     @Test
-    fun worldTwoBringsTheSplitCantaloupe() {
-        assertEquals(2, MelonsLevels.worlds.size)
-        assertEquals(MelonsLevels.PER_WORLD, MelonsLevels.world(1).size)
-        assertEquals(MelonsLevels.PER_WORLD, MelonsLevels.world(2).size)
+    fun eachWorldHasNineLevelsAndItsNewMelon() {
+        assertEquals(3, MelonsLevels.worlds.size)
+        for (n in 1..3) assertEquals(MelonsLevels.PER_WORLD, MelonsLevels.world(n).size)
         assertTrue(MelonsLevels.world(1).all { level -> level.queue.all { it == MelonKind.Bitter } })
         assertTrue(MelonsLevels.world(2).any { level -> MelonKind.Split in level.queue })
+        assertTrue(MelonsLevels.world(3).any { level -> MelonKind.Heavy in level.queue })
+    }
+
+    @Test
+    fun aFanLiftsTheMelonAndTheAimFollowsIt() {
+        // 3-2's fan blows from 42 to 50 m. Past it, the aimed flight is well above the plain arc.
+        val world = MelonsWorld(level("3-2"))
+        world.setAim(45f, 60f)
+        val rad = Math.toRadians(45.0)
+        val v = world.launchSpeed
+        var t = 0f
+        while (world.preview(t).first < 51f) t += 0.01f
+        val aimedY = world.preview(t).second
+        val plainY = (MelonsWorld.SLING_Y + v * Math.sin(rad) * t - MelonsWorld.GRAVITY * t * t / 2).toFloat()
+        assertTrue("aimed $aimedY vs plain $plainY", aimedY > plainY + 1f)
+        // The real flight passes 51 m where the aim said, within a metre.
+        world.launch()
+        var flownY = Float.NaN
+        repeat(600) {
+            world.tick()
+            val m = world.melon
+            if (flownY.isNaN() && m != null && !m.dead && m.x >= 51f) flownY = m.y
+        }
+        assertEquals(aimedY, flownY, 1f)
+    }
+
+    @Test
+    fun aHangingBeamHoldsUntilItsCablesSnap() {
+        val world = MelonsWorld(level("3-3"))
+        val beams = world.pieces.filter { it.hanging }
+        assertEquals(2, beams.size)
+        // It hangs still, however long.
+        repeat(IDLE_STEPS) { world.tick() }
+        assertTrue(beams.all { it.hanging && abs(it.y - 24f) < 0.01f })
+        // A melon thrown up into one snaps its cables, and it falls.
+        world.setAim(0f, 20f)
+        world.launch()
+        val melon = world.melon!!
+        val beam = beams[0]
+        melon.body.setTransform(Vec2(beam.x, beam.y - 4f), 0f)
+        melon.body.linearVelocity = Vec2(0f, 25f)
+        repeat(BOUNCE_STEPS) { world.tick() }
+        assertFalse(beam.hanging)
+        assertTrue(beam.y < 23f)
+    }
+
+    @Test
+    fun theHoneydewSlamsStraightDown() {
+        val world = MelonsWorld(level("3-1"))
+        assertEquals(MelonKind.Heavy, world.loaded)
+        world.setAim(45f, 80f)
+        world.launch()
+        val melon = world.melon!!
+        assertEquals(1f, melon.w / 2, 0.001f)
+        repeat(BURST_STEPS) { world.tick() }
+        assertTrue(world.ability())
+        assertTrue(melon.body.linearVelocity.y < -20f)
+        assertTrue(abs(melon.body.linearVelocity.x) < 6f)
+        assertFalse(world.ability())
     }
 
     @Test

@@ -45,6 +45,11 @@ internal class MelonPiece(
     var blastRadius = 0f
     var blastDamage = 0f
 
+    /** A beam still hanging on its cables, the hit points its cables have left, and how much heavier it falls. */
+    var hanging = false
+    var cableHp = 0f
+    var dropMass = 1f
+
     /** Seconds since a melon or seed was fired, used to clear seeds away. */
     var age = 0f
 
@@ -133,6 +138,7 @@ internal class MelonsWorld(
         ground()
         level.blocks.forEach(::addBlock)
         level.banners.forEach(::addBanner)
+        level.hanging.forEach(::addHanging)
         placeLoose()
         // Let everything settle on the ground before anything can break.
         repeat(SETTLE_STEPS) { world.step(STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS) }
@@ -175,10 +181,50 @@ internal class MelonsWorld(
 
     /** Where the melon would be [t] seconds after launch, ignoring what it hits. */
     fun preview(t: Float): Pair<Float, Float> {
+        if (level.fans.isNotEmpty()) return fanPath(t)
         val rad = angle * PI.toFloat() / 180f
         val v = launchSpeed
         return (SLING_X + v * cos(rad) * t) to (SLING_Y + v * sin(rad) * t - GRAVITY * t * t / 2)
     }
+
+    private var pathAim = Float.NaN to Float.NaN
+    private var path = FloatArray(0)
+
+    /**
+     * The flight through the fans' updrafts, stepped as the physics steps it and kept until the aim changes. [t]
+     * past the end holds at the end.
+     */
+    private fun fanPath(t: Float): Pair<Float, Float> {
+        if (pathAim != angle to power) {
+            pathAim = angle to power
+            val steps = (LANDING_MAX_TIME / STEP).toInt() + 1
+            path = FloatArray(steps * 2)
+            val rad = angle * PI.toFloat() / 180f
+            var x = SLING_X
+            var y = SLING_Y
+            var vx = launchSpeed * cos(rad)
+            var vy = launchSpeed * sin(rad)
+            for (i in 0 until steps) {
+                path[i * 2] = x
+                path[i * 2 + 1] = y
+                vy += (lift(x, y) - GRAVITY) * STEP
+                x += vx * STEP
+                y += vy * STEP
+            }
+        }
+        val i = (t / STEP).toInt().coerceIn(0, path.size / 2 - 1)
+        return path[i * 2] to path[i * 2 + 1]
+    }
+
+    /** The upward pull of any fan's updraft at [x], [y], in m/s². */
+    private fun lift(
+        x: Float,
+        y: Float,
+    ): Float =
+        level.fans.sumOf { fan ->
+            val inside = abs(x - fan.x) <= fan.w / 2 && y >= fan.y && y <= fan.y + fan.high
+            if (inside) fan.lift.toDouble() else 0.0
+        }.toFloat()
 
     /**
      * Where and when the aimed shot first meets a standing block, enemy or battery, or the ground: its flight
@@ -249,6 +295,11 @@ internal class MelonsWorld(
             split(m)
             return true
         }
+        if (m.melonKind == MelonKind.Heavy) {
+            // The slam: straight down, hard.
+            m.body.linearVelocity = Vec2(m.body.linearVelocity.x * SLAM_KEEP, -SLAM_SPEED)
+            return true
+        }
         val v = m.body.linearVelocity
         val heading = atan2(v.y, v.x)
         val speed = max(v.length(), BURST_MIN_SPEED) * BURST_BOOST
@@ -314,6 +365,7 @@ internal class MelonsWorld(
             return
         }
         time += STEP
+        blow()
         world.step(STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS)
         closing.clear()
         applyDamage()
@@ -369,10 +421,36 @@ internal class MelonsWorld(
         for ((piece, amount) in hits) hurt(piece, amount)
     }
 
+    /** The fans lift every melon and seed in their updrafts. */
+    private fun blow() {
+        if (level.fans.isEmpty()) return
+        for (piece in pieces) {
+            if (piece.kind != PieceKind.Melon && piece.kind != PieceKind.Seed) continue
+            val up = lift(piece.x, piece.y)
+            if (up > 0f) piece.body.applyForceToCenter(Vec2(0f, piece.body.mass * up))
+        }
+    }
+
+    /** A hanging beam's cables snap: it falls, heavier than plain steel. */
+    private fun snap(piece: MelonPiece) {
+        piece.hanging = false
+        val fixture = piece.body.fixtureList
+        fixture.density = fixture.density * piece.dropMass
+        piece.body.type = BodyType.DYNAMIC
+        piece.body.resetMassData()
+        piece.body.isAwake = true
+        popups += MelonPopup(piece.x, piece.y + 1f, "SNAP")
+    }
+
     private fun hurt(
         piece: MelonPiece,
         amount: Float,
     ) {
+        if (piece.hanging) {
+            piece.cableHp -= amount
+            if (piece.cableHp <= 0f) snap(piece)
+            return
+        }
         if (piece.dead || piece.fixed || piece.maxHp <= 0f) return
         piece.hp -= amount
         if (piece.hp <= 0f) destroy(piece)
@@ -531,6 +609,16 @@ internal class MelonsWorld(
 
     private fun addBlock(b: MelonBlock) {
         box(PieceKind.Block, b.x, b.y, b.w, b.h, b.material.density, b.material.hp, b.fixed, material = b.material)
+    }
+
+    /** A steel beam held still by its cables until they snap. */
+    private fun addHanging(b: MelonHangingBeam) {
+        val steel = MelonMaterial.Steel
+        val piece = box(PieceKind.Block, b.x, b.y, b.w, HANGING_H, steel.density, steel.hp, material = steel)
+        piece.body.type = BodyType.STATIC
+        piece.hanging = true
+        piece.cableHp = b.cableHp
+        piece.dropMass = b.massFactor
     }
 
     /** A banner is a bolted, springy plate: it can't break, and throws a melon back harder than it came. */
@@ -714,6 +802,9 @@ internal class MelonsWorld(
         const val SPLIT_R = 0.65f
         private const val SPLIT_TIME = 5f
         const val BANNER_T = 0.5f
+        const val HANGING_H = 1.4f
+        private const val SLAM_SPEED = 28f
+        private const val SLAM_KEEP = 0.2f
         private const val BANNER_FRICTION = 0.2f
 
         private const val STILL_SPEED = 0.25f

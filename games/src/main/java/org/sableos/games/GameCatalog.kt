@@ -255,6 +255,15 @@ internal object GameCatalog {
                             "The melons waiting their turn sit at the bottom left, in the order they load.",
                         ),
                     ),
+                    HowToPage(
+                        "World 3: Server Foundry",
+                        listOf(
+                            "The Heavy Honeydew is slow but heavy. Press Space in the air to slam it straight down.",
+                            "Steel is the toughest block. The orange Prompt Bot is worth 150.",
+                            "Cooling fans blow a melon upward while it is over them: ride the updraft over a wall.",
+                            "A beam hanging on cables drops when you hit it, and crushes what is under it.",
+                        ),
+                    ),
                 ),
             controls =
                 listOf(
@@ -265,7 +274,7 @@ internal object GameCatalog {
                             ControlAction("down", "Aim down", DOWN, byProfile(listOf(K_S), listOf(K_K, K_S))),
                             ControlAction("right", "More power", RIGHT, byProfile(listOf(K_D), listOf(K_L, K_D))),
                             ControlAction("left", "Less power", LEFT, byProfile(listOf(K_A), listOf(K_J, K_A))),
-                            action("launch", "Fire, Seed Burst or split", GameCommand.Primary, K_SPACE),
+                            action("launch", "Fire, then burst, split or slam", GameCommand.Primary, K_SPACE),
                             action("peek", "Look ahead", GameCommand.Hint, KeyEvent.KEYCODE_V, KeyEvent.KEYCODE_TAB),
                             action("restart", "Restart level", GameCommand.Undo, KeyEvent.KEYCODE_R),
                             pause,
