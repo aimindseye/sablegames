@@ -4,6 +4,7 @@ import android.view.KeyEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.jbox2d.common.Vec2
 import org.junit.Test
 
 class MelonsWorldTest {
@@ -58,6 +59,15 @@ class MelonsWorldTest {
                 "1-7" to listOf(43f to 64f),
                 "1-8" to listOf(25f to 88f, 10f to 100f, 16f to 100f),
                 "1-9" to listOf(13f to 94f),
+                "2-1" to listOf(10f to 96f),
+                "2-2" to listOf(10f to 96f),
+                "2-3" to listOf(0f to 84f),
+                "2-4" to listOf(8f to 92f, 0f to 92f),
+                "2-5" to listOf(14f to 80f),
+                "2-6" to listOf(16f to 96f),
+                "2-7" to listOf(24f to 76f, 22f to 72f, 16f to 100f),
+                "2-8" to listOf(60f to 72f),
+                "2-9" to listOf(20f to 80f),
             )
         assertEquals(MelonsLevels.all.map { it.id }.toSet(), plans.keys)
         for (level in MelonsLevels.all) {
@@ -116,6 +126,70 @@ class MelonsWorldTest {
     }
 
     @Test
+    fun theSplitCantaloupeSplitsIntoThreeOnce() {
+        val world = MelonsWorld(level("2-2"))
+        assertEquals(MelonKind.Split, world.loaded)
+        world.setAim(40f, 60f)
+        world.launch()
+        repeat(BURST_STEPS) { world.tick() }
+        assertTrue(world.ability())
+        // The melon is gone and three smaller ones fly on, the camera following the middle one.
+        assertEquals(0, world.pieces.count { it.kind == PieceKind.Melon })
+        val parts = world.pieces.filter { it.kind == PieceKind.Seed && it.melonKind == MelonKind.Split }
+        assertEquals(3, parts.size)
+        assertTrue(world.melon in parts)
+        assertFalse(world.ability())
+        // The queue moves on: another cantaloupe, then a Bitter Melon.
+        settle(world)
+        assertEquals(MelonKind.Split, world.loaded)
+        assertEquals(listOf(MelonKind.Bitter), world.waiting)
+    }
+
+    @Test
+    fun aBannerThrowsTheMelonBackHarder() {
+        // A melon dropped straight onto 2-1's banner comes back up faster than a stone floor would send it.
+        val world = MelonsWorld(level("2-1"))
+        val banner = world.pieces.single { it.kind == PieceKind.Banner }
+        assertTrue(banner.fixed)
+        world.setAim(0f, 20f)
+        world.launch()
+        val melon = world.melon!!
+        melon.body.setTransform(Vec2(banner.x, banner.y + 4f), 0f)
+        melon.body.linearVelocity = Vec2(0f, -12f)
+        var up = 0f
+        repeat(BOUNCE_STEPS) {
+            world.tick()
+            up = maxOf(up, melon.body.linearVelocity.y)
+        }
+        assertTrue("came off at $up m/s", up > 12f)
+        assertTrue(world.pieces.any { it.kind == PieceKind.Banner })
+    }
+
+    @Test
+    fun theAimedLandingMeetsATurnedBanner() {
+        // 2-1's banner lies at 20°, 48 m out: some aims come down on the turned plate, above the ground.
+        val world = MelonsWorld(level("2-1"))
+        val onPlate =
+            (0..40).any { angle ->
+                (20..100).any { power ->
+                    world.setAim(angle.toFloat(), power.toFloat())
+                    val (_, x, y) = world.landing()
+                    x in 45f..51f && y > MelonsWorld.MELON_R + 1f
+                }
+            }
+        assertTrue("no shot meets the banner", onPlate)
+    }
+
+    @Test
+    fun worldTwoBringsTheSplitCantaloupe() {
+        assertEquals(2, MelonsLevels.worlds.size)
+        assertEquals(MelonsLevels.PER_WORLD, MelonsLevels.world(1).size)
+        assertEquals(MelonsLevels.PER_WORLD, MelonsLevels.world(2).size)
+        assertTrue(MelonsLevels.world(1).all { level -> level.queue.all { it == MelonKind.Bitter } })
+        assertTrue(MelonsLevels.world(2).any { level -> MelonKind.Split in level.queue })
+    }
+
+    @Test
     fun aimStaysInRange() {
         val world = MelonsWorld(level("1-1"))
         world.aim(500f, 500f)
@@ -146,6 +220,13 @@ class MelonsWorldTest {
         assertEquals(900, progress.best[0])
         assertEquals(progress, MelonsProgress.decode(progress.encode()))
         assertEquals(MelonsProgress(), MelonsProgress.decode("bad"))
+        // A save from 1.0.0, with World 1 only, keeps its seeds and scores, and World 2 starts locked after them.
+        val old = MelonsProgress.decode("332100000|1500,900,800,400,0,0,0,0,0")
+        assertEquals(MelonsLevels.all.size, old.seeds.size)
+        assertEquals(listOf(3, 3, 2, 1), old.seeds.take(4))
+        assertEquals(1500, old.best[0])
+        assertEquals(0, old.seeds[MelonsLevels.PER_WORLD])
+        assertFalse(old.open(MelonsLevels.PER_WORLD))
         assertEquals(MelonsProgress(), MelonsProgress.decode(null))
     }
 
@@ -163,5 +244,6 @@ class MelonsWorldTest {
         const val MAX_STEPS = 1200
         const val IDLE_STEPS = 300
         const val BURST_STEPS = 30
+        const val BOUNCE_STEPS = 40
     }
 }

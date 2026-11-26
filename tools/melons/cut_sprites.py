@@ -4,7 +4,9 @@
 Usage: python3 tools/melons/cut_sprites.py SHEETS_DIR games/src/main/res/drawable-nodpi
 Needs opencv-python-headless and pillow. SHEETS_DIR holds the 2048 px sheets rage.jpg (4 x 4 melons: rage
 across, poses down), enemies.jpg (5 enemies, whole then damaged, with captions), blocks.jpg (glass, wood,
-stone and steel across, wear down) and hazards.jpg (3 x 2), and the 3168 x 1344 background world1.jpg.
+stone and steel across, wear down), hazards.jpg (3 x 2) and melons.jpg (4 x 4: Bitter Melon, Split Cantaloupe,
+Heavy Honeydew and Overripe Melon across, poses down), and the 3168 x 1344 backgrounds world1.jpg to world4.jpg.
+The lit fuses (the Overripe Melon, and the full-rage melon once landed) and their sparks are painted out: everything outside its body's outline goes.
 
 Based on the owner's extract_sprites: the background is flood-filled from the corners against pure white
 (a fixed range, so light fills inside a sprite are kept), large white gaps inside a sprite are cleared too,
@@ -89,11 +91,30 @@ def grid(sheet, prefix, cols, rows, size, square=True, boxes=None):
     for i, b in enumerate(boxes):
         save(rgba, b, f"{prefix}_{i // cols}{i % cols}.png", size, square)
 
+def body_only(rgba):
+    """Keeps a melon's body and clears what sticks out above it (a fuse, sparks): the body is the ellipse as wide as
+    the sprite's widest row, centred on that row, reaching down to the sprite's bottom; above the centre only
+    pixels inside it are kept, and below it the side sparks go too."""
+    a = rgba[..., 3] > 8
+    widths = a.sum(axis=1)
+    cy = int(np.argmax(widths))
+    xs = np.nonzero(a[cy])[0]
+    cx, rx = (xs.min() + xs.max()) / 2, (xs.max() - xs.min()) / 2
+    bottom = np.nonzero(a.any(axis=1))[0].max()
+    ry = bottom - cy
+    yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+    inside = ((xx - cx) / (rx * 1.02)) ** 2 + ((yy - cy) / (ry * 1.05)) ** 2 <= 1
+    out = rgba.copy()
+    out[..., 3] = np.where(inside, out[..., 3], 0)
+    return out
+
 def export(sheets, res):
     """Writes the game's sprites: each at a quarter of its sheet size, so one sheet's sprites share a scale."""
-    def put(rgba, box, name, scale=0.25, size=None):
+    def put(rgba, box, name, scale=0.25, size=None, keep=None):
         x, y, bw, bh = box
         crop = rgba[max(0, y):y + bh, max(0, x):x + bw]
+        if keep:
+            crop = keep(crop)
         ys, xs = np.nonzero(crop[..., 3] > 8)
         crop = crop[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
         im = Image.fromarray(crop, "RGBA")
@@ -101,23 +122,31 @@ def export(sheets, res):
         im.save(f"{res}/melons_{name}.webp", quality=86, method=6)
     img = cv2.imread(f"{sheets}/rage.jpg"); rgba = alpha_of(img); b = cells(img, 4, 4)
     for row, pose in [(0, "ready"), (2, "landed"), (3, "flying")]:
-        for col in range(3):
-            put(rgba, b[row * 4 + col], f"melon_{pose}_{col}")
+        for col in range(4):
+            # The full-rage melon's landed pose has a lit fuse too.
+            keep = body_only if (row, col) == (2, 3) else None
+            put(rgba, b[row * 4 + col], f"melon_{pose}_{col}", keep=keep)
+    img = cv2.imread(f"{sheets}/melons.jpg"); rgba = alpha_of(img); b = cells(img, 4, 4)
+    for col, kind in [(1, "split"), (2, "heavy"), (3, "overripe")]:
+        for row, pose in [(0, "ready"), (2, "landed"), (3, "flying")]:
+            put(rgba, b[row * 4 + col], f"{kind}_{pose}", keep=body_only if kind == "overripe" else None)
     img = cv2.imread(f"{sheets}/enemies.jpg"); rgba = alpha_of(img)
     en = [(67, 200, 313, 336), (456, 125, 350, 412), (849, 185, 373, 352), (1243, 54, 395, 483), (1706, 146, 264, 391),
           (32, 1083, 392, 382), (455, 998, 350, 466), (828, 1078, 398, 388), (1288, 1001, 305, 464), (1656, 1073, 350, 392)]
-    for i, name in [(0, "app"), (1, "bot"), (3, "ad"), (4, "battery")]:
+    for i, name in [(0, "app"), (1, "bot"), (2, "prompt"), (3, "ad"), (4, "battery")]:
         for j, state in [(0, ""), (5, "_hit")]:
             x, y, bw, bh = en[i + j]
             put(rgba, (x - 6, y - 6, bw + 12, bh + 12), f"enemy_{name}{state}")
     img = cv2.imread(f"{sheets}/blocks.jpg"); rgba = alpha_of(img)
-    for c, name in enumerate(["glass", "wood", "stone"]):
+    for c, name in enumerate(["glass", "wood", "stone", "steel"]):
         for r in range(4):
             put(rgba, (c * 512, r * 512, 512, 512), f"block_{name}_{r}", size=(128, 128))
     img = cv2.imread(f"{sheets}/hazards.jpg"); rgba = alpha_of(img); b = cells(img, 3, 2)
-    put(rgba, b[0], "slingshot")
-    bg = Image.open(f"{sheets}/world1.jpg").convert("RGB").resize((1600, 679), Image.Resampling.LANCZOS)
-    bg.save(f"{res}/melons_world1.webp", quality=80, method=6)
+    for i, name in enumerate(["slingshot", "banner", "fan", "beam", "drone", "shield"]):
+        put(rgba, b[i], name)
+    for n in range(1, 5):
+        bg = Image.open(f"{sheets}/world{n}.jpg").convert("RGB").resize((1600, 679), Image.Resampling.LANCZOS)
+        bg.save(f"{res}/melons_world{n}.webp", quality=80, method=6)
 
 if __name__ == "__main__":
     export(sys.argv[1], sys.argv[2])

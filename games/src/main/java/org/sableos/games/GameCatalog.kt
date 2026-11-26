@@ -247,6 +247,14 @@ internal object GameCatalog {
                             "Score enough for one, two or three seeds. Clearing a level opens the next.",
                         ),
                     ),
+                    HowToPage(
+                        "World 2: Slop Mall",
+                        listOf(
+                            "The Split Cantaloupe: press Space in the air and it splits into three smaller melons.",
+                            "Gold AD banners are springy: a melon that hits one comes off faster than it went in.",
+                            "The melons waiting their turn sit at the bottom left, in the order they load.",
+                        ),
+                    ),
                 ),
             controls =
                 listOf(
@@ -257,7 +265,7 @@ internal object GameCatalog {
                             ControlAction("down", "Aim down", DOWN, byProfile(listOf(K_S), listOf(K_K, K_S))),
                             ControlAction("right", "More power", RIGHT, byProfile(listOf(K_D), listOf(K_L, K_D))),
                             ControlAction("left", "Less power", LEFT, byProfile(listOf(K_A), listOf(K_J, K_A))),
-                            action("launch", "Fire, Seed Burst", GameCommand.Primary, K_SPACE),
+                            action("launch", "Fire, Seed Burst or split", GameCommand.Primary, K_SPACE),
                             action("peek", "Look ahead", GameCommand.Hint, KeyEvent.KEYCODE_V, KeyEvent.KEYCODE_TAB),
                             action("restart", "Restart level", GameCommand.Undo, KeyEvent.KEYCODE_R),
                             pause,
