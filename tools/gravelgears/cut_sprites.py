@@ -4,8 +4,9 @@
 Usage: python3 tools/gravelgears/cut_sprites.py SHEETS_DIR games/src/main/res/drawable-nodpi
 Needs opencv-python-headless, pillow and numpy. SHEETS_DIR holds, by the names the owner gave them:
   obstacles_day.png / obstacles_night.png (3 x 3: pine, boulder, log / stump, ramp, berm / mud, gravel, flags)
-  rider_day_strip.png (5 poses of Gravel: hard left, soft left, straight, soft right, airborne)
-  rider_night.png (three night riders), heads.png (3 x 3: goat, fox, badger by left, front, right)
+  rider_day_strip.png, spokes_day_strip.jpg, knobby_day_strip.jpg (5 poses each: hard left, soft left, straight,
+  soft right, airborne), riders_night_strips.jpg (the same 5 poses, three riders, one per row),
+  rider_night.png (Gravel's older single night picture), heads.png (3 x 3: goat, fox, badger by left, front, right)
   animals_day.jpg (3 x 3: marmot, deer, crow), animals_night.jpg (3 x 3: raccoon, stag, owl),
   animals_exclusive.jpg (skunk 3 poses over 3 firefly frames).
 Daytime sheets sit on white (the background is flood-filled from the corners, then the anti-aliased edge is
@@ -48,7 +49,7 @@ def alpha_black(img):
     out[a < 0.02] = 0
     return np.dstack([out, a * 255]).astype(np.uint8)
 
-def boxes(rgba, cols, rows, thresh=24):
+def boxes(rgba, cols, rows, thresh=24, min_h=0):
     """One box per grid cell: the union of every shape whose centre falls in that cell."""
     h, w = rgba.shape[:2]
     m = (rgba[..., 3] > thresh).astype(np.uint8) * 255
@@ -59,6 +60,8 @@ def boxes(rgba, cols, rows, thresh=24):
         if cv2.contourArea(c) < 150:
             continue
         x, y, bw, bh = cv2.boundingRect(c)
+        if bh < min_h:
+            continue  # a line of caption text, not a sprite
         key = (min(rows - 1, int((y + bh / 2) / h * rows)), min(cols - 1, int((x + bw / 2) / w * cols)))
         if key in out:
             ox, oy, ow, oh = out[key]
@@ -81,23 +84,24 @@ def save(rgba, box, path, height, mask=None):
     im = im.resize((max(1, round(im.width * s)), height), Image.Resampling.LANCZOS)
     im.save(path, quality=88, method=6)
 
+def save_strip(rgba, bxs, names, res, base=300, still=2):
+    """Saves one rider's poses at one scale, set by the `still` pose, so a leaning or airborne pose is not blown up or shrunk."""
+    crops = []
+    for b in bxs:
+        x, y, bw, bh = b
+        crop = rgba[y:y + bh, x:x + bw]
+        ys, xs = np.nonzero(crop[..., 3] > 6)
+        crops.append(crop[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
+    k = base / crops[still].shape[0]
+    for crop, name in zip(crops, names):
+        im = Image.fromarray(crop, "RGBA")
+        im = im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.Resampling.LANCZOS)
+        im.save(f"{res}/{name}.webp", quality=88, method=6)
+
+
 def load(path, black):
     img = cv2.imread(path)
     return alpha_black(img) if black else alpha_white(img)
-
-def recolour(rgba, fur, helmet):
-    """Gravel's strip as another rider: fur and helmet are re-hued, everything else is kept.
-    Each of fur and helmet is (hue, saturation, brightness factor)."""
-    hsv = cv2.cvtColor(rgba[..., :3], cv2.COLOR_RGB2HSV).astype(np.float32)
-    h, s, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
-    helm = (h > 5) & (h < 20) & (s > 150) & (v > 150)  # the orange helmet
-    helm[int(h.shape[0] * 0.5):] = False  # bike frames and rims are orange too
-    cream = (h > 10) & (h < 30) & (s > 8) & (s < 90) & (v > 150)  # cream fur
-    for mask, (hue, sat, bright) in ((helm, helmet), (cream, fur)):
-        hsv[mask] = np.stack([np.full(int(mask.sum()), hue), np.full(int(mask.sum()), sat), np.clip(v[mask] * bright, 0, 255)], axis=1)
-    rgb = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2RGB)
-    return np.dstack([rgb, rgba[..., 3]])
-
 
 def drop_beam(path, rgba):
     """Clears the painted headlight beam from the night riders: the game draws its own cone."""
@@ -127,23 +131,22 @@ def export(sheets, res):
         rgba = load(d(f"obstacles_{suffix}.png"), black)
         for name, b, hgt in zip(names, boxes(rgba, 3, 3), heights):
             save(rgba, b, f"{res}/gg_{suffix}_{name}.webp", hgt)
-    # riders
-    rgba = load(d("rider_day_strip.png"), False)
+    # riders: each strip is saved at one scale per rider
     poses = ["hard_left", "soft_left", "straight", "soft_right", "air"]
-    strip = boxes(rgba, 5, 1)
-    for p, b in zip(poses, strip):
-        save(rgba, b, f"{res}/gg_gravel_{p}.webp", 300)
-    fox = recolour(rgba, (6, 200, 0.85), (88, 190, 0.9))     # red-fox fur, teal helmet
-    badger = recolour(rgba, (0, 0, 0.55), (22, 190, 1.05))   # grey fur, mustard helmet
-    for who, img in [("spokes", fox), ("knobby", badger)]:
-        for p, b in zip(poses, strip):
-            save(img, b, f"{res}/gg_{who}_{p}.webp", 300)
+    rgba = load(d("rider_day_strip.png"), False)
+    save_strip(rgba, boxes(rgba, 5, 1), [f"gg_gravel_{p}" for p in poses], res)
+    for who in ("spokes", "knobby"):
+        rgba = load(d(f"{who}_day_strip.jpg"), False)
+        save_strip(rgba, boxes(rgba, 5, 1), [f"gg_{who}_{p}" for p in poses], res)
+    rgba = load(d("riders_night_strips.jpg"), True)
+    bx = boxes(rgba, 5, 3, min_h=120)
+    for row, who in enumerate(("gravel", "spokes", "knobby")):
+        save_strip(rgba, bx[row * 5:row * 5 + 5], [f"gg_nr_{who}_{p}" for p in poses], res)
+    # Gravel's older night picture, one pose with the beam cleared, until a goat night strip arrives
     rgba = load(d("rider_night.png"), True)
     rgba = drop_beam(d("rider_night.png"), rgba)
-    for who, x0, x1 in [("gravel", 60, 440), ("spokes", 480, 880), ("knobby", 940, 1330)]:
-        part = rgba[:, x0:x1].copy()
-        keep = largest(part)
-        save(part, keep, f"{res}/gg_nightrider_{who}.webp", 300)
+    part = rgba[:, 60:440].copy()
+    save(part, largest(part), f"{res}/gg_nightrider_gravel.webp", 300)
     rgba = load(d("heads.png"), False)
     bs = boxes(rgba, 3, 3)
     for i, who in enumerate(["gravel", "spokes", "knobby"]):

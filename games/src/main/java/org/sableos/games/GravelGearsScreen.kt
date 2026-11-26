@@ -54,6 +54,7 @@ import org.sableos.games.GgArt.arrow
 import org.sableos.games.GgArt.cross
 import org.sableos.games.GgArt.prop
 import org.sableos.games.GgArt.propWide
+import org.sableos.games.GgArt.riderProp
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
@@ -508,7 +509,7 @@ private fun GgBoard(
             val pose = poseFor(glide, shown.third)
             val foot = Offset(sx(shown.first), sy(shown.second) + tile * 0.4f - (if (shown.third) tile * 0.35f * sin(PI.toFloat() * ((glide?.t ?: 0f) * 4f).mod(1f)) else 0f))
             drawOval(Color.Black.copy(alpha = if (night) 0.4f else 0.22f), Offset(sx(shown.first) - tile * 0.32f, sy(shown.second) + tile * 0.25f), Size(tile * 0.64f, tile * 0.2f))
-            prop(sprites.rider(rider.id, pose, night), foot, tile * 1.15f, anchor = 0.87f)
+            riderProp(sprites.rider(rider.id, pose, night), foot, tile)
         }
         things.sortedBy { it.first }.forEach { it.second(this) }
 
@@ -617,7 +618,7 @@ private fun DrawScope.drawGhost(
             arrow(a, b, GgArt.Bounce, tile * 0.08f)
         }
         // The ghost rider where the card ends.
-        prop(sprites.rider(run.rider.id, 2, night), end, tile * 1.1f, alpha = 0.45f, anchor = 0.87f)
+        riderProp(sprites.rider(run.rider.id, 2, night), end, tile, alpha = 0.45f)
         if (o.bankShot) drawCircle(GgArt.Bounce, tile * 0.5f, Offset(sx(o.endX.toFloat()), sy(o.endY.toFloat()) + tile * 0.2f), style = Stroke(tile * 0.05f))
     }
 }
