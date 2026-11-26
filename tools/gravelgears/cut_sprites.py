@@ -4,13 +4,11 @@
 Usage: python3 tools/gravelgears/cut_sprites.py SHEETS_DIR games/src/main/res/drawable-nodpi
 Needs opencv-python-headless, pillow and numpy. SHEETS_DIR holds, by the names the owner gave them:
   obstacles_day.png / obstacles_night.png (3 x 3: pine, boulder, log / stump, ramp, berm / mud, gravel, flags)
-  rider_day_strip.png, spokes_day_strip.jpg, knobby_day_strip.jpg (5 poses each: hard left, soft left, straight,
-  soft right, airborne), riders_night_strips.jpg (the same 5 poses, three riders, one per row),
-  rider_night.png (Gravel's older single night picture), heads.png (3 x 3: goat, fox, badger by left, front, right)
+  heads.png (3 x 3: goat, fox, badger by left, front, right)
   animals_day.jpg (3 x 3: marmot, deer, crow), animals_night.jpg (3 x 3: raccoon, stag, owl),
-  animals_exclusive.jpg (skunk 3 poses over 3 firefly frames),
-  pedal_day.jpg / pedal_night.jpg (4 x 3, one rider a row: goat, fox, badger; the 2nd and 3rd frames are the
-  straight pose with the pedals in two places, cut as a two-frame pedal loop at the straight pose's scale).
+  animals_exclusive.jpg (skunk 3 poses over 3 firefly frames).
+The riders on the trail are drawn from parts in code (GravelGearsRig.kt), so the rider pose strips and pedal sheets
+are not cut any more.
 Daytime sheets sit on white (the background is flood-filled from the corners, then the anti-aliased edge is
 un-blended from white). Night sheets sit on black: the sprite's alpha is its brightness, so glows fade out
 over the dark ground.
@@ -86,21 +84,6 @@ def save(rgba, box, path, height, mask=None):
     im = im.resize((max(1, round(im.width * s)), height), Image.Resampling.LANCZOS)
     im.save(path, quality=88, method=6)
 
-def save_strip(rgba, bxs, names, res, base=300, still=2):
-    """Saves one rider's poses at one scale, set by the `still` pose, so a leaning or airborne pose is not blown up or shrunk."""
-    crops = []
-    for b in bxs:
-        x, y, bw, bh = b
-        crop = rgba[y:y + bh, x:x + bw]
-        ys, xs = np.nonzero(crop[..., 3] > 6)
-        crops.append(crop[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
-    k = base / crops[still].shape[0]
-    for crop, name in zip(crops, names):
-        im = Image.fromarray(crop, "RGBA")
-        im = im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.Resampling.LANCZOS)
-        im.save(f"{res}/{name}.webp", quality=88, method=6)
-
-
 def load(path, black):
     img = cv2.imread(path)
     return alpha_black(img) if black else alpha_white(img)
@@ -114,27 +97,6 @@ def export(sheets, res):
         rgba = load(d(f"obstacles_{suffix}.png"), black)
         for name, b, hgt in zip(names, boxes(rgba, 3, 3), heights):
             save(rgba, b, f"{res}/gg_{suffix}_{name}.webp", hgt)
-    # riders: each strip is saved at one scale per rider
-    poses = ["hard_left", "soft_left", "straight", "soft_right", "air"]
-    rgba = load(d("rider_day_strip.png"), False)
-    save_strip(rgba, boxes(rgba, 5, 1), [f"gg_gravel_{p}" for p in poses], res)
-    for who in ("spokes", "knobby"):
-        rgba = load(d(f"{who}_day_strip.jpg"), False)
-        save_strip(rgba, boxes(rgba, 5, 1), [f"gg_{who}_{p}" for p in poses], res)
-    rgba = load(d("riders_night_strips.jpg"), True)
-    bx = boxes(rgba, 5, 3, min_h=120)
-    for row, who in enumerate(("gravel", "spokes", "knobby")):
-        if who == "gravel":
-            continue
-        save_strip(rgba, bx[row * 5:row * 5 + 5], [f"gg_nr_{who}_{p}" for p in poses], res)
-    rgba = load(d("gravel_night_strip.jpg"), True)
-    save_strip(rgba, boxes(rgba, 5, 1, min_h=120), [f"gg_nr_gravel_{p}" for p in poses], res)
-    # pedal loop: frames 2 and 3 of each row, one scale per rider so the loop does not pulse
-    for sheet, black, pre in (("pedal_day.jpg", False, "gg_"), ("pedal_night.jpg", True, "gg_nr_")):
-        rgba = load(d(sheet), black)
-        bx = boxes(rgba, 4, 3, min_h=120)
-        for row, who in enumerate(("gravel", "spokes", "knobby")):
-            save_strip(rgba, bx[row * 4 + 1:row * 4 + 3], [f"{pre}{who}_pedal_a", f"{pre}{who}_pedal_b"], res, still=0)
     rgba = load(d("heads.png"), False)
     bs = boxes(rgba, 3, 3)
     for i, who in enumerate(["gravel", "spokes", "knobby"]):
