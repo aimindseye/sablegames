@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -525,18 +526,34 @@ private fun GgBoard(
         run.critters.forEach { a ->
             if (a.y !in y0..y1) return@forEach
             things += a.y.toFloat() to {
-                val frameIdx = ((clock * 6f).toInt() + a.y) % 2
                 val foot = Offset(sx(a.x), sy(a.y.toFloat()) + tile * 0.4f)
+                // The art faces right: mirrored when the animal heads left. A deer that has not run yet looks across
+                // the trail toward the side it will run to.
+                val t = course.trail(a.y)
+                val centre = (t.first + t.last) / 2f
+                val facing =
+                    when {
+                        a.kind == GgAnimalKind.MARMOT -> a.dir
+                        a.bolting -> a.dir
+                        a.x < centre -> 1
+                        else -> -1
+                    }
                 when (a.kind) {
                     GgAnimalKind.MARMOT -> {
+                        // A scurry: the running picture, bobbing on each step.
+                        val hop = abs(sin(clock * 14f + a.y)) * tile * 0.05f
                         drawOval(Color.Black.copy(alpha = 0.18f), Offset(foot.x - tile * 0.22f, foot.y - tile * 0.07f), Size(tile * 0.44f, tile * 0.12f))
-                        prop(sprites.marmot(if (frameIdx == 0) 0 else 1), foot, tile * MARMOT_TILES, anchor = 0.9f)
+                        withTransform({ scale(facing.toFloat(), 1f, pivot = foot) }) {
+                            prop(sprites.marmot(1), Offset(foot.x, foot.y - hop), tile * MARMOT_TILES, anchor = 0.9f)
+                        }
                     }
 
                     GgAnimalKind.DEER -> {
                         val pose = if (a.bolting) 2 else if (a.state == GgDeerState.ALERT) 1 else 0
                         drawOval(Color.Black.copy(alpha = 0.18f), Offset(foot.x - tile * 0.3f, foot.y - tile * 0.08f), Size(tile * 0.6f, tile * 0.14f))
-                        prop(sprites.deer(pose), foot, tile * DEER_TILES, anchor = 0.92f)
+                        withTransform({ scale(facing.toFloat(), 1f, pivot = foot) }) {
+                            prop(sprites.deer(pose), foot, tile * DEER_TILES, anchor = 0.92f)
+                        }
                     }
                 }
             }
@@ -556,12 +573,84 @@ private fun GgBoard(
     }
 }
 
+/** How much slimmer than the art a log is drawn. */
+private const val LOG_SQUASH = 0.65f
+
 /** The gate flags' width against the opening, and how much shorter than the art they are drawn. */
 private const val FLAG_WIDTH = 0.85f
 private const val FLAG_SQUASH = 0.62f
 
-/** How far, in degrees, an angled ramp is turned toward the way it kicks. */
-private const val RAMP_TURN = 28f
+/** How far, in degrees, an angled kicker is turned off straight downhill. */
+private const val KICK_ANGLE = 32f
+
+/**
+ * A ramp drawn as a wooden wedge that rises downhill, the way the rider meets it, turned left or right for an angled
+ * kicker ([dir]) and marked with chevrons along the way it throws. [c] is the middle of its footprint.
+ */
+private fun DrawScope.drawRamp(
+    dir: Int,
+    c: Offset,
+    tile: Float,
+    night: Boolean,
+) {
+    val a = dir * KICK_ANGLE * PI.toFloat() / 180f
+    val hx = sin(a)
+    val hy = cos(a)
+    val sxv = cos(a)
+    val syv = -sin(a)
+    val len = 1.05f * tile
+    val wid = 0.58f * tile
+    val lift = 0.2f * tile
+
+    fun pt(
+        along: Float,
+        side: Float,
+        up: Float,
+    ) = Offset(c.x + hx * along + sxv * side, c.y + hy * along + syv * side - up)
+
+    fun poly(
+        col: Color,
+        p: List<Offset>,
+    ) = drawPath(
+        Path().apply {
+            moveTo(p[0].x, p[0].y)
+            for (i in 1 until p.size) lineTo(p[i].x, p[i].y)
+            close()
+        },
+        col,
+    )
+    val low = if (night) Color(0xFF1E2A33) else Color(0xFF96693C)
+    val high = if (night) Color(0xFF34505F) else Color(0xFFE1B478)
+    val plank = if (night) Color(0xFF111A20) else Color(0xFF784E28)
+    val side = if (night) Color(0xFF1A252D) else Color(0xFF7A4A26)
+    val front = if (night) Color(0xFF0C1216) else Color(0xFF462A14)
+    poly(side, listOf(pt(-len / 2, -wid / 2, 0f), pt(len / 2, -wid / 2, lift), pt(len / 2, -wid / 2, 0f)))
+    poly(side, listOf(pt(-len / 2, wid / 2, 0f), pt(len / 2, wid / 2, lift), pt(len / 2, wid / 2, 0f)))
+    poly(front, listOf(pt(len / 2, -wid / 2, lift), pt(len / 2, wid / 2, lift), pt(len / 2, wid / 2, 0f), pt(len / 2, -wid / 2, 0f)))
+    // The deck in planks, darker at the foot and lighter toward the lip, so it reads as rising downhill.
+    val planks = 6
+    for (k in 0 until planks) {
+        val t0 = k / planks.toFloat()
+        val t1 = (k + 1) / planks.toFloat()
+        val a0 = -len / 2 + len * t0
+        val a1 = -len / 2 + len * t1
+        poly(
+            lerp(low, high, t1),
+            listOf(pt(a0, -wid / 2, lift * t0), pt(a0, wid / 2, lift * t0), pt(a1, wid / 2, lift * t1), pt(a1, -wid / 2, lift * t1)),
+        )
+        drawLine(plank, pt(a1, -wid / 2, lift * t1), pt(a1, wid / 2, lift * t1), tile * 0.018f)
+    }
+    // Chevrons up the deck, pointing the way the ramp throws the rider.
+    val ink = if (night) GgArt.SafeNight else Color.White.copy(alpha = 0.85f)
+    for (k in 0..1) {
+        val t = 0.25f + k * 0.35f
+        val tip = pt(-len / 2 + len * (t + 0.14f), 0f, lift * (t + 0.14f))
+        val lw = pt(-len / 2 + len * t, -wid * 0.26f, lift * t)
+        val rw = pt(-len / 2 + len * t, wid * 0.26f, lift * t)
+        drawLine(ink, lw, tip, tile * 0.05f, StrokeCap.Round)
+        drawLine(ink, rw, tip, tile * 0.05f, StrokeCap.Round)
+    }
+}
 
 /** How far, in degrees, the camera banks with a full lean. */
 private const val BANK_DEGREES = 2.5f
@@ -752,24 +841,20 @@ private fun DrawScope.drawObstacle(
         GgKind.PINE_TREE -> prop(img, foot, tile * 1.6f)
         GgKind.BOULDER -> prop(img, foot, tile * 0.95f, anchor = 0.85f)
         GgKind.SMALL_ROCK -> prop(img, foot, tile * 0.5f, anchor = 0.85f)
-        GgKind.LOG -> propWide(img, foot, tile * o.span * 0.72f, anchor = 0.8f)
-        GgKind.STUMP -> prop(img, foot, tile * 0.82f, anchor = 0.85f)
-        GgKind.RAMP -> {
-            // An angled kicker is turned the way it throws the rider, with a chevron to show it.
-            withTransform({ rotate(o.dir * RAMP_TURN, pivot = Offset(foot.x, foot.y - tile * 0.35f)) }) {
-                prop(img, foot, tile * 0.95f, anchor = 0.8f)
-            }
-            if (o.dir != 0) {
-                val c = Offset(foot.x + o.dir * tile * 0.42f, foot.y - tile * 0.32f)
-                val ink = if (night) GgArt.SafeNight else Color.White
-                val d = tile * 0.13f * o.dir
-                drawLine(Color.Black.copy(alpha = 0.35f), Offset(c.x - d, c.y - tile * 0.13f), Offset(c.x, c.y), tile * 0.09f, StrokeCap.Round)
-                drawLine(Color.Black.copy(alpha = 0.35f), Offset(c.x - d, c.y + tile * 0.13f), Offset(c.x, c.y), tile * 0.09f, StrokeCap.Round)
-                drawLine(ink, Offset(c.x - d, c.y - tile * 0.13f), Offset(c.x, c.y), tile * 0.05f, StrokeCap.Round)
-                drawLine(ink, Offset(c.x - d, c.y + tile * 0.13f), Offset(c.x, c.y), tile * 0.05f, StrokeCap.Round)
+        GgKind.LOG -> {
+            // As wide as the tiles it blocks, but drawn slimmer so it lies low across the trail.
+            withTransform({ scale(1f, LOG_SQUASH, pivot = foot) }) { propWide(img, foot, tile * o.span * 0.92f, anchor = 0.8f) }
+        }
+        GgKind.STUMP -> prop(img, foot, tile * 0.72f, anchor = 0.85f)
+        GgKind.RAMP -> drawRamp(o.dir, Offset(foot.x, foot.y - tile * 0.25f), tile, night)
+
+        GgKind.BERM_LEFT, GgKind.BERM_RIGHT -> {
+            // The art banks up on its right: mirrored for a berm on the left edge, so the wall is always on the outside.
+            val at = Offset(sx(o.x + if (o.kind == GgKind.BERM_LEFT) -0.2f else 0.2f), foot.y)
+            withTransform({ scale(if (o.kind == GgKind.BERM_LEFT) -1f else 1f, 1f, pivot = at) }) {
+                propWide(img, at, tile * 1.3f, anchor = 0.8f)
             }
         }
-        GgKind.BERM_LEFT, GgKind.BERM_RIGHT -> propWide(img, Offset(sx(o.x + 0.5f), foot.y), tile * 1.5f, anchor = 0.8f)
         GgKind.MUD -> propWide(img, Offset(foot.x, foot.y - tile * 0.1f), tile * 1.1f, anchor = 0.5f)
         GgKind.GRAVEL -> propWide(img, Offset(foot.x, foot.y - tile * 0.1f), tile * 1.0f, anchor = 0.5f)
     }
