@@ -66,11 +66,16 @@ Every game plays from the keyboard or the trackpad (which sends arrow keys), and
 <img src="images/solitaire.png" alt="Solitaire" width="150">
 <img src="images/mahjong.png" alt="Mahjong" width="150">
 <img src="images/words.png" alt="Words" width="150">
+<img src="images/scaffold.png" alt="Scaffold" width="150">
 </p>
 
 ## Bitter Melons
 
 A slingshot physics game. AI Slop has taken over the hills, and every level is a structure of glass, wood and stone with Slop on and inside it. Break every piece of Slop to clear the level.
+
+<p>
+<img src="images/melons.png" alt="Bitter Melons" width="150">
+</p>
 
 - **Aim.** Up and down (W and S, or I and K on the Titan 2) set the angle, and left and right set the power. The dots show the start of the flight.
 - **Target window.** While the structure is off screen, a window in the top right shows it and how far away it is. The aim arc runs into the window, and a red ring marks where the melon will first touch the structure or the ground. A low shot can touch down early and still roll into the structure.
@@ -114,6 +119,20 @@ The players sit round a table, as people do: you at the bottom with your hand un
 | Donkey | Pass cards to get four of a kind, then grab a spoon before the others; the one left without gets a letter of D-O-N-K-E-Y | Left/Right choose; Enter passes; Space grabs |
 | Gulam Choor | Take cards from the next player and throw pairs; whoever keeps the odd Jack loses | Left/Right choose a card; Enter takes it |
 
+<p>
+<img src="images/cards.png" alt="Card Games menu" width="150">
+<img src="images/cards-teen-patti.png" alt="Teen Patti" width="150">
+<img src="images/cards-rummy.png" alt="Indian Rummy" width="150">
+<img src="images/cards-filmi-rummy.png" alt="Filmi Rummy" width="150">
+<img src="images/cards-mendicot.png" alt="Mendicot" width="150">
+<img src="images/cards-callbreak.png" alt="Callbreak" width="150">
+<img src="images/cards-judgement.png" alt="Judgement" width="150">
+<img src="images/cards-2-3-5.png" alt="2-3-5" width="150">
+<img src="images/cards-bluff.png" alt="Bluff" width="150">
+<img src="images/cards-donkey.png" alt="Donkey" width="150">
+<img src="images/cards-gulam-choor.png" alt="Gulam Choor" width="150">
+</p>
+
 ## Snakes & Ladders and Ludo
 
 Each is an app of its own and opens straight into the game. Back leaves the app.
@@ -122,6 +141,11 @@ Each is an app of its own and opens straight into the game. Back leaves the app.
 | --- | --- | --- |
 | Snakes & Ladders | 10 x 10 board with 8 ladders and 8 snakes, two to four players, exact finish on 100 | Space rolls; 2, 3, 4 set the number of players |
 | Ludo | Four colours (you are red): a six brings a token out; capture, sixes and reaching home roll again | Space rolls and moves; Left/Right choose a token |
+
+<p>
+<img src="images/snakesladders.png" alt="Snakes & Ladders" width="150">
+<img src="images/ludo.png" alt="Ludo" width="150">
+</p>
 
 You can follow every turn. The phone players take about 1.2 seconds to roll, the dice tumbles before it shows the number, and each token walks square by square. Ladders climb, snakes slide, and captured Ludo tokens go back to their yard. Your tokens carry a white star. Each player's name and colour are shown: in Snakes & Ladders in a row of seats above the board with their square, and in Ludo on their yard with how many tokens are home. The player whose turn it is is outlined. Under the board, the last two moves are written out in the mover's colour, and the token that moved last keeps a soft halo and a faint trail. In Ludo, when you can move more than one token, a faint ghost shows where each would land.
 
@@ -140,6 +164,18 @@ Sable Games Console plays games written as small Lua scripts, so new games can b
 | Ball Maze | Steel balls in a maze under a clear lid, like the hand-held toy: roll every ball into the middle at the same time. A menu picks a round or square board, plastic or wood, and Easy (2 balls) to Expert (5 balls); each game makes a new maze, and the library keeps your fastest time in seconds | Tilt, or hold the arrows (W A S D), to roll the balls; in the menu Up/Down and Left/Right choose and Space starts; N makes a new maze and M goes back to the menu |
 | Sky Roll | Roll a ball across stone platforms floating in the sky: pick up the gems and reach the goal before the time runs out. Eight levels add bridges, wind that pushes you sideways, moving lifts and rails; roll off an edge and you lose one of four balls. The score is the gems and the seconds left | Tilt, or hold the arrows (W A S D), to roll; R starts the level again |
 | Ramp Rush | A stunt car seen from behind, racing through a desert canyon at sunset. Ramps throw it over the gaps; in the air, leaning rolls the car, and each full roll you land takes a second off your time. Land on your wheels or go back to the last checkpoint. Three tracks; the library keeps your fastest total in seconds | Tilt, or hold Left/Right (A and D), to steer and to roll in the air; lean back or hold Down (S) to brake; Space boosts when the boost bar is full enough (landed rolls fill it); C changes the colour of your car |
+
+<p>
+<img src="images/console.png" alt="Console library" width="150">
+<img src="images/console-tilt-maze.png" alt="Tilt Maze" width="150">
+<img src="images/console-motion-2048.png" alt="Motion 2048" width="150">
+<img src="images/console-sokoban-tilt.png" alt="Sokoban Tilt" width="150">
+<img src="images/console-tilt-racer.png" alt="Tilt Racer" width="150">
+<img src="images/console-tilt-circuit.png" alt="Tilt Circuit" width="150">
+<img src="images/console-ball-maze.png" alt="Ball Maze" width="150">
+<img src="images/console-sky-roll.png" alt="Sky Roll" width="150">
+<img src="images/console-ramp-rush.png" alt="Ramp Rush" width="150">
+</p>
 
 **The library.** Left and Right switch between the all, motion, puzzles, keyboard and recent tabs; Up and Down pick a game, and Space or Enter plays it. Each row shows the game's best score and a TILT or KEYS tag. I opens a game's details (best score, Reset progress, Remove for a game you added), A opens Add games and S opens Settings.
 
