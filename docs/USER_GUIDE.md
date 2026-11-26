@@ -89,7 +89,7 @@ A slingshot physics game. AI Slop has taken over the hills, and every level is a
 
 ## Gravel & Gears
 
-A nonstop downhill ride. The bike rolls on its own, you steer it across the trail, and your four cards are moves you fire on the spot.
+A nonstop downhill ride. The bike rolls on its own, you steer it across the trail, and your four cards are moves you fire on the spot. Every ride lays a new trail, with gates, rock gardens, kickers and bends in new places, and the ride gets a little faster with every gate.
 
 - **Steering.** The trackpad, the arrow keys or I J K L steer; hold J or L to keep turning. Tilting the phone steers too: the phone is levelled the way you hold it when a ride starts, and T turns tilt on and off. Up pedals harder and down brakes. On a touch screen, drag across the trail.
 - **Cards.** A S D F fire a card at once. A carve swings you across, a hop lifts you over a boulder or a log (+75), Tuck & Bomb speeds you up and doubles a gate, Skid Stop brakes and clears mud. A dashed line shows where the move takes you. The slot fills again from your deck after about a second. Space hops with the first air card in your hand, and R spends a Redraw to swap all four.

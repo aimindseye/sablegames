@@ -56,9 +56,9 @@ import org.sableos.games.GgArt.arrow
 import org.sableos.games.GgArt.cross
 import org.sableos.games.GgArt.prop
 import org.sableos.games.GgArt.propWide
-import org.sableos.games.GgArt.riderProp
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.sin
@@ -154,7 +154,7 @@ internal fun GravelGearsScreen() {
         val rider = GgRider.all[riderIndex]
         if (!progress.riderOpen(rider)) return
         if (night && !progress.night) return
-        run = GgRun(GgCourse(night, seed = System.nanoTime()), rider, seed = System.nanoTime() + seedCounter++)
+        run = GgRun(GgCourse(night, seed = System.nanoTime(), fresh = true), rider, seed = System.nanoTime() + seedCounter++)
         selected = -1
         saved = false
         screen = GgScreen.Ride
@@ -412,13 +412,19 @@ private fun GgBoard(
         val y0 = floor(camY).toInt() - 2
         val y1 = (camY + rows).toInt() + 3
         course.ensure(y1)
+        // The camera: a shake on landing, and a slight bank with the rider's lean, zoomed in a touch so no corner shows.
+        val shake = run.landing / GgRun.LAND_TIME * tile * 0.07f
+        drawContext.transform.translate(sin(clock * 83f) * shake, cos(clock * 71f) * shake)
+        val pivot = Offset(sx(run.x), sy(run.y))
+        drawContext.transform.rotate(-run.lean * BANK_DEGREES, pivot)
+        drawContext.transform.scale(1.05f, 1.05f, pivot)
         val dirt = if (night) GgArt.NightDirt else GgArt.DayDirt
         val slope = if (night) GgArt.NightSlope else GgArt.DaySlope
         val contour = if (night) GgArt.NightContour else GgArt.DayContour
         drawRect(slope)
         // Contour lines: slow waves that scroll with the trail, the topographic look.
         for (k in -1..(rows.toInt() / 2 + 3)) {
-            val baseY = (k * 2.1f - (camY * 0.9f).mod(2.1f)) * tile
+            val baseY = (k * 2.1f - (camY * 0.6f).mod(2.1f)) * tile
             val p = Path()
             var first = true
             var px = 0f
@@ -451,6 +457,27 @@ private fun GgBoard(
             val sxp = (t.first + ((h ushr 4) % 100) / 100f * (t.last - t.first)) * tile + tile / 2
             val syp = sy(yy + ((h ushr 12) % 100) / 100f)
             drawLine(streak, Offset(sxp, syp), Offset(sxp, syp + tile * 0.5f), tile * 0.04f, StrokeCap.Round)
+        }
+        // Grass tufts and pebbles on the slope and the trail, so the ground itself is seen to rush past.
+        val tuft = (if (night) Color(0xFF5E7C8C) else Color(0xFF5E7A3A)).copy(alpha = if (night) 0.35f else 0.55f)
+        val pebble = (if (night) Color(0xFF8FA4B4) else Color(0xFF7A4A2E)).copy(alpha = 0.4f)
+        for (yy in y0..y1) {
+            val t = course.trail(yy)
+            for (k in 0 until 4) {
+                val h = ggHash(yy * 4 + k, 11)
+                val fx = ((h ushr 3) % 1000) / 1000f * GG_COLUMNS - 0.5f
+                val fy = yy + ((h ushr 13) % 100) / 100f
+                val onTrail = fx > t.first - 0.4f && fx < t.last + 0.4f
+                val p = Offset(sx(fx), sy(fy))
+                if (onTrail) {
+                    drawCircle(pebble, tile * (0.025f + (h and 3) * 0.008f), p)
+                } else {
+                    val s = tile * (0.1f + (h and 3) * 0.025f)
+                    drawLine(tuft, p, Offset(p.x - s * 0.5f, p.y - s), tile * 0.03f, StrokeCap.Round)
+                    drawLine(tuft, p, Offset(p.x, p.y - s * 1.2f), tile * 0.03f, StrokeCap.Round)
+                    drawLine(tuft, p, Offset(p.x + s * 0.5f, p.y - s), tile * 0.03f, StrokeCap.Round)
+                }
+            }
         }
         drawPath(left, if (night) GgArt.NightEdge else GgArt.DayEdge, style = Stroke(tile * 0.07f, cap = StrokeCap.Round))
         drawPath(right, if (night) GgArt.NightEdge else GgArt.DayEdge, style = Stroke(tile * 0.07f, cap = StrokeCap.Round))
@@ -510,18 +537,8 @@ private fun GgBoard(
                 }
             }
         }
-        val rider = GgRider.byId(run.rider.id)
-        val shownY = run.y
-        things += shownY to {
-            val pose = riderPose(run)
-            val image =
-                if (pose == 2 && run.phase == GgPhase.Riding) {
-                    sprites.pedal(rider.id, if (sin(run.y * 2f * PI.toFloat() * PEDAL_PER_ROW) >= 0f) 0 else 1, night)
-                } else {
-                    sprites.rider(rider.id, pose, night)
-                }
-            drawRider(run, image, view, night)
-        }
+        val look = GgLook.of(run.rider.id)
+        things += run.y to { drawRider(run, look, view, night) }
         things.sortedBy { it.first }.forEach { it.second(this) }
 
         // A deer that has seen the rider: its row pulses red until it has run across.
@@ -531,6 +548,35 @@ private fun GgBoard(
             drawRect(GgArt.Lethal.copy(alpha = pulse), Offset(t.first * tile, sy(a.y.toFloat()) - tile * 0.1f), Size((t.last - t.first + 1) * tile, tile * 0.6f))
         }
         if (night) drawHeadlight(run, view, sprites)
+        drawSpeedLines(run, tile, size)
+    }
+}
+
+/** How far, in degrees, an angled ramp is turned toward the way it kicks. */
+private const val RAMP_TURN = 28f
+
+/** How far, in degrees, the camera banks with a full lean. */
+private const val BANK_DEGREES = 2.5f
+
+/** Streaks down the sides of the screen once the ride is fast, faster and more of them the quicker it goes. */
+private fun DrawScope.drawSpeedLines(
+    run: GgRun,
+    tile: Float,
+    size: Size,
+) {
+    if (run.phase != GgPhase.Riding) return
+    val fast = ((run.speed - 3.0f) / 1.2f).coerceIn(0f, 1f)
+    if (fast <= 0f) return
+    val ink = Color.White.copy(alpha = 0.35f * fast)
+    val count = 6
+    for (i in 0 until count) {
+        val h = ggHash(i, 29)
+        val left = i % 2 == 0
+        val x = if (left) (h % 100) / 100f * tile * 0.9f else size.width - (h % 100) / 100f * tile * 0.9f
+        val len = tile * (0.8f + fast * 1.2f)
+        val span = size.height + len
+        val y = (((h ushr 8) % 1000) / 1000f * span - run.y * tile * 1.6f).mod(span) - len
+        drawLine(ink, Offset(x, y), Offset(x, y + len), tile * 0.03f, StrokeCap.Round)
     }
 }
 
@@ -553,59 +599,70 @@ private fun Path.smoothThrough(
     lineTo(pts.last().x, pts.last().y)
 }
 
-/** Pose 0 hard left, 1 soft left, 2 straight, 3 soft right, 4 in the air. */
-private fun riderPose(run: GgRun): Int =
-    when {
-        run.airborne || run.phase == GgPhase.Wiped -> 4
-        run.lean < -0.55f -> 0
-        run.lean < -0.15f -> 1
-        run.lean > 0.15f -> 3
-        else -> 2
-    }
-
 /** Pedal strokes per row of trail: sets how fast the rider bobs. */
 private const val PEDAL_PER_ROW = 0.9f
 
 /**
- * The rider, alive: the body bobs with each pedal stroke, the bike banks into a turn, a hop grows the rider and
- * shrinks the shadow, a landing squashes, and a crash tumbles. The art has one picture per pose, so all of this is
- * done by moving, turning and stretching that picture.
+ * The rider, built from parts and posed from the ride: the cranks and wheels turn with the distance ridden, the bike
+ * banks with the lean and swings round to face the way it is steered, the rider stands to sprint and in the air,
+ * tucks at speed, a hop lifts and grows the rider, a landing squashes, and a crash tumbles.
  */
 private fun DrawScope.drawRider(
     run: GgRun,
-    image: androidx.compose.ui.graphics.ImageBitmap,
+    look: GgLook,
     view: GgView,
     night: Boolean,
 ) {
     val tile = view.tile
-    val riding = run.phase == GgPhase.Riding
     val wiped = run.phase == GgPhase.Wiped
-    val crank = run.y * 2f * PI.toFloat() * PEDAL_PER_ROW
-    val pedalling = riding && !run.airborne
-    val bob = if (pedalling) abs(sin(crank)) * tile * 0.05f else 0f
-    val sway = if (pedalling) sin(crank) * 3f else 0f
+    val air = run.airborne
+    val pose = ggRigPose(run)
     val lift = run.lift * tile * 0.55f
     val tumble = if (wiped) (run.sinceWipe / 0.5f).coerceIn(0f, 1f) else 0f
     val cx = view.sx(run.x) + tumble * tile * 0.35f
     val groundY = view.sy(run.y) + tile * 0.4f
-    val foot = Offset(cx, groundY - lift - bob)
+    val foot = Offset(cx, groundY - lift)
     val shadow = 1f - run.lift * 0.5f
     drawOval(
         Color.Black.copy(alpha = (if (night) 0.4f else 0.24f) * shadow),
-        Offset(cx - tile * 0.34f * shadow, groundY - tile * 0.15f),
-        Size(tile * 0.68f * shadow, tile * 0.22f * shadow),
+        Offset(cx - tile * 0.5f * shadow, groundY - tile * 0.13f),
+        Size(tile * 1.0f * shadow, tile * 0.24f * shadow),
     )
     val squash = run.landing / GgRun.LAND_TIME
     val grow = 1f + run.lift * 0.18f
-    val angle = run.lean * 14f + sway + tumble * 200f
     withTransform({
-        rotate(angle, pivot = Offset(foot.x, foot.y - tile * 0.45f))
+        rotate(tumble * 200f, pivot = Offset(foot.x, foot.y - tile * 0.5f))
         scale(grow * (1f + squash * 0.1f), grow * (1f - squash * 0.14f), pivot = foot)
     }) {
-        riderProp(image, foot, tile * RIDER_SCALE, alpha = 1f - tumble * 0.3f)
+        drawRig(look, pose, foot, tile * RIG_UNIT, night, alpha = 1f - tumble * 0.3f)
     }
     if (wiped) cross(Offset(cx, groundY - tile * 0.3f), tile * 0.25f, GgArt.Lethal, tile * 0.1f)
 }
+
+/** The rider's pose this frame, from the ride. */
+private fun ggRigPose(run: GgRun): GgRigPose {
+    val air = run.airborne
+    val riding = run.phase == GgPhase.Riding
+    val turns = run.y / RIG_UNIT
+    val crank = if (air || !riding) 0f else -run.y * 2f * PI.toFloat() * PEDAL_PER_ROW
+    val sprint = ((run.speed - 2.9f) / 0.8f).coerceIn(0f, 1f)
+    val stand = if (air) 0.8f else sprint * 0.7f
+    val tuck = ((run.speed - 3.3f) / 1.0f).coerceIn(0f, 1f)
+    return GgRigPose(
+        yaw = (run.facing * 55f + run.lean * 20f) * DEG,
+        roll = run.lean * 0.42f + sin(crank) * 0.05f * stand,
+        pitch = run.lift * 0.28f,
+        crank = crank,
+        wheel = turns / GgRigMath.WHEEL,
+        stand = stand,
+        tuck = tuck,
+    )
+}
+
+private const val DEG = (PI / 180.0).toFloat()
+
+/** Pixels per rig unit, in tiles: sets the rider's size on the trail. */
+private const val RIG_UNIT = 0.78f
 
 /** Tyre tracks behind the rider, and dust kicked up in a hard turn, at speed or on landing. */
 private fun DrawScope.drawTracks(
@@ -637,9 +694,6 @@ private fun DrawScope.drawTracks(
         drawCircle(dust.copy(alpha = (0.4f * (1f - age / recent.size)).coerceAtLeast(0f)), tile * (0.07f + age * 0.035f), c)
     }
 }
-
-/** The rider's sprite height, in tiles, against the strip's own scale: a touch bigger so the rider reads on the Q25. */
-private const val RIDER_SCALE = 1.35f
 
 /** The rest of the card being ridden, as a dashed line ahead of the rider. */
 private fun DrawScope.drawMovePath(
@@ -679,7 +733,7 @@ private fun DrawScope.drawObstacle(
 
     fun sy(y: Float) = view.sy(y)
     val img = sprites.prop(o.kind, night)
-    val cx = sx(o.x + (o.span - 1) / 2f)
+    val cx = sx(o.x + (o.span - 1) / 2f + o.shift)
     val foot = Offset(cx, sy(o.y.toFloat()) + tile * 0.42f)
     // A soft shadow under anything standing on the trail, so it sits on the ground in its own tile.
     if (o.kind in GG_SHADOWED) {
@@ -692,7 +746,21 @@ private fun DrawScope.drawObstacle(
         GgKind.SMALL_ROCK -> prop(img, foot, tile * 0.5f, anchor = 0.85f)
         GgKind.LOG -> propWide(img, foot, tile * o.span * 0.98f, anchor = 0.8f)
         GgKind.STUMP -> prop(img, foot, tile * 0.82f, anchor = 0.85f)
-        GgKind.RAMP -> prop(img, foot, tile * 0.95f, anchor = 0.8f)
+        GgKind.RAMP -> {
+            // An angled kicker is turned the way it throws the rider, with a chevron to show it.
+            withTransform({ rotate(o.dir * RAMP_TURN, pivot = Offset(foot.x, foot.y - tile * 0.35f)) }) {
+                prop(img, foot, tile * 0.95f, anchor = 0.8f)
+            }
+            if (o.dir != 0) {
+                val c = Offset(foot.x + o.dir * tile * 0.42f, foot.y - tile * 0.32f)
+                val ink = if (night) GgArt.SafeNight else Color.White
+                val d = tile * 0.13f * o.dir
+                drawLine(Color.Black.copy(alpha = 0.35f), Offset(c.x - d, c.y - tile * 0.13f), Offset(c.x, c.y), tile * 0.09f, StrokeCap.Round)
+                drawLine(Color.Black.copy(alpha = 0.35f), Offset(c.x - d, c.y + tile * 0.13f), Offset(c.x, c.y), tile * 0.09f, StrokeCap.Round)
+                drawLine(ink, Offset(c.x - d, c.y - tile * 0.13f), Offset(c.x, c.y), tile * 0.05f, StrokeCap.Round)
+                drawLine(ink, Offset(c.x - d, c.y + tile * 0.13f), Offset(c.x, c.y), tile * 0.05f, StrokeCap.Round)
+            }
+        }
         GgKind.BERM_LEFT, GgKind.BERM_RIGHT -> propWide(img, Offset(sx(o.x + 0.5f), foot.y), tile * 1.5f, anchor = 0.8f)
         GgKind.MUD -> propWide(img, Offset(foot.x, foot.y - tile * 0.1f), tile * 1.1f, anchor = 0.5f)
         GgKind.GRAVEL -> propWide(img, Offset(foot.x, foot.y - tile * 0.1f), tile * 1.0f, anchor = 0.5f)

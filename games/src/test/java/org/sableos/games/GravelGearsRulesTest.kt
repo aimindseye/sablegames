@@ -221,4 +221,33 @@ class GravelGearsRulesTest {
         run.retry()
         assertTrue(run.tracks.isEmpty())
     }
+
+    @Test
+    fun aFreshTrailIsDifferentEveryRideAndAlwaysRideable() {
+        val layouts = HashSet<List<Pair<Int, Int>>>()
+        for (seed in 1L..6L) {
+            for (night in listOf(false, true)) {
+                val course = GgCourse(night, seed = seed, fresh = true)
+                course.ensure(200)
+                val known = course.known()
+                for (i in 1 until known.size) {
+                    assertTrue("seed $seed gate ${known[i].number}", GgSim.canReach(course, null, known[i - 1], known[i]))
+                }
+                if (!night) layouts += known.take(12).map { it.row to it.centerX }
+                val gaps = known.zipWithNext { a, b -> b.row - a.row }.toSet()
+                assertTrue("gate spacing varies", gaps.size >= 3)
+                val all = known.flatMap { it.obstacles }
+                assertTrue("obstacles sit off the grid", all.any { it.shift != 0f })
+                assertTrue("ramps kick both ways", all.any { it.dir < 0 } && all.any { it.dir > 0 })
+            }
+        }
+        assertEquals(6, layouts.size)
+    }
+
+    @Test
+    fun theFirstFreshGateIsStraightAhead() {
+        val run = GgRun(GgCourse(night = false, seed = 9, fresh = true), GgRider.Gravel, seed = 3)
+        ride(run, 6f, until = { it.gates >= 1 || it.phase == GgPhase.Wiped })
+        assertEquals(1, run.gates)
+    }
 }

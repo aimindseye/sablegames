@@ -20,6 +20,10 @@ internal data class GgObstacle(
     val y: Int,
     val kind: GgKind,
     val span: Int = 1,
+    /** A fraction of a tile off the column, so a generated trail doesn't line up on a grid. */
+    val shift: Float = 0f,
+    /** Which way a ramp kicks: -1 left, 0 straight on, 1 right. */
+    val dir: Int = 0,
 ) {
     /** Whether a rider on the ground at column [cx] touches this obstacle. */
     fun covers(cx: Int) = cx >= x && cx < x + span
@@ -162,6 +166,8 @@ internal data class GgContext(
 internal class GgCourse(
     val night: Boolean,
     private val seed: Long = 1L,
+    /** True lays a new trail for every ride from the stage rules; false keeps the hand-made one in the data. */
+    private val fresh: Boolean = false,
 ) {
     val stages: List<GgStage> = GravelGearsData.stages.filter { it.night == night }
     private val gates = ArrayList<GgGate>()
@@ -169,14 +175,27 @@ internal class GgCourse(
     private val animalList = ArrayList<GgAnimal>()
 
     init {
-        stages.forEach { s -> s.gates.forEach { add(it) } }
+        if (fresh) {
+            stages.forEach { s -> s.gates.forEach { meta -> lay(s, meta) } }
+        } else {
+            stages.forEach { s -> s.gates.forEach { add(it) } }
+        }
         if (!night) {
-            // Marmots from Stage 2 and deer from Stage 3, on fixed gates so every ride meets them in the same places.
-            stages.getOrNull(1)?.gates?.filter { it.number in MARMOT_GATES }?.forEach {
+            // Marmots from Stage 2 and deer from Stage 3: on fixed gates on the hand-made trail, anywhere on a fresh one.
+            val rnd = Random(seed * 7 + 3)
+            fun pick(
+                stage: GgStage?,
+                fixed: Set<Int>,
+            ): List<GgGate> {
+                val gs = stage?.gates?.map { gateByNumber(it.number) } ?: return emptyList()
+                return if (fresh) gs.drop(1).shuffled(rnd).take(fixed.size) else gs.filter { it.number in fixed }
+            }
+            pick(stages.getOrNull(1), MARMOT_GATES).forEach {
                 animalList += GgAnimal(GgAnimalKind.MARMOT, it.centerX, it.row - 2, if (it.number % 2 == 0) 1 else -1)
             }
-            stages.getOrNull(2)?.gates?.filter { it.number in DEER_GATES }?.forEach {
-                animalList += GgAnimal(GgAnimalKind.DEER, it.centerX, it.row - 4)
+            pick(stages.getOrNull(2), DEER_GATES).forEach {
+                val prev = gates[it.number - 2]
+                animalList += GgAnimal(GgAnimalKind.DEER, it.centerX, if (fresh) prev.row + 1 else it.row - 4)
             }
         }
     }
@@ -239,43 +258,147 @@ internal class GgCourse(
     }
 
     private fun generate() {
-        val n = gates.size
-        val last = gates.last()
         val template = stages.last()
-        val rnd = Random(seed * 31 + n)
+        val last = gates.last()
+        val n = last.number + 1
+        val meta =
+            GgGate(
+                number = n, row = last.row + 5, centerX = last.centerX, width = template.width, left = 0, right = 1,
+                style = last.style, points = 100, draft = n % 3 == 0, redraw = n % 5 == 0,
+                draftFilter = listOf("COMMON", "TACTICAL", "RARE") + if (night) listOf("NIGHT_BIOME") else emptyList(),
+                obstacles = emptyList(),
+            )
+        lay(template, meta)
+    }
+
+    /**
+     * Lays the gate [meta] (its number, width, draft and redraw) after the last one: a new spacing, a new bend and
+     * a new mix of obstacles, tried until [GgSim.canReach] finds a clean line in.
+     */
+    private fun lay(
+        stage: GgStage,
+        meta: GgGate,
+    ) {
+        val rnd = Random(seed * 31 + meta.number * 7919L)
+        val w = meta.width
+        val lo = w / 2
+        val hi = 8 - w / 2
+        if (gates.isEmpty()) {
+            // The first gate: straight ahead of the start, with one thing to steer round.
+            val left = 4 - w / 2
+            val obstacles = listOf(GgObstacle(if (rnd.nextBoolean()) left else left + w - 1, 3, GgKind.SMALL_ROCK, 1, shift(rnd)))
+            add(meta.copy(row = 5, centerX = 4, left = 3, right = 4, obstacles = obstacles))
+            return
+        }
+        val last = gates.last()
         var best: GgGate? = null
         repeat(40) {
-            val cx = (last.centerX + rnd.nextInt(-1, 2)).coerceIn(template.width / 2 + 1, 8 - template.width / 2 - 1)
-            val row = last.row + 5
-            val left = (cx - rnd.nextInt(0, 2)).coerceIn(0, 7)
-            val obstacles = ArrayList<GgObstacle>()
-            val band = (cx - template.width / 2)..(cx - template.width / 2 + template.width - 1)
-            for (y in last.row + 2 until row) {
-                for (x in band) {
-                    if (rnd.nextFloat() < template.density * 0.5f && obstacleMap[y * KEY + x] == null) {
-                        val kind = ENDLESS_KINDS[rnd.nextInt(ENDLESS_KINDS.size)]
-                        val span = if (kind == GgKind.LOG && x < band.last) 2 else 1
-                        obstacles += GgObstacle(x, y, kind, span)
-                    }
-                }
-            }
-            val gate =
-                GgGate(
-                    number = last.number + 1, row = row, centerX = cx, width = template.width, left = left, right = left + 1,
-                    style = last.style, points = 100, draft = (last.number + 1) % 3 == 0, redraw = (last.number + 1) % 5 == 0,
-                    draftFilter = listOf("COMMON", "TACTICAL", "RARE") + if (night) listOf("NIGHT_BIOME") else emptyList(),
-                    obstacles = obstacles,
-                )
+            val gap = rnd.nextInt(GAP_MIN, GAP_MAX + 1) + (if (stage.width >= 5) 1 else 0)
+            val row = last.row + gap
+            val reach = if (gap >= 6) 2 else 1
+            val cx = (last.centerX + rnd.nextInt(-reach, reach + 1)).coerceIn(lo, hi)
+            val band = (cx - w / 2) until (cx - w / 2 + w)
+            val left = band.first + rnd.nextInt(0, w - 1)
+            val obstacles = segment(stage, last, row, cx, rnd)
+            val gate = meta.copy(row = row, centerX = cx, left = left, right = left + 1, obstacles = obstacles)
             best = gate
-            val probe = GgCourse.Probe(this, gate)
-            if (GgSim.canReach(this, probe, last, gate)) {
+            if (GgSim.canReach(this, Probe(this, gate), last, gate)) {
                 add(gate)
                 return
             }
         }
-        // No random layout had a clean line: ride in on a bare trail, which always has one.
+        // No layout had a clean line: ride in on a bare trail, which always has one.
         add(best!!.copy(obstacles = emptyList()))
     }
+
+    /** The obstacles between gate [last] and a new gate at [row], centred on [cx]: one or two patterns. */
+    private fun segment(
+        stage: GgStage,
+        last: GgGate,
+        row: Int,
+        cx: Int,
+        rnd: Random,
+    ): List<GgObstacle> {
+        val out = ArrayList<GgObstacle>()
+        val tier = stages.indexOf(stage).coerceAtLeast(0) + (if (stage.endless) 1 else 0)
+        fun band(y: Int): IntRange {
+            val t = (y - last.row).toFloat() / (row - last.row)
+            val c = Math.round(last.centerX + (cx - last.centerX) * t)
+            val l = c - stage.width / 2
+            return l..(l + stage.width - 1)
+        }
+
+        fun free(
+            x: Int,
+            y: Int,
+        ) = obstacleMap[y * KEY + x] == null && out.none { it.y == y && it.covers(x) } && x in band(y)
+
+        fun put(
+            x: Int,
+            y: Int,
+            kind: GgKind,
+            span: Int = 1,
+        ) {
+            if ((0 until span).all { free(x + it, y) }) out += GgObstacle(x, y, kind, span, if (span == 1) shift(rnd) else 0f)
+        }
+        val bumpers = listOf(GgKind.STUMP, GgKind.SMALL_ROCK)
+        val terrain = if (tier >= 2) listOf(GgKind.MUD, GgKind.GRAVEL) else listOf(GgKind.MUD)
+        val first = last.row + 1
+        val end = row - 1
+        val patterns = 1 + (if (rnd.nextFloat() < stage.density * 2f) 1 else 0)
+        repeat(patterns) {
+            val y = rnd.nextInt(first, end + 1)
+            val b = band(y)
+            // Kickers come up twice as often as the rest; mud, logs and berms wait for the later stages.
+            val pattern = (if (tier == 0) listOf(0, 1, 2, 3, 3, 4) else listOf(0, 1, 2, 3, 3, 4, 5, 6, 7)).random(rnd)
+            when (pattern) {
+                // A scatter of rocks and stumps.
+                0, 1 -> {
+                    for (yy in first..end) for (x in band(yy)) {
+                        if (rnd.nextFloat() < stage.density * 0.7f) put(x, yy, if (rnd.nextInt(3) == 0) GgKind.BOULDER else bumpers.random(rnd))
+                    }
+                }
+                // A rock garden across the trail with one gap to thread.
+                2 -> {
+                    val gapAt = b.first + rnd.nextInt(b.last - b.first + 1)
+                    for (x in b) if (x != gapAt) put(x, y, if (rnd.nextBoolean()) GgKind.BOULDER else bumpers.random(rnd))
+                }
+                // A kicker: a ramp, and something to fly over behind it. Most kick left or right, toward open trail.
+                3 -> {
+                    val x = b.first + rnd.nextInt(b.last - b.first + 1)
+                    if (y + 1 <= end) {
+                        val dirs = listOf(-1, 1, -1, 1, 0).filter { x + it in band(y + 2) }
+                        val dir = dirs.random(rnd)
+                        if (free(x, y)) out += GgObstacle(x, y, GgKind.RAMP, 1, 0f, dir)
+                        put(x, y + 1, if (tier >= 2 && rnd.nextBoolean()) GgKind.LOG else GgKind.BOULDER)
+                    }
+                }
+                // A chicane: one side, then the other.
+                4 -> {
+                    put(b.first + rnd.nextInt(2), y, GgKind.BOULDER)
+                    if (y + 2 <= end) band(y + 2).let { put(it.last - rnd.nextInt(2), y + 2, bumpers.random(rnd)) }
+                }
+                // A soft patch: mud or loose gravel.
+                5 -> {
+                    val k = terrain.random(rnd)
+                    val x = b.first + rnd.nextInt(b.last - b.first + 1)
+                    put(x, y, k)
+                    put(x + (if (rnd.nextBoolean()) 1 else -1), y, k)
+                }
+                // A fallen log with a way round.
+                6 -> {
+                    if (stage.width >= 4) put(b.first + rnd.nextInt(b.last - b.first), y, GgKind.LOG, 2) else put(b.first, y, GgKind.BOULDER)
+                }
+                // A berm to carve on the bend.
+                else -> {
+                    put(if (cx < last.centerX) b.first else b.last, y, if (cx < last.centerX) GgKind.BERM_LEFT else GgKind.BERM_RIGHT)
+                }
+            }
+        }
+        return out
+    }
+
+    private fun shift(rnd: Random) = (rnd.nextFloat() - 0.5f) * 2f * MAX_SHIFT
 
     /** Lets [GgSim.canReach] see a gate's obstacles before the gate is added to the course. */
     class Probe(
@@ -304,8 +427,13 @@ internal class GgCourse(
         const val KEY = 16
         private val MARMOT_GATES = setOf(8, 11, 14)
         private val DEER_GATES = setOf(17, 20, 23)
-        private val ENDLESS_KINDS =
-            listOf(GgKind.BOULDER, GgKind.BOULDER, GgKind.STUMP, GgKind.LOG, GgKind.MUD, GgKind.RAMP, GgKind.GRAVEL, GgKind.SMALL_ROCK)
+
+        /** Rows between gates on a generated trail: one more on the wide first stage. */
+        private const val GAP_MIN = 4
+        private const val GAP_MAX = 6
+
+        /** How far, in tiles, a generated rock or stump may sit off its column. */
+        const val MAX_SHIFT = 0.22f
     }
 }
 
@@ -488,8 +616,8 @@ internal object GgSim {
                             // The rest of the card is dropped: the ramp throws the rider two tiles on, in the air.
                             ramp = true
                             queue.subList(i, queue.size).clear()
-                            queue += GgStep(s.dx, s.dy + 1, true)
-                            queue += GgStep(s.dx, s.dy + 2, false)
+                            queue += GgStep(s.dx + o.dir, s.dy + 1, true)
+                            queue += GgStep(s.dx + o.dir, s.dy + 2, false)
                         }
 
                         GgKind.BERM_LEFT, GgKind.BERM_RIGHT -> {

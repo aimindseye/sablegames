@@ -308,7 +308,7 @@ internal object GameCatalog {
                     HowToPage(
                         "Ride and steer",
                         listOf(
-                            "The bike rolls downhill on its own and gets faster on the narrow stages. Steer it across the trail.",
+                            "The bike rolls downhill on its own and gets faster with every gate. Every ride lays a new trail. Steer it across the trail.",
                             "Steer with the trackpad, the arrow keys or I J K L (hold J or L to keep turning), or by tilting the phone. T turns tilt on and off.",
                             "Up pedals harder, down brakes. Ride through the two-tile gates for 100 points. Each gate in a row raises your combo, up to x8.",
                             "A missed gate resets the combo. Pines and the trail edge are a crash.",

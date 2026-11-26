@@ -4,6 +4,7 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -182,6 +183,9 @@ internal class GgRun(
     /** How hard the rider is leaning, -1 (left) to 1 (right), for the pose. */
     var lean = 0f
         private set
+    /** Which way the drawn bike faces, -1 (left) to 1 (right): it swings round when the rider steers the other way. */
+    var facing = 1f
+        private set
     val unlocks = ArrayList<String>()
 
     /** Where the wheels have been lately, oldest first, with whether they were in the air: tyre tracks and dust. */
@@ -201,6 +205,7 @@ internal class GgRun(
     private var moveStartX = 0f
     private var rampRows = 0f
     private var rampTotal = 0f
+    private var rampDir = 0
     private var push = 0f
     private var nudged = 0f
     private var mudFor = 0f
@@ -269,6 +274,8 @@ internal class GgRun(
                 st.width == 4 -> 2.8f
                 else -> 3.1f
             }
+        // The ride builds: a little faster every gate, and faster still out on the endless trail.
+        v += min(RAMP_UP_MAX, gates * RAMP_UP)
         if (gates > course.handcraftedGates) v += min(0.9f, (gates - course.handcraftedGates) * 0.04f)
         if (isNight) v *= 0.9f
         return v
@@ -390,7 +397,12 @@ internal class GgRun(
         val prevX = x
         val wasAir = airborne
         y += speed * dt
-        if (rampRows > 0f) rampRows = max(0f, rampRows - speed * dt)
+        if (rampRows > 0f) {
+            val flown = min(rampRows, speed * dt)
+            rampRows -= flown
+            // An angled ramp carries the rider a tile across over the jump.
+            x += rampDir * flown / rampTotal
+        }
         // Sideways: the card's path, then the held or tilted steer, a trackpad shove and any bounce.
         val m = move
         if (m != null) {
@@ -408,6 +420,8 @@ internal class GgRun(
         push -= bounce
         val dx = (x - prevX) / dt.coerceAtLeast(0.001f)
         lean += ((dx / 3f).coerceIn(-1f, 1f) - lean) * min(1f, dt * 10f)
+        val face = if (lean > FACE_TURN) 1f else if (lean < -FACE_TURN) -1f else sign(facing)
+        facing += (face - facing) * min(1f, dt * FACE_SPEED)
         if (abs(steer) > 0.2f || abs(shove) > 0.001f) lateral = if (x > prevX) 1 else -1
         landing = if (wasAir && !airborne) LAND_TIME else max(0f, landing - dt)
         if (tracks.isEmpty() || y - tracks.last().y > TRACK_GAP) {
@@ -459,7 +473,7 @@ internal class GgRun(
         for (col in -1..GG_COLS) {
             val o = course.obstacleAt(col, row) ?: continue
             if (o.x != col) continue
-            val centre = o.x + (o.span - 1) / 2f
+            val centre = o.x + (o.span - 1) / 2f + o.shift
             val d = abs(x - centre)
             val reach = o.span / 2f + RIDER_HALF
             if (d >= reach) {
@@ -482,7 +496,7 @@ internal class GgRun(
                                 AIR_CLEAR,
                             )
                         } else {
-                            bump("A marmot! Combo lost", keepCombo = false)
+                            bump("A marmot! Combo lost", keepCombo = false, from = c.x)
                         }
                     }
                 }
@@ -556,7 +570,7 @@ internal class GgRun(
 
                     else -> {
                         val keep = o.kind == GgKind.STUMP && rider.perk == "Sure-Footed"
-                        bump(if (keep) "Bounced off a stump, combo kept" else "Bump: combo lost", keep)
+                        bump(if (keep) "Bounced off a stump, combo kept" else "Bump: combo lost", keep, o.x + (o.span - 1) / 2f + o.shift)
                     }
                 }
             }
@@ -564,9 +578,17 @@ internal class GgRun(
             GgKind.RAMP -> {
                 rampRows = RAMP_ROWS
                 rampTotal = RAMP_ROWS
+                rampDir = o.dir
                 move = null
                 speedUp(1.15f, 0.8f)
-                style("Ramp!", RAMP_BONUS)
+                style(
+                    when (o.dir) {
+                        -1 -> "Kicker left!"
+                        1 -> "Kicker right!"
+                        else -> "Ramp!"
+                    },
+                    RAMP_BONUS,
+                )
             }
 
             GgKind.BERM_LEFT, GgKind.BERM_RIGHT -> {
@@ -597,11 +619,14 @@ internal class GgRun(
         return if (x < (l + r) / 2f) 1f else -1f
     }
 
+    /** A knock off a stump, rock or marmot: away from what was hit at [from], unless that is off the trail. */
     private fun bump(
         text: String,
         keepCombo: Boolean,
+        from: Float = Float.NaN,
     ) {
-        push += towardCentre()
+        val away = if (from.isNaN() || x == from) towardCentre() else if (x > from) 1f else -1f
+        push += if (onTrail(x + away, y)) away else towardCentre()
         move = null
         if (!keepCombo) {
             combo = 1
@@ -777,6 +802,7 @@ internal class GgRun(
         nudged = 0f
         push = 0f
         rampRows = 0f
+        rampDir = 0
         move = null
     }
 
@@ -852,6 +878,14 @@ internal class GgRun(
         const val MUD_SECONDS = 1.5f
         const val RAMP_ROWS = 2.4f
         const val RIDER_HALF = 0.12f
+
+        /** How hard a lean swings the bike round to face the other way, and how fast it swings. */
+        const val FACE_TURN = 0.3f
+
+        /** Rows a second added for every gate passed, up to a cap. */
+        const val RAMP_UP = 0.025f
+        const val RAMP_UP_MAX = 0.6f
+        const val FACE_SPEED = 9f
         const val CLOSE_CALL_GAP = 0.35f
         const val ANIMAL_REACH = 0.6f
         const val GATE_SLACK = 0.5f
