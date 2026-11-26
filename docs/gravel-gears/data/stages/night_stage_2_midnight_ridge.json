@@ -1,0 +1,338 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "night_stage_2_midnight_ridge",
+  "stageNumber": 2,
+  "name": "Night Stage 2: Midnight Ridge",
+  "biomeId": "night_ride_oled",
+  "gridColumns": 9,
+  "trailWidth": 4,
+  "obstacleDensity": 0.24,
+  "scoreMultiplier": 1.5,
+  "unlocksOnStageGate": {
+    "gateNumber": 18,
+    "unlockId": "rider_knobby",
+    "label": "Knobby (Badger) Unlocked!"
+  },
+  "lightingOverride": {
+    "mode": "HEADLIGHT_CONE",
+    "headlightDepthTiles": 4,
+    "headlightWidthTiles": 5,
+    "gatesAlwaysVisible": true
+  },
+  "gateRange": {
+    "startGate": 10,
+    "endGate": 18
+  },
+  "endlessContinuation": true,
+  "gates": [
+    {
+      "gateNumber": 10,
+      "rowY": 50,
+      "trailCenterX": 4,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "AMBER_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": true,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 47,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 5,
+          "y": 48,
+          "type": "MUD"
+        }
+      ],
+      "recommendedLineHint": "Dark Fallen Log; High Beam or Bunny Hop recommended; Gate 10 Redraw recharge."
+    },
+    {
+      "gateNumber": 11,
+      "rowY": 55,
+      "trailCenterX": 3,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 2,
+        "rightX": 3
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 52,
+          "type": "GRAVEL"
+        },
+        {
+          "x": 3,
+          "y": 53,
+          "type": "BOULDER"
+        },
+        {
+          "x": 2,
+          "y": 53,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Scout ahead before carving across gravel into Gate 11."
+    },
+    {
+      "gateNumber": 12,
+      "rowY": 60,
+      "trailCenterX": 5,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 5,
+        "rightX": 6
+      },
+      "gateStyle": "AMBER_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "TACTICAL",
+        "RARE",
+        "NIGHT_BIOME"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 57,
+          "type": "BERM_LEFT"
+        },
+        {
+          "x": 4,
+          "y": 58,
+          "type": "MUD"
+        },
+        {
+          "x": 5,
+          "y": 58,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Left Berm bounce + Bunny Hop clears Gate 12; triggers Night Card Draft."
+    },
+    {
+      "gateNumber": 13,
+      "rowY": 65,
+      "trailCenterX": 4,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 62,
+          "type": "RAMP"
+        },
+        {
+          "x": 3,
+          "y": 63,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 5,
+          "y": 63,
+          "type": "SMALL_ROCK"
+        }
+      ],
+      "recommendedLineHint": "Cyan-chevron Ramp vaults cleanly over log in low visibility."
+    },
+    {
+      "gateNumber": 14,
+      "rowY": 70,
+      "trailCenterX": 3,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "AMBER_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 2,
+          "y": 67,
+          "type": "MUD"
+        },
+        {
+          "x": 4,
+          "y": 68,
+          "type": "BOULDER"
+        },
+        {
+          "x": 3,
+          "y": 68,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Stump Bank Shot keeps combo alive through Midnight Ridge."
+    },
+    {
+      "gateNumber": 15,
+      "rowY": 75,
+      "trailCenterX": 5,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": true,
+      "draftPoolFilter": [
+        "TACTICAL",
+        "RARE",
+        "NIGHT_BIOME"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 72,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 3,
+          "y": 73,
+          "type": "GRAVEL"
+        },
+        {
+          "x": 5,
+          "y": 73,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Tabletop Jump or Whip Right; Gate 15 triggers Draft + Redraw recharge."
+    },
+    {
+      "gateNumber": 16,
+      "rowY": 80,
+      "trailCenterX": 4,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "AMBER_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 5,
+          "y": 77,
+          "type": "BERM_RIGHT"
+        },
+        {
+          "x": 3,
+          "y": 78,
+          "type": "BOULDER"
+        },
+        {
+          "x": 4,
+          "y": 78,
+          "type": "MUD"
+        }
+      ],
+      "recommendedLineHint": "Reflector Berm redirects away from mud pit into Gate 16."
+    },
+    {
+      "gateNumber": 17,
+      "rowY": 85,
+      "trailCenterX": 3,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 2,
+        "rightX": 3
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 2,
+          "y": 82,
+          "type": "SMALL_ROCK"
+        },
+        {
+          "x": 3,
+          "y": 83,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 4,
+          "y": 83,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "High-speed Tuck & Bomb or Whip Left sets up final midnight stretch."
+    },
+    {
+      "gateNumber": 18,
+      "rowY": 90,
+      "trailCenterX": 4,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "CYAN_HOLO_ARCH",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "TACTICAL",
+        "RARE",
+        "NIGHT_BIOME"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 87,
+          "type": "RAMP"
+        },
+        {
+          "x": 3,
+          "y": 88,
+          "type": "BOULDER"
+        },
+        {
+          "x": 4,
+          "y": 88,
+          "type": "LOG",
+          "spanWidth": 2
+        }
+      ],
+      "recommendedLineHint": "Completing Gate 18 unlocks Knobby the Badger and transitions into endless Night Ride."
+    }
+  ]
+}

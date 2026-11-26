@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "1.0.0",
+  "validationSchema": "../schemas/stage_and_gate.schema.json",
+  "totalHandcraftedStages": 5,
+  "totalHandcraftedGates": 42,
+  "stages": [
+    {
+      "stageId": "stage_1_pine_ridge",
+      "name": "Stage 1: Pine Ridge",
+      "biomeId": "alpine_topo_day",
+      "file": "stage_1_pine_ridge.json",
+      "gateRange": {
+        "startGate": 1,
+        "endGate": 6
+      },
+      "gateCount": 6,
+      "endlessContinuation": false
+    },
+    {
+      "stageId": "stage_2_mudslide_switchbacks",
+      "name": "Stage 2: Mudslide Switchbacks",
+      "biomeId": "alpine_topo_day",
+      "file": "stage_2_mudslide_switchbacks.json",
+      "gateRange": {
+        "startGate": 7,
+        "endGate": 15
+      },
+      "gateCount": 9,
+      "endlessContinuation": false
+    },
+    {
+      "stageId": "stage_3_black_diamond_gorge",
+      "name": "Stage 3: Black Diamond Gorge",
+      "biomeId": "alpine_topo_day",
+      "file": "stage_3_black_diamond_gorge.json",
+      "gateRange": {
+        "startGate": 16,
+        "endGate": 24
+      },
+      "gateCount": 9,
+      "endlessContinuation": true
+    },
+    {
+      "stageId": "night_stage_1_twilight_singletrack",
+      "name": "Night Stage 1: Twilight Singletrack",
+      "biomeId": "night_ride_oled",
+      "file": "night_stage_1_twilight_singletrack.json",
+      "gateRange": {
+        "startGate": 1,
+        "endGate": 9
+      },
+      "gateCount": 9,
+      "endlessContinuation": false
+    },
+    {
+      "stageId": "night_stage_2_midnight_ridge",
+      "name": "Night Stage 2: Midnight Ridge",
+      "biomeId": "night_ride_oled",
+      "file": "night_stage_2_midnight_ridge.json",
+      "gateRange": {
+        "startGate": 10,
+        "endGate": 18
+      },
+      "gateCount": 9,
+      "endlessContinuation": true
+    }
+  ]
+}

@@ -32,6 +32,7 @@ io.github.aimindseye.sablegames.snakesladders
 io.github.aimindseye.sablegames.ludo
 io.github.aimindseye.sablegames.scaffold
 io.github.aimindseye.sablegames.melons
+io.github.aimindseye.sablegames.gravelgears
 io.github.aimindseye.sablegames.sudoku
 io.github.aimindseye.sablegames.minesweeper
 io.github.aimindseye.sablegames.game2048
@@ -44,6 +45,6 @@ io.github.aimindseye.sablegames.mahjong
 io.github.aimindseye.sablegames.words
 ```
 
-Registered so far (2026-11-13): console, cards, snakesladders, ludo, sudoku, minesweeper, game2048, bricks, snake and blocks. The console stopped after ten that day; reversi, solitaire, mahjong, words, scaffold and melons are still to register. Until then those six still install over USB with `adb install`.
+Registered so far (2026-11-13): console, cards, snakesladders, ludo, sudoku, minesweeper, game2048, bricks, snake and blocks. The console stopped after ten that day; reversi, solitaire, mahjong, words, scaffold, melons and gravelgears are still to register. Until then those seven still install over USB with `adb install`.
 
 Planned, not built yet: `io.github.aimindseye.sablegames.installer`.

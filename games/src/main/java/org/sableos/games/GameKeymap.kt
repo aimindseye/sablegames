@@ -64,7 +64,7 @@ internal data class GameKeyPress(
     val repeatCount: Int = 0,
 )
 
-internal enum class GameKind { Sudoku, Minesweeper, Game2048, Bricks, Snake, Blocks, Reversi, Solitaire, Mahjong, Words, Melons, Indian }
+internal enum class GameKind { Sudoku, Minesweeper, Game2048, Bricks, Snake, Blocks, Reversi, Solitaire, Mahjong, Words, Melons, GravelGears, Indian }
 
 internal object GameKeymap {
     fun command(
@@ -97,6 +97,7 @@ internal object GameKeymap {
             GameKind.Mahjong -> mahjong(press)
             GameKind.Words -> words(press)
             GameKind.Melons -> melons(press)
+            GameKind.GravelGears -> gravelGears(press)
             GameKind.Indian -> indian(press)
         }
     }
@@ -223,6 +224,22 @@ internal object GameKeymap {
             press.keyCode == KeyEvent.KEYCODE_V || press.keyCode == KeyEvent.KEYCODE_TAB -> GameCommand.Hint
             press.keyCode == KeyEvent.KEYCODE_R -> GameCommand.Undo
             press.keyCode == KeyEvent.KEYCODE_P -> GameCommand.Pause
+            else -> common(press)
+        }
+
+    /**
+     * Gravel & Gears: A S D F (or 1 to 4) pick a card and play it, Enter or Space rides the picked card, R redraws,
+     * U takes a card back, Del or Esc skips a draft. The card keys can be rebound in Controls.
+     */
+    private fun gravelGears(press: GameKeyPress): GameCommand? =
+        when {
+            press.alt -> null
+            press.char in '1'..'4' -> GameCommand.Digit(press.char!! - '0')
+            isPrimary(press.keyCode) -> GameCommand.Primary
+            press.keyCode == KeyEvent.KEYCODE_R -> GameCommand.Draw
+            press.keyCode == KeyEvent.KEYCODE_U -> GameCommand.Undo
+            press.keyCode == KeyEvent.KEYCODE_P -> GameCommand.Pause
+            press.keyCode == KeyEvent.KEYCODE_DEL || press.keyCode == KeyEvent.KEYCODE_ESCAPE -> GameCommand.Erase
             else -> common(press)
         }
 

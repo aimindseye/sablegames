@@ -1,0 +1,328 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "stage_2_mudslide_switchbacks",
+  "stageNumber": 2,
+  "name": "Stage 2: Mudslide Switchbacks",
+  "biomeId": "alpine_topo_day",
+  "gridColumns": 9,
+  "trailWidth": 4,
+  "obstacleDensity": 0.2,
+  "scoreMultiplier": 1.0,
+  "unlocksOnStageGate": {
+    "gateNumber": 15,
+    "unlockId": "rider_spokes",
+    "label": "Spokes (Red Fox) Unlocked!"
+  },
+  "lightingOverride": {
+    "mode": "DAYLIGHT",
+    "headlightDepthTiles": null,
+    "headlightWidthTiles": null,
+    "gatesAlwaysVisible": true
+  },
+  "gateRange": {
+    "startGate": 7,
+    "endGate": 15
+  },
+  "endlessContinuation": false,
+  "gates": [
+    {
+      "gateNumber": 7,
+      "rowY": 35,
+      "trailCenterX": 4,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 2,
+          "y": 33,
+          "type": "MUD"
+        },
+        {
+          "x": 3,
+          "y": 33,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Introduces Mud Pit; bank off stump at (3,33) right into Gate 7 (+100 BANK SHOT)."
+    },
+    {
+      "gateNumber": 8,
+      "rowY": 40,
+      "trailCenterX": 3,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 2,
+        "rightX": 3
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 5,
+          "y": 37,
+          "type": "BERM_RIGHT"
+        },
+        {
+          "x": 3,
+          "y": 38,
+          "type": "MUD"
+        }
+      ],
+      "recommendedLineHint": "Slingshot off outer right Berm inward to dodge mud and align with Gate 8."
+    },
+    {
+      "gateNumber": 9,
+      "rowY": 45,
+      "trailCenterX": 5,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 5,
+        "rightX": 6
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "RARE"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 42,
+          "type": "BOULDER"
+        },
+        {
+          "x": 4,
+          "y": 43,
+          "type": "STUMP"
+        },
+        {
+          "x": 6,
+          "y": 44,
+          "type": "MUD"
+        }
+      ],
+      "recommendedLineHint": "Hard Right carve or stump bounce into Gate 9; triggers Card Draft."
+    },
+    {
+      "gateNumber": 10,
+      "rowY": 50,
+      "trailCenterX": 4,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": true,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 47,
+          "type": "RAMP"
+        },
+        {
+          "x": 4,
+          "y": 48,
+          "type": "MUD"
+        },
+        {
+          "x": 3,
+          "y": 48,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Ramp launch clears the mud + boulder cluster; Gate 10 recharges +1 Redraw."
+    },
+    {
+      "gateNumber": 11,
+      "rowY": 55,
+      "trailCenterX": 3,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 2,
+          "y": 52,
+          "type": "BERM_LEFT"
+        },
+        {
+          "x": 4,
+          "y": 53,
+          "type": "BOULDER"
+        },
+        {
+          "x": 2,
+          "y": 54,
+          "type": "MUD"
+        }
+      ],
+      "recommendedLineHint": "Left Berm slingshots rider cleanly around boulder into Gate 11."
+    },
+    {
+      "gateNumber": 12,
+      "rowY": 60,
+      "trailCenterX": 5,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "RARE"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 57,
+          "type": "SMALL_ROCK"
+        },
+        {
+          "x": 5,
+          "y": 58,
+          "type": "STUMP"
+        },
+        {
+          "x": 3,
+          "y": 58,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Knobby smashes small rock; others carve right into Gate 12 Card Draft."
+    },
+    {
+      "gateNumber": 13,
+      "rowY": 65,
+      "trailCenterX": 4,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 5,
+          "y": 62,
+          "type": "MUD"
+        },
+        {
+          "x": 4,
+          "y": 63,
+          "type": "BOULDER"
+        },
+        {
+          "x": 2,
+          "y": 63,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Bunny Hop over (4,63) boulder or Skid Stop to clear mud before Gate 13."
+    },
+    {
+      "gateNumber": 14,
+      "rowY": 70,
+      "trailCenterX": 5,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 5,
+        "rightX": 6
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 67,
+          "type": "BERM_LEFT"
+        },
+        {
+          "x": 4,
+          "y": 68,
+          "type": "STUMP"
+        },
+        {
+          "x": 6,
+          "y": 68,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Pinball combo: Left Berm -> Stump Bank Shot into Gate 14."
+    },
+    {
+      "gateNumber": 15,
+      "rowY": 75,
+      "trailCenterX": 4,
+      "trailWidth": 4,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": true,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "RARE"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 72,
+          "type": "RAMP"
+        },
+        {
+          "x": 3,
+          "y": 73,
+          "type": "BOULDER"
+        },
+        {
+          "x": 4,
+          "y": 73,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Double boulder jump via ramp; Gate 15 unlocks Spokes + Draft + Redraw recharge."
+    }
+  ]
+}

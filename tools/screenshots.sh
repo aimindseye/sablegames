@@ -53,6 +53,7 @@ table=(
     "ludo|ludo|SPACE"
     "scaffold|scaffold|SPACE"
     "melons|melons|ENTER"
+    "gravelgears|gravelgears|ENTER"
     "sudoku|sudoku|"
     "minesweeper|minesweeper|SPACE"
     "game2048|game-2048|DPAD_LEFT DPAD_UP"

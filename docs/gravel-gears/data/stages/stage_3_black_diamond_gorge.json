@@ -1,0 +1,339 @@
+{
+  "schemaVersion": "1.0.0",
+  "stageId": "stage_3_black_diamond_gorge",
+  "stageNumber": 3,
+  "name": "Stage 3: Black Diamond Gorge",
+  "biomeId": "alpine_topo_day",
+  "gridColumns": 9,
+  "trailWidth": 3,
+  "obstacleDensity": 0.3,
+  "scoreMultiplier": 1.0,
+  "unlocksOnStageGate": {
+    "gateNumber": 18,
+    "unlockId": "biome_night_ride_oled",
+    "label": "Night Ride (OLED) Biome Unlocked!"
+  },
+  "lightingOverride": {
+    "mode": "DAYLIGHT",
+    "headlightDepthTiles": null,
+    "headlightWidthTiles": null,
+    "gatesAlwaysVisible": true
+  },
+  "gateRange": {
+    "startGate": 16,
+    "endGate": 24
+  },
+  "endlessContinuation": true,
+  "gates": [
+    {
+      "gateNumber": 16,
+      "rowY": 80,
+      "trailCenterX": 4,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 77,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 5,
+          "y": 78,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "First 2-tile Fallen Log; Bunny Hop or Tabletop Jump required for clean line."
+    },
+    {
+      "gateNumber": 17,
+      "rowY": 85,
+      "trailCenterX": 5,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 82,
+          "type": "GRAVEL"
+        },
+        {
+          "x": 5,
+          "y": 83,
+          "type": "BOULDER"
+        },
+        {
+          "x": 3,
+          "y": 83,
+          "type": "STUMP"
+        }
+      ],
+      "recommendedLineHint": "Watch Loose Gravel lateral drift at (4,82); use Manual or Hard Right."
+    },
+    {
+      "gateNumber": 18,
+      "rowY": 90,
+      "trailCenterX": 3,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 2,
+        "rightX": 3
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "RARE"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 87,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 2,
+          "y": 88,
+          "type": "MUD"
+        },
+        {
+          "x": 4,
+          "y": 88,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "High-stakes gorge bend; clearing Gate 18 unlocks Night Ride OLED + Card Draft."
+    },
+    {
+      "gateNumber": 19,
+      "rowY": 95,
+      "trailCenterX": 4,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 92,
+          "type": "RAMP"
+        },
+        {
+          "x": 3,
+          "y": 93,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 5,
+          "y": 93,
+          "type": "SMALL_ROCK"
+        }
+      ],
+      "recommendedLineHint": "Ramp launch cleanly clears the 2-tile fallen log into Gate 19."
+    },
+    {
+      "gateNumber": 20,
+      "rowY": 100,
+      "trailCenterX": 5,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 5,
+        "rightX": 6
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": true,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 97,
+          "type": "GRAVEL"
+        },
+        {
+          "x": 5,
+          "y": 98,
+          "type": "STUMP"
+        },
+        {
+          "x": 6,
+          "y": 98,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Controlled gravel drift into stump bank shot; Gate 20 recharges +1 Redraw."
+    },
+    {
+      "gateNumber": 21,
+      "rowY": 105,
+      "trailCenterX": 4,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 3,
+        "rightX": 4
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "RARE"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 5,
+          "y": 102,
+          "type": "BERM_RIGHT"
+        },
+        {
+          "x": 3,
+          "y": 103,
+          "type": "BOULDER"
+        },
+        {
+          "x": 4,
+          "y": 103,
+          "type": "MUD"
+        }
+      ],
+      "recommendedLineHint": "Right Berm bounce avoids mud and sets up Gate 21 Card Draft."
+    },
+    {
+      "gateNumber": 22,
+      "rowY": 110,
+      "trailCenterX": 3,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 2,
+        "rightX": 3
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 2,
+          "y": 107,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 3,
+          "y": 108,
+          "type": "BOULDER"
+        },
+        {
+          "x": 4,
+          "y": 108,
+          "type": "GRAVEL"
+        }
+      ],
+      "recommendedLineHint": "Tabletop Jump clears stacked log + boulder for double +75 Air Bonus."
+    },
+    {
+      "gateNumber": 23,
+      "rowY": 115,
+      "trailCenterX": 4,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": false,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": null,
+      "segmentObstacles": [
+        {
+          "x": 3,
+          "y": 112,
+          "type": "SMALL_ROCK"
+        },
+        {
+          "x": 4,
+          "y": 113,
+          "type": "LOG",
+          "spanWidth": 2
+        },
+        {
+          "x": 2,
+          "y": 113,
+          "type": "BOULDER"
+        }
+      ],
+      "recommendedLineHint": "Whip Right airborne diagonal jump threads narrow exit into Gate 23."
+    },
+    {
+      "gateNumber": 24,
+      "rowY": 120,
+      "trailCenterX": 5,
+      "trailWidth": 3,
+      "gateSpan": {
+        "leftX": 4,
+        "rightX": 5
+      },
+      "gateStyle": "ORANGE_FLAGS",
+      "basePoints": 100,
+      "triggersCardDraft": true,
+      "triggersRedrawRecharge": false,
+      "draftPoolFilter": [
+        "COMMON",
+        "TACTICAL",
+        "RARE"
+      ],
+      "segmentObstacles": [
+        {
+          "x": 4,
+          "y": 117,
+          "type": "RAMP"
+        },
+        {
+          "x": 4,
+          "y": 118,
+          "type": "BOULDER"
+        },
+        {
+          "x": 5,
+          "y": 118,
+          "type": "LOG",
+          "spanWidth": 2
+        }
+      ],
+      "recommendedLineHint": "Climax gorge jump; endless procedural Black Diamond mode continues after Gate 24."
+    }
+  ]
+}
