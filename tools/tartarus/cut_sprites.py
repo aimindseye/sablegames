@@ -20,8 +20,15 @@ def save(im, out, name, longest, quality=82):
     im.save(out / f"{name}.webp", "WEBP", quality=quality, method=6)
 
 
+REPO = Path(__file__).resolve().parents[2]
+
+
 def main(src, out):
-    src, out = Path(src), Path(out)
+    src, out = Path(src).resolve(strict=True), (REPO / out).resolve()
+    if not src.is_dir():
+        raise SystemExit(f"HANDOFF_DIR is not a folder: {src}")
+    if not out.is_relative_to(REPO):
+        raise SystemExit(f"The output folder must be inside the repository: {out}")
     out.mkdir(parents=True, exist_ok=True)
     art = src / "05_illustrated_assets"
     for i, gate in enumerate(["asphodel", "phlegethon", "labyrinth", "abyssal_seal"], 1):
