@@ -9,7 +9,7 @@
 
 Keyboard-first games for BlackBerry-style Android phones: the Zinwa Q25 and the Unihertz Titan 2, and any other phone with a hardware keyboard. They play from the keys and the trackpad, and also by touch. They were first written for [SableOS](https://github.com/aimindseye/zinwaq25-sableos) and live here so they install on stock firmware too, with no SableOS and no Sable launcher.
 
-**Latest release: [1.0.0](docs/releases/v1.0.0.md)**: sixteen apps, including the new Bitter Melons.
+**Latest release: [2.0.0](docs/releases/v2.0.0.md)**: seventeen apps, including the new Gravel & Gears and three new Bitter Melons worlds.
 
 ## The apps
 
@@ -62,7 +62,7 @@ A console game is a folder with a `game.toml` and one `.lua` script (and up to 3
 - [Writing a Lua game: tutorial](docs/GAMES_CONSOLE_TUTORIAL.md), including what a game can and can't do to the phone.
 - [Games Console reference](docs/GAMES_CONSOLE.md): every call a game can make.
 - [Releasing](docs/RELEASING.md): signing on your computer, publishing, and the package names.
-- [Release notes](docs/releases/): what changed in each version, starting with [1.0.0](docs/releases/v1.0.0.md).
+- [Release notes](docs/releases/): what changed in each version, from [1.0.0](docs/releases/v1.0.0.md) to the latest, [2.0.0](docs/releases/v2.0.0.md).
 - [Phone checks](docs/PHONE_CHECKS.md): the checks run by hand on a phone.
 
 ## Build
