@@ -98,6 +98,25 @@ wanted() {
     return 1
 }
 
+# Saves the phone's screen to the file $1 as a PNG. It captures on the phone and pulls the file,
+# because `adb exec-out screencap -p > file` can damage the picture: a redirect that rewrites bytes
+# (PowerShell, some Windows shells), or text the device prints before the PNG. The saved file's
+# first eight bytes are then checked, and a file that is not a PNG is deleted and reported.
+remote_shot=/data/local/tmp/sable-shot.png
+capture() {
+    local file="$1" magic
+    if ! "${adb_cmd[@]}" shell screencap -p "$remote_shot" >/dev/null 2>&1 \
+        || ! "${adb_cmd[@]}" pull "$remote_shot" "$file" >/dev/null 2>&1; then
+        echo "FAILED to capture $file" >&2; rm -f "$file"; return 1
+    fi
+    "${adb_cmd[@]}" shell rm -f "$remote_shot" >/dev/null 2>&1 || true
+    magic="$(head -c 8 "$file" | od -An -tx1 | tr -d ' \n')"
+    if [[ "$magic" != 89504e470d0a1a0a ]]; then
+        echo "FAILED: $file is not a valid PNG (starts $magic)" >&2; rm -f "$file"; return 1
+    fi
+    echo "saved $file"
+}
+
 mkdir -p "$out"
 taken=0
 missed=()
@@ -128,9 +147,7 @@ for row in "${table[@]}"; do
         read -r -p "$flavor: set up the shot on the phone, then press Enter (s skips) " answer
         if [[ "$answer" == s ]]; then echo "skipped $flavor"; missed+=("$name.png"); continue; fi
     fi
-    "${adb_cmd[@]}" exec-out screencap -p > "$out/$name.png"
-    echo "saved $out/$name.png"
-    taken=$((taken + 1))
+    if capture "$out/$name.png"; then taken=$((taken + 1)); else missed+=("$name.png (capture failed)"); continue; fi
     [[ "$auto" == yes ]] && continue
     # The games inside Card Games and the console, one shot each.
     inside=()
@@ -140,18 +157,14 @@ for row in "${table[@]}"; do
         IFS='|' read -r suffix label <<< "$game"
         read -r -p "$flavor: open $label on the phone and set up the shot, then press Enter (s skips) " answer
         if [[ "$answer" == s ]]; then echo "skipped $label"; missed+=("$name-$suffix.png"); continue; fi
-        "${adb_cmd[@]}" exec-out screencap -p > "$out/$name-$suffix.png"
-        echo "saved $out/$name-$suffix.png"
-        taken=$((taken + 1))
+        if capture "$out/$name-$suffix.png"; then taken=$((taken + 1)); else missed+=("$name-$suffix.png (capture failed)"); fi
     done
     # Any other shots of the same app, named by you.
     while true; do
         read -r -p "$flavor: for another shot of this app type a short name for it (e.g. settings), or Enter for the next app: " extra
         extra="$(printf '%s' "$extra" | tr 'A-Z ' 'a-z-' | tr -cd 'a-z0-9-')"
         [[ -z "$extra" ]] && break
-        "${adb_cmd[@]}" exec-out screencap -p > "$out/$name-$extra.png"
-        echo "saved $out/$name-$extra.png"
-        taken=$((taken + 1))
+        if capture "$out/$name-$extra.png"; then taken=$((taken + 1)); else missed+=("$name-$extra.png (capture failed)"); fi
     done
 done
 echo "$taken screenshot(s) in $out"
