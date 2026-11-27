@@ -23,7 +23,7 @@ The keystore and alias are required, as arguments or as `SABLEGAMES_KEYSTORE` an
 
 ## Package names
 
-The 16 names to register in the Android Developer Console, one per app:
+The 17 names to register in the Android Developer Console, one per app:
 
 ```
 io.github.aimindseye.sablegames.console

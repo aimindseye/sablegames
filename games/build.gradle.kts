@@ -7,7 +7,7 @@ plugins {
 // The release version is a build input, not a constant: pass -PsablegamesVersion=1.0.1 (what
 // tools/build-release.sh does) or set SABLEGAMES_VERSION. Without either, local and CI builds use
 // the default below. versionCode is major * 100 + minor * 10 + patch, so 1.0.0 is 100 and 1.2.3 is 123.
-val sableVersionDefault = "1.0.0"
+val sableVersionDefault = "2.0.0"
 val sableVersionName: String = providers.gradleProperty("sablegamesVersion")
     .orElse(providers.environmentVariable("SABLEGAMES_VERSION"))
     .orElse(sableVersionDefault)
