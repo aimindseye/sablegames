@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "weapons": [
+    {
+      "id": "apollo_sunbow",
+      "display_name": "Apollo's Sunbow",
+      "short_label": "SUNBOW",
+      "hotkey": "KEYCODE_Q",
+      "key_badge": "Q",
+      "role": "precision_rapid",
+      "damage_per_shot": 22,
+      "fire_rate_ms": 220,
+      "favor_cost": 0,
+      "projectile": {
+        "type": "hitscan_beam",
+        "count": 1,
+        "spread_deg": 1.2,
+        "pierce_count": 0,
+        "knockback": 2.0,
+        "color_hex": "#FFD447"
+      },
+      "auto_aim_magnetism_deg": 4.5,
+      "sprite_asset": "weapons/vec_apollo_sunbow.xml",
+      "vfx_id": "vfx_solar_streak"
+    },
+    {
+      "id": "poseidon_trident",
+      "display_name": "Poseidon's Trident",
+      "short_label": "TRIDENT",
+      "hotkey": "KEYCODE_W",
+      "key_badge": "W",
+      "role": "crowd_clear",
+      "damage_per_shot": 16,
+      "fire_rate_ms": 680,
+      "favor_cost": 4,
+      "projectile": {
+        "type": "wave_arc",
+        "count": 7,
+        "spread_deg": 24.0,
+        "pierce_count": 1,
+        "knockback": 12.5,
+        "color_hex": "#33E6FF"
+      },
+      "auto_aim_magnetism_deg": 6.0,
+      "sprite_asset": "weapons/vec_poseidon_trident.xml",
+      "vfx_id": "vfx_stygian_wave"
+    },
+    {
+      "id": "hades_bident",
+      "display_name": "Hades' Bident",
+      "short_label": "BIDENT",
+      "hotkey": "KEYCODE_E",
+      "key_badge": "E",
+      "role": "piercing_mid",
+      "damage_per_shot": 38,
+      "fire_rate_ms": 420,
+      "favor_cost": 6,
+      "projectile": {
+        "type": "fast_bolt",
+        "speed_units_sec": 34.0,
+        "count": 2,
+        "spread_deg": 4.0,
+        "pierce_count": 3,
+        "knockback": 4.5,
+        "color_hex": "#B44CFF"
+      },
+      "auto_aim_magnetism_deg": 5.0,
+      "sprite_asset": "weapons/vec_hades_bident.xml",
+      "vfx_id": "vfx_soul_bolt"
+    },
+    {
+      "id": "zeus_aegis_bolt",
+      "display_name": "Zeus's Aegis Bolt",
+      "short_label": "AEGIS",
+      "hotkey": "KEYCODE_R",
+      "key_badge": "R",
+      "role": "screen_clear_ultimate",
+      "damage_per_shot": 140,
+      "fire_rate_ms": 1400,
+      "favor_cost": 35,
+      "projectile": {
+        "type": "chain_lightning",
+        "count": 1,
+        "spread_deg": 0.0,
+        "chain_targets": 8,
+        "chain_radius_units": 12.0,
+        "knockback": 10.0,
+        "color_hex": "#FFF275"
+      },
+      "auto_aim_magnetism_deg": 10.0,
+      "sprite_asset": "weapons/vec_zeus_aegis_bolt.xml",
+      "vfx_id": "vfx_olympian_storm"
+    }
+  ]
+}

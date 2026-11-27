@@ -1,0 +1,122 @@
+{
+  "gate_id": "gate_01_asphodel",
+  "gate_number": 1,
+  "display_name": "Gates of Asphodel",
+  "unlock_requirement": null,
+  "theme": {
+    "skybox_hex": "#121622",
+    "floor_hex": "#2B2E38",
+    "pillar_hex": "#525866",
+    "accent_glow_hex": "#4DF0FF"
+  },
+  "stages": [
+    {
+      "stage_number": 1,
+      "title": "The Threshold",
+      "type": "survival",
+      "duration_sec": 40,
+      "arena_radius": 24,
+      "pillar_preset": "open_ring_4",
+      "hazard": "none",
+      "spawn_interval_ms": 1800,
+      "max_concurrent": 16,
+      "enemy_pool": [
+        {
+          "id": "skeletal_hoplite",
+          "weight": 85
+        },
+        {
+          "id": "shade_wisp",
+          "weight": 15
+        }
+      ]
+    },
+    {
+      "stage_number": 2,
+      "title": "The Pillared Hall",
+      "type": "survival",
+      "duration_sec": 50,
+      "arena_radius": 24,
+      "pillar_preset": "grid_6",
+      "hazard": "none",
+      "spawn_interval_ms": 1450,
+      "max_concurrent": 22,
+      "enemy_pool": [
+        {
+          "id": "skeletal_hoplite",
+          "weight": 65
+        },
+        {
+          "id": "shade_wisp",
+          "weight": 35
+        }
+      ]
+    },
+    {
+      "stage_number": 3,
+      "title": "Trial of Mist",
+      "type": "survival",
+      "duration_sec": 55,
+      "arena_radius": 22,
+      "pillar_preset": "cross_8",
+      "hazard": "soul_fog_slow_zones",
+      "spawn_interval_ms": 1300,
+      "max_concurrent": 26,
+      "enemy_pool": [
+        {
+          "id": "skeletal_hoplite",
+          "weight": 50
+        },
+        {
+          "id": "shade_wisp",
+          "weight": 30
+        },
+        {
+          "id": "stygian_stalker",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "stage_number": 4,
+      "title": "Asphodel Onslaught",
+      "type": "survival",
+      "duration_sec": 60,
+      "arena_radius": 26,
+      "pillar_preset": "open_ring_6",
+      "hazard": "soul_fog_slow_zones",
+      "spawn_interval_ms": 1050,
+      "max_concurrent": 34,
+      "enemy_pool": [
+        {
+          "id": "skeletal_hoplite",
+          "weight": 45
+        },
+        {
+          "id": "shade_wisp",
+          "weight": 30
+        },
+        {
+          "id": "stygian_stalker",
+          "weight": 25
+        }
+      ]
+    },
+    {
+      "stage_number": 5,
+      "title": "Guardian Sanctum",
+      "type": "boss",
+      "arena_radius": 28,
+      "pillar_preset": "outer_ring_6",
+      "hazard": "none",
+      "boss_id": "cerberus_hound",
+      "minion_pool": [
+        {
+          "id": "skeletal_hoplite",
+          "max_concurrent": 6,
+          "spawn_interval_ms": 5000
+        }
+      ]
+    }
+  ]
+}

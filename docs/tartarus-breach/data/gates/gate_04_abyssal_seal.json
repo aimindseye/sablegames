@@ -1,0 +1,138 @@
+{
+  "gate_id": "gate_04_abyssal_seal",
+  "gate_number": 4,
+  "display_name": "The Abyssal Seal",
+  "unlock_requirement": "gate_03_labyrinth",
+  "theme": {
+    "skybox_hex": "#0B0719",
+    "floor_hex": "#1B1530",
+    "pillar_hex": "#3C2F63",
+    "accent_glow_hex": "#C77DFF"
+  },
+  "stages": [
+    {
+      "stage_number": 1,
+      "title": "Chained Threshold",
+      "type": "survival",
+      "duration_sec": 45,
+      "arena_radius": 26,
+      "pillar_preset": "open_ring_6",
+      "hazard": "void_gravity_wells",
+      "spawn_interval_ms": 1200,
+      "max_concurrent": 26,
+      "enemy_pool": [
+        {
+          "id": "void_acolyte",
+          "weight": 45
+        },
+        {
+          "id": "stygian_stalker",
+          "weight": 35
+        },
+        {
+          "id": "tartarus_titan",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "stage_number": 2,
+      "title": "Titan's Promenade",
+      "type": "survival",
+      "duration_sec": 55,
+      "arena_radius": 26,
+      "pillar_preset": "grid_6",
+      "hazard": "void_gravity_wells",
+      "spawn_interval_ms": 1050,
+      "max_concurrent": 32,
+      "enemy_pool": [
+        {
+          "id": "void_acolyte",
+          "weight": 35
+        },
+        {
+          "id": "charging_minotaur",
+          "weight": 30
+        },
+        {
+          "id": "tartarus_titan",
+          "weight": 35
+        }
+      ]
+    },
+    {
+      "stage_number": 3,
+      "title": "Trial of Eternity",
+      "type": "survival",
+      "duration_sec": 60,
+      "arena_radius": 28,
+      "pillar_preset": "cross_8",
+      "hazard": "time_dilation_zones",
+      "spawn_interval_ms": 950,
+      "max_concurrent": 38,
+      "enemy_pool": [
+        {
+          "id": "void_acolyte",
+          "weight": 30
+        },
+        {
+          "id": "gorgon_sentinel",
+          "weight": 25
+        },
+        {
+          "id": "magma_cyclops",
+          "weight": 20
+        },
+        {
+          "id": "tartarus_titan",
+          "weight": 25
+        }
+      ]
+    },
+    {
+      "stage_number": 4,
+      "title": "Abyssal Onslaught",
+      "type": "survival",
+      "duration_sec": 65,
+      "arena_radius": 30,
+      "pillar_preset": "open_ring_6",
+      "hazard": "time_dilation_zones",
+      "spawn_interval_ms": 800,
+      "max_concurrent": 45,
+      "enemy_pool": [
+        {
+          "id": "void_acolyte",
+          "weight": 25
+        },
+        {
+          "id": "fire_harpy",
+          "weight": 20
+        },
+        {
+          "id": "charging_minotaur",
+          "weight": 25
+        },
+        {
+          "id": "tartarus_titan",
+          "weight": 30
+        }
+      ]
+    },
+    {
+      "stage_number": 5,
+      "title": "Throne of Kronos",
+      "type": "boss",
+      "arena_radius": 32,
+      "pillar_preset": "outer_ring_6",
+      "hazard": "time_dilation_zones",
+      "boss_id": "kronos_echo",
+      "minion_pool": [
+        {
+          "id": "void_acolyte",
+          "max_concurrent": 5,
+          "spawn_interval_ms": 5000
+        }
+      ]
+    }
+  ]
+}

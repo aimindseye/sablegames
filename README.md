@@ -24,6 +24,7 @@ Each game is its own app, so you install only the ones you want.
 | Sable Scaffold | `io.github.aimindseye.sablegames.scaffold` | Climb the site, dodge rolling hazards, rescue Juno |
 | Bitter Melons | `io.github.aimindseye.sablegames.melons` | Fling angry melons from a slingshot and topple the AI Slop. Four worlds: 36 levels |
 | Gravel & Gears | `io.github.aimindseye.sablegames.gravelgears` | Nonstop downhill mountain biking: steer with the trackpad, keys or tilt, fire cards as moves, hit the gates, draft new cards. Day and Night Ride trails, three riders |
+| Tartarus Breach | `io.github.aimindseye.sablegames.tartarus` | First-person arena roguelite in the Underworld: fight down four Gates of Tartarus with four mythic artifacts, draft Olympian Boons between waves and seal each Gate by felling its Guardian. W A S D, J L and the trackpad (or touch) play it. New in the next release; its package name is not registered yet |
 | Sable Sudoku | `io.github.aimindseye.sablegames.sudoku` | Fill the 9 x 9 grid |
 | Sable Minesweeper | `io.github.aimindseye.sablegames.minesweeper` | Clear the field without hitting a mine |
 | Sable 2048 | `io.github.aimindseye.sablegames.game2048` | Slide tiles to merge them up to 2048 |
@@ -86,7 +87,7 @@ Release APKs build unsigned; releases are signed on the owner's computer with `t
 | `docs/` | The guides, release notes, and Bitter Melons' level data (`docs/bitter-melons/levels.json`) |
 | `design/` | The Sable look: colours, type, list keys and the shared components |
 | `.github/workflows/` | Build and test, security scans and SonarQube Cloud |
-| `tools/` | `build-release.sh` (signed release on your computer), `check-apks.sh`, `screenshots.sh` (captures every game from a phone over adb for the docs), and `melons/cut_sprites.py` (cuts Bitter Melons' sprites from the art sheets), and `gravelgears/` (`cut_sprites.py` cuts Gravel & Gears' art, `gen_data.py` turns its card and stage JSON into `GravelGearsData.kt`) |
+| `tools/` | `build-release.sh` (signed release on your computer), `check-apks.sh`, `screenshots.sh` (captures every game from a phone over adb for the docs), and `melons/cut_sprites.py` (cuts Bitter Melons' sprites from the art sheets), `tartarus/` (`cut_sprites.py` converts Tartarus Breach's art, `gen_data.py` turns its JSON into `TartarusData.kt`), and `gravelgears/` (`cut_sprites.py` cuts Gravel & Gears' art, `gen_data.py` turns its card and stage JSON into `GravelGearsData.kt`) |
 
 ## Licence
 

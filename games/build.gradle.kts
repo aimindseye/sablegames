@@ -134,6 +134,13 @@ android {
             resValue("string", "app_name", "Gravel & Gears")
             buildConfigField("String", "SABLE_GAME", "\"gravelgears\"")
         }
+        // Hades: Tartarus Breach, a first-person arena roguelite for keyboard phones (its package name is new).
+        create("tartarus") {
+            dimension = "game"
+            applicationId = "io.github.aimindseye.sablegames.tartarus"
+            resValue("string", "app_name", "Tartarus Breach")
+            buildConfigField("String", "SABLE_GAME", "\"tartarus\"")
+        }
         // Sable Games Console: games written in Lua, added from a folder without rebuilding the app.
         create("console") {
             dimension = "game"

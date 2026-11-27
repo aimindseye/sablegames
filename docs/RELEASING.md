@@ -45,6 +45,14 @@ io.github.aimindseye.sablegames.mahjong
 io.github.aimindseye.sablegames.words
 ```
 
-All 17 package names are registered.
+All 17 package names above are registered.
+
+The eighteenth app, Tartarus Breach, needs its own name registered before it is released:
+
+```
+io.github.aimindseye.sablegames.tartarus
+```
+
+It is a separate flavor; no existing app's package name or signing changes.
 
 Planned, not built yet: `io.github.aimindseye.sablegames.installer`.

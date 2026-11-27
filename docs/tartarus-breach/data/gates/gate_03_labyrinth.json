@@ -1,0 +1,130 @@
+{
+  "gate_id": "gate_03_labyrinth",
+  "gate_number": 3,
+  "display_name": "Labyrinth of Minos",
+  "unlock_requirement": "gate_02_phlegethon",
+  "theme": {
+    "skybox_hex": "#1A1510",
+    "floor_hex": "#403428",
+    "pillar_hex": "#7A634C",
+    "accent_glow_hex": "#F4B942"
+  },
+  "stages": [
+    {
+      "stage_number": 1,
+      "title": "Daedalus' Entry",
+      "type": "survival",
+      "duration_sec": 45,
+      "arena_radius": 22,
+      "pillar_preset": "maze_corridors_a",
+      "hazard": "none",
+      "spawn_interval_ms": 1400,
+      "max_concurrent": 22,
+      "enemy_pool": [
+        {
+          "id": "skeletal_hoplite",
+          "weight": 50
+        },
+        {
+          "id": "gorgon_sentinel",
+          "weight": 30
+        },
+        {
+          "id": "charging_minotaur",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "stage_number": 2,
+      "title": "Hall of Mirrors",
+      "type": "survival",
+      "duration_sec": 50,
+      "arena_radius": 22,
+      "pillar_preset": "maze_corridors_b",
+      "hazard": "spike_floor_plates",
+      "spawn_interval_ms": 1200,
+      "max_concurrent": 28,
+      "enemy_pool": [
+        {
+          "id": "gorgon_sentinel",
+          "weight": 45
+        },
+        {
+          "id": "charging_minotaur",
+          "weight": 35
+        },
+        {
+          "id": "stygian_stalker",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "stage_number": 3,
+      "title": "Trial of the Thread",
+      "type": "survival",
+      "duration_sec": 55,
+      "arena_radius": 24,
+      "pillar_preset": "shifting_walls_4",
+      "hazard": "spike_floor_plates",
+      "spawn_interval_ms": 1050,
+      "max_concurrent": 32,
+      "enemy_pool": [
+        {
+          "id": "gorgon_sentinel",
+          "weight": 40
+        },
+        {
+          "id": "charging_minotaur",
+          "weight": 40
+        },
+        {
+          "id": "fire_harpy",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "stage_number": 4,
+      "title": "Minotaur Onslaught",
+      "type": "survival",
+      "duration_sec": 60,
+      "arena_radius": 26,
+      "pillar_preset": "shifting_walls_4",
+      "hazard": "spike_floor_plates",
+      "spawn_interval_ms": 900,
+      "max_concurrent": 40,
+      "enemy_pool": [
+        {
+          "id": "gorgon_sentinel",
+          "weight": 35
+        },
+        {
+          "id": "charging_minotaur",
+          "weight": 40
+        },
+        {
+          "id": "stygian_stalker",
+          "weight": 25
+        }
+      ]
+    },
+    {
+      "stage_number": 5,
+      "title": "Heart of the Maze",
+      "type": "boss",
+      "arena_radius": 28,
+      "pillar_preset": "inner_pillars_4",
+      "hazard": "none",
+      "boss_id": "asterion_the_bull",
+      "minion_pool": [
+        {
+          "id": "gorgon_sentinel",
+          "max_concurrent": 4,
+          "spawn_interval_ms": 6000
+        }
+      ]
+    }
+  ]
+}

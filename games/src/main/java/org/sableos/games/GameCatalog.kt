@@ -368,6 +368,83 @@ internal object GameCatalog {
             timed = true,
         )
 
+    val tartarus =
+        GameSpec(
+            id = "tartarus",
+            title = "Tartarus Breach",
+            tagline = "Fight down through the Underworld and seal the breach.",
+            palette = GamePalette(Color(0xFF15101C), Color(0xFF0C0810), Color(0xFFE8C872)),
+            howTo =
+                listOf(
+                    HowToPage(
+                        "Descend and seal the Gate",
+                        listOf(
+                            "You are a fallen warrior fighting down through four Gates of Tartarus. Each Gate has four waves and a Guardian.",
+                            "Survive the wave timer, then pick an Olympian Boon: 1, 2 or 3 (or A, S, D) claims it at once. You heal a quarter of your HP after every wave.",
+                            "Kill the Guardian in the last wave to seal the Gate and open the next. If you fall, R retries at once and U opens the Underworld Shrine.",
+                            "Obols dropped by foes are kept after a run. Spend them at the Shrine on permanent upgrades.",
+                        ),
+                    ),
+                    HowToPage(
+                        "Move and fight",
+                        listOf(
+                            "W and S walk forward and back, A and D strafe. J and L turn; K spins you round at once. The trackpad (or a swipe on the screen) turns too.",
+                            "Space, Enter or a trackpad click fires. Hold to keep firing. Aim is level: the crosshair pulls toward foes in front of you.",
+                            "Shift (or Sym) is Hermes' Dash: a quick sidestep that nothing can touch. X does the same.",
+                            "Red circles and lines on the floor warn where a strike will land. Step out of them.",
+                        ),
+                    ),
+                    HowToPage(
+                        "The artifacts",
+                        listOf(
+                            "Q is Apollo's Sunbow: a fast solar beam that costs no Favor. Hits in a row build a damage combo.",
+                            "U is Poseidon's Trident: a close-range wave that shoves foes back. W works too if you move another way (see Controls).",
+                            "E is Hades' Bident: two shadow bolts that pierce three foes. R is Zeus's Aegis Bolt: lightning chains across eight foes for 35 Favor.",
+                            "Favor comes from kills and a slow trickle. The Trident and Bident spend it; the Sunbow never does.",
+                        ),
+                    ),
+                    HowToPage(
+                        "Hazards and Guardians",
+                        listOf(
+                            "Gate 1 has soul fog that slows you. Gate 2 has lava and erupting vents. Gate 3 has spike plates and shifting walls. Gate 4 has gravity wells and time rifts.",
+                            "Skeletal hoplites, Harpies, Cyclopes, Minotaurs, Gorgons and Titans each warn before they strike.",
+                            "Cerberus, Talos, Asterion and the Echo of Kronos guard the Gates. They grow angrier at half health.",
+                        ),
+                    ),
+                ),
+            controls =
+                listOf(
+                    GameControls(
+                        "tartarus",
+                        listOf(
+                            ControlAction("fwd", "Forward", UP, always(K_W)),
+                            ControlAction("back", "Back", DOWN, always(K_S)),
+                            ControlAction("left", "Strafe left", LEFT, always(K_A)),
+                            ControlAction("right", "Strafe right", RIGHT, always(K_D)),
+                            ControlAction("turnl", "Turn left", GameCommand.Turn(-1), always(K_J)),
+                            ControlAction("turnr", "Turn right", GameCommand.Turn(1), always(K_L)),
+                            ControlAction("spin", "Spin 180", GameCommand.QuickTurn, always(K_K)),
+                            action("fire", "Fire", GameCommand.Select, K_SPACE),
+                            ControlAction("dash", "Hermes' Dash", GameCommand.Dash, always(KeyEvent.KEYCODE_X)),
+                            action("w1", "Apollo's Sunbow", GameCommand.Digit(1), KeyEvent.KEYCODE_Q),
+                            action("w2", "Poseidon's Trident", GameCommand.Digit(2), KeyEvent.KEYCODE_U),
+                            action("w3", "Hades' Bident", GameCommand.Digit(3), KeyEvent.KEYCODE_E),
+                            action("w4", "Zeus's Aegis Bolt", GameCommand.Digit(4), KeyEvent.KEYCODE_R),
+                            action("pause", "Pause", GameCommand.Pause, K_P, KeyEvent.KEYCODE_DEL),
+                            newGame,
+                        ),
+                        listOf(
+                            FixedKey("Turn") { if (it.letterMoves) "J L, swipe the screen" else "Trackpad, J L" },
+                            FixedKey("Fire") { if (it.letterMoves) "Space, Enter" else "Space, Enter, trackpad click" },
+                            FixedKey("Dash") { "Shift, Sym, X" },
+                            FixedKey("Boons") { "1 2 3 or A S D" },
+                            menuKey,
+                        ),
+                    ),
+                ),
+            timed = true,
+        )
+
     val game2048 =
         GameSpec(
             id = "2048",
@@ -675,6 +752,7 @@ internal object GameCatalog {
             GameKind.Words -> words
             GameKind.Melons -> melons
             GameKind.GravelGears -> gravelGears
+            GameKind.Tartarus -> tartarus
             GameKind.Indian -> null
         }?.controls?.firstOrNull()
 
@@ -695,6 +773,7 @@ internal object GameCatalog {
             cards,
             melons,
             gravelGears,
+            tartarus,
         )
 }
 

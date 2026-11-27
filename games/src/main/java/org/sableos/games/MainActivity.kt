@@ -93,6 +93,10 @@ class MainActivity : ComponentActivity() {
                             GameShell(GameCatalog.gravelGears) { GravelGearsScreen() }
                         }
 
+                        "tartarus" -> {
+                            GameShell(GameCatalog.tartarus) { TartarusScreen() }
+                        }
+
                         "scaffold" -> {
                             ScaffoldApp()
                         }
