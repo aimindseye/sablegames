@@ -1,0 +1,126 @@
+{
+  "gate_id": "gate_02_phlegethon",
+  "gate_number": 2,
+  "display_name": "Phlegethon Foundry",
+  "unlock_requirement": "gate_01_asphodel",
+  "theme": {
+    "skybox_hex": "#210B09",
+    "floor_hex": "#2E1C1A",
+    "pillar_hex": "#4A322E",
+    "accent_glow_hex": "#FF6B1A"
+  },
+  "stages": [
+    {
+      "stage_number": 1,
+      "title": "Molten Threshold",
+      "type": "survival",
+      "duration_sec": 45,
+      "arena_radius": 24,
+      "pillar_preset": "open_ring_4",
+      "hazard": "lava_border",
+      "spawn_interval_ms": 1500,
+      "max_concurrent": 20,
+      "enemy_pool": [
+        {
+          "id": "cinder_imp",
+          "weight": 65
+        },
+        {
+          "id": "fire_harpy",
+          "weight": 35
+        }
+      ]
+    },
+    {
+      "stage_number": 2,
+      "title": "Smelting Hall",
+      "type": "survival",
+      "duration_sec": 50,
+      "arena_radius": 24,
+      "pillar_preset": "grid_6",
+      "hazard": "lava_channels_2",
+      "spawn_interval_ms": 1300,
+      "max_concurrent": 26,
+      "enemy_pool": [
+        {
+          "id": "cinder_imp",
+          "weight": 45
+        },
+        {
+          "id": "fire_harpy",
+          "weight": 40
+        },
+        {
+          "id": "magma_cyclops",
+          "weight": 15
+        }
+      ]
+    },
+    {
+      "stage_number": 3,
+      "title": "Trial of Embers",
+      "type": "survival",
+      "duration_sec": 55,
+      "arena_radius": 24,
+      "pillar_preset": "cross_8",
+      "hazard": "erupting_lava_vents",
+      "spawn_interval_ms": 1150,
+      "max_concurrent": 30,
+      "enemy_pool": [
+        {
+          "id": "cinder_imp",
+          "weight": 35
+        },
+        {
+          "id": "fire_harpy",
+          "weight": 35
+        },
+        {
+          "id": "magma_cyclops",
+          "weight": 30
+        }
+      ]
+    },
+    {
+      "stage_number": 4,
+      "title": "Foundry Onslaught",
+      "type": "survival",
+      "duration_sec": 60,
+      "arena_radius": 26,
+      "pillar_preset": "open_ring_6",
+      "hazard": "erupting_lava_vents",
+      "spawn_interval_ms": 950,
+      "max_concurrent": 38,
+      "enemy_pool": [
+        {
+          "id": "cinder_imp",
+          "weight": 35
+        },
+        {
+          "id": "fire_harpy",
+          "weight": 35
+        },
+        {
+          "id": "magma_cyclops",
+          "weight": 30
+        }
+      ]
+    },
+    {
+      "stage_number": 5,
+      "title": "Anvil Sanctum",
+      "type": "boss",
+      "arena_radius": 28,
+      "pillar_preset": "outer_ring_6",
+      "hazard": "lava_border",
+      "boss_id": "hephaestus_automaton",
+      "minion_pool": [
+        {
+          "id": "cinder_imp",
+          "max_concurrent": 6,
+          "spawn_interval_ms": 4500
+        }
+      ]
+    }
+  ]
+}

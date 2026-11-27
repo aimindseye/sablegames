@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0",
+  "boons": [
+    {
+      "id": "ares_bloodlust",
+      "deity": "Ares",
+      "display_name": "Ares' Bloodlust",
+      "description": "+25% Attack Speed",
+      "accent_hex": "#E63946",
+      "icon_asset": "ui_icons/ic_boon_ares.xml",
+      "max_stacks": 3,
+      "modifier": {
+        "stat": "fire_rate_multiplier",
+        "value": 0.75,
+        "operation": "multiply"
+      }
+    },
+    {
+      "id": "athena_aegis",
+      "deity": "Athena",
+      "display_name": "Athena's Aegis",
+      "description": "Reflect 40% Damage on Hit",
+      "accent_hex": "#3A86FF",
+      "icon_asset": "ui_icons/ic_boon_athena.xml",
+      "max_stacks": 2,
+      "modifier": {
+        "stat": "thorns_reflect_pct",
+        "value": 0.4,
+        "operation": "add"
+      }
+    },
+    {
+      "id": "hephaestus_burn",
+      "deity": "Hephaestus",
+      "display_name": "Hephaestus' Burn",
+      "description": "Attacks Ignite Foes (12 DMG/s)",
+      "accent_hex": "#FF7B00",
+      "icon_asset": "ui_icons/ic_boon_hephaestus.xml",
+      "max_stacks": 3,
+      "modifier": {
+        "stat": "burn_dps",
+        "value": 12,
+        "operation": "add"
+      }
+    },
+    {
+      "id": "hermes_swiftness",
+      "deity": "Hermes",
+      "display_name": "Hermes' Swiftness",
+      "description": "+20% Move Speed & Faster Dash",
+      "accent_hex": "#00E5A0",
+      "icon_asset": "ui_icons/ic_boon_hermes.xml",
+      "max_stacks": 3,
+      "modifier": {
+        "stat": "move_speed_multiplier",
+        "value": 1.2,
+        "operation": "multiply"
+      }
+    },
+    {
+      "id": "poseidon_undertow",
+      "deity": "Poseidon",
+      "display_name": "Poseidon's Undertow",
+      "description": "+50% Knockback on All Attacks",
+      "accent_hex": "#00B4D8",
+      "icon_asset": "ui_icons/ic_boon_poseidon.xml",
+      "max_stacks": 2,
+      "modifier": {
+        "stat": "knockback_multiplier",
+        "value": 1.5,
+        "operation": "multiply"
+      }
+    },
+    {
+      "id": "apollo_radiance",
+      "deity": "Apollo",
+      "display_name": "Apollo's Radiance",
+      "description": "+20% Global Weapon Damage",
+      "accent_hex": "#FFD447",
+      "icon_asset": "ui_icons/ic_boon_apollo.xml",
+      "max_stacks": 4,
+      "modifier": {
+        "stat": "damage_multiplier",
+        "value": 1.2,
+        "operation": "multiply"
+      }
+    },
+    {
+      "id": "zeus_chain_arc",
+      "deity": "Zeus",
+      "display_name": "Zeus's Chain Arc",
+      "description": "Every 4th Hit Chains Lightning",
+      "accent_hex": "#FFF275",
+      "icon_asset": "ui_icons/ic_boon_zeus.xml",
+      "max_stacks": 2,
+      "modifier": {
+        "stat": "proc_chain_damage",
+        "value": 30,
+        "operation": "add"
+      }
+    },
+    {
+      "id": "artemis_crit_mark",
+      "deity": "Artemis",
+      "display_name": "Artemis' Mark",
+      "description": "+18% Critical Strike Chance",
+      "accent_hex": "#72EFDD",
+      "icon_asset": "ui_icons/ic_boon_artemis.xml",
+      "max_stacks": 3,
+      "modifier": {
+        "stat": "crit_chance_pct",
+        "value": 0.18,
+        "operation": "add"
+      }
+    },
+    {
+      "id": "hades_soul_siphon",
+      "deity": "Hades",
+      "display_name": "Hades' Siphon",
+      "description": "Restore +2 HP Every 10 Kills",
+      "accent_hex": "#9D4EDD",
+      "icon_asset": "ui_icons/ic_boon_hades.xml",
+      "max_stacks": 2,
+      "modifier": {
+        "stat": "heal_per_10_kills",
+        "value": 2,
+        "operation": "add"
+      }
+    }
+  ]
+}

@@ -52,6 +52,17 @@ internal sealed interface GameCommand {
 
     /** Space in the Indian card and board games: select, or roll. */
     data object Select : GameCommand
+
+    /** Tartarus Breach: turn the view left (-1) or right (1). */
+    data class Turn(
+        val dir: Int,
+    ) : GameCommand
+
+    /** Tartarus Breach: spin round 180 degrees. */
+    data object QuickTurn : GameCommand
+
+    /** Tartarus Breach: Hermes' Dash. */
+    data object Dash : GameCommand
 }
 
 /** A key-down reduced to what the keymap needs, so the mapping is testable on the JVM. */
@@ -64,7 +75,7 @@ internal data class GameKeyPress(
     val repeatCount: Int = 0,
 )
 
-internal enum class GameKind { Sudoku, Minesweeper, Game2048, Bricks, Snake, Blocks, Reversi, Solitaire, Mahjong, Words, Melons, GravelGears, Indian }
+internal enum class GameKind { Sudoku, Minesweeper, Game2048, Bricks, Snake, Blocks, Reversi, Solitaire, Mahjong, Words, Melons, GravelGears, Tartarus, Indian }
 
 internal object GameKeymap {
     fun command(
@@ -82,7 +93,7 @@ internal object GameKeymap {
             }
             if (press.keyCode in bound.controls.defaultKeys(profile)) return null
         }
-        if ((profile.letterMoves && game != GameKind.Words || game == GameKind.GravelGears) && !press.alt) {
+        if ((profile.letterMoves && game != GameKind.Words && game != GameKind.Tartarus || game == GameKind.GravelGears) && !press.alt) {
             // Gravel & Gears steers with I J K L on every phone, and a held key keeps steering.
             DeviceProfile.LETTER_MOVES[press.keyCode]?.let { return it }
         }
@@ -99,6 +110,7 @@ internal object GameKeymap {
             GameKind.Words -> words(press)
             GameKind.Melons -> melons(press)
             GameKind.GravelGears -> gravelGears(press)
+            GameKind.Tartarus -> tartarus(press)
             GameKind.Indian -> indian(press)
         }
     }
@@ -245,6 +257,25 @@ internal object GameKeymap {
             press.keyCode == KeyEvent.KEYCODE_DEL || press.keyCode == KeyEvent.KEYCODE_ESCAPE -> GameCommand.Erase
             else -> common(press)
         }
+
+    /**
+     * Tartarus Breach (the owner's PKB keymap): W A S D move and strafe, J and L turn, K spins 180 degrees, Space or
+     * Enter fires, Q U E R pick the four artifacts (a digit key does too), Shift, Sym or Alt dash. Those are
+     * rebindable in Controls; this catches the keys that are not, and the digit characters.
+     */
+    private fun tartarus(press: GameKeyPress): GameCommand? =
+        when {
+            press.keyCode in TARTARUS_DASH_KEYS -> GameCommand.Dash
+            press.char in '1'..'4' -> GameCommand.Digit(press.char!! - '0')
+            press.alt -> null
+            press.keyCode == KeyEvent.KEYCODE_SPACE -> GameCommand.Select
+            isPrimary(press.keyCode) -> GameCommand.Primary
+            press.keyCode == KeyEvent.KEYCODE_DEL -> GameCommand.Pause
+            else -> common(press)
+        }
+
+    private val TARTARUS_DASH_KEYS =
+        setOf(KeyEvent.KEYCODE_SHIFT_LEFT, KeyEvent.KEYCODE_SHIFT_RIGHT, KeyEvent.KEYCODE_SYM, KeyEvent.KEYCODE_ALT_LEFT)
 
     private fun mahjong(press: GameKeyPress): GameCommand? =
         when {

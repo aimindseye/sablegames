@@ -53,6 +53,7 @@ Every game plays from the keyboard or the trackpad (which sends arrow keys), and
 | Words | Guess the five-letter word in six tries: green is right, amber is in the word elsewhere | Type the letters; Del erases; Enter guesses |
 | Scaffold | Climb the building site to rescue Juno, jumping the pipes and rivets Clunk rolls down; three hearts, four levels | A left, K right, T up, V down, Space jumps (arrows and the trackpad too, where the phone has them); P pauses; keys can be changed |
 | Bitter Melons | Fling melons from the slingshot and break every piece of AI Slop; see [below](#bitter-melons) | Up/down aim; left/right set the power; Space fires, and again in the air for a Seed Burst; V looks ahead; R restarts the level; P pauses |
+| Tartarus Breach | First-person arena roguelite: fight down four Gates of Tartarus; see [below](#tartarus-breach) | W A S D move, J L or the trackpad turn, K spins 180°, Space fires, Q U E R pick an artifact, Shift dashes, 1 2 3 or A S D pick a boon, P pauses |
 | Gravel & Gears | Ride a mountain bike down a trail nonstop, firing cards as moves; see [below](#gravel--gears) | Trackpad, arrows, I J K L or tilt steer; up pedals, down brakes; A S D F fire a card; Space hops; R redraws; T turns tilt on or off; P pauses |
 
 <p>
@@ -86,6 +87,17 @@ A slingshot physics game. AI Slop has taken over the hills, and every level is a
 - **World 2, Slop Mall.** Clearing World 1's last level opens the mall. It brings the Split Cantaloupe, which splits into three smaller melons when you press Space in the air, and gold AD banners, which throw a melon off faster than it hit them. The melons waiting their turn sit at the bottom left, in the order they load.
 - **World 3, Server Foundry.** Steel blocks, the orange Prompt Bot (150), and the Heavy Honeydew, which you slam straight down with Space. Cooling fans blow a melon upward while it is over them, and the aim dots and target ring follow the updraft. A steel beam hanging on cables drops when you hit it.
 - **World 4, Storm Citadel.** The Overripe Melon bursts in a juice shockwave when you press Space, or when it hits something hard. Firewall shields ring the structures and stop melons: some break after enough hits, and others turn, so time your shot through the gap. Drone platforms hold Slop in the air until a hit breaks their thrusters.
+
+## Tartarus Breach
+
+You are a fallen warrior fighting down through four Gates of Tartarus to seal the breach: Asphodel, Phlegethon, the Labyrinth of Minos and the Abyssal Seal. Each Gate has four timed waves and a Guardian (Cerberus, Talos, Asterion, the Echo of Kronos). The view is first person; the top of the screen is the arena and the bar along the bottom (above the keys) shows HP, Favor, your portrait and the four artifacts.
+
+- **Moving.** W and S walk, A and D strafe. J and L turn, K spins you round at once, and the trackpad turns as well (on a touch screen, drag across the arena and tap to fire). Shift or Sym is Hermes' Dash: a short sidestep nothing can touch.
+- **Artifacts.** Q Apollo's Sunbow (fast solar beam, free, hits in a row build a damage combo), U Poseidon's Trident (close-range wave that shoves foes back, 4 Favor), E Hades' Bident (two piercing shadow bolts, 6 Favor), R Zeus's Aegis Bolt (lightning across eight foes, 35 Favor). Space, Enter or a trackpad click fires; hold to keep firing. The crosshair pulls toward foes in front of you.
+- **Favor and healing.** Favor comes from kills and a slow trickle. You heal a quarter of your HP after every wave.
+- **Boons.** After each wave pick one of three Olympian Boons: 1, 2 or 3 (or A, S, D). They stack up to their limit.
+- **Warnings.** Red circles and lines on the floor show where a strike will land. Gates add hazards: soul fog, lava, vents, spike plates, gravity wells and time rifts.
+- **Obols and the Shrine.** Foes drop Obols that you keep between runs. When you fall, R retries at once and U opens the Underworld Shrine, which sells permanent upgrades (more HP, damage, Favor, a quicker dash, more Obols). Sealing a Gate opens the next.
 
 ## Gravel & Gears
 
