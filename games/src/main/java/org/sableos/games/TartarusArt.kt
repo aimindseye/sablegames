@@ -83,7 +83,12 @@ internal fun rememberTbSprites(): TbSprites {
 
 /** How big each foe stands in the world (units tall) and how high a flier hovers. */
 internal object TbLook {
-    fun height(def: TbEnemyDef): Float =
+    /** Everything stands a third taller than the sketch so foes read on a phone screen. */
+    private const val SIZE = 1.35f
+
+    fun height(def: TbEnemyDef): Float = SIZE * baseHeight(def)
+
+    private fun baseHeight(def: TbEnemyDef): Float =
         when (def.id) {
             "skeletal_hoplite" -> 2.1f
             "shade_wisp" -> 2.3f

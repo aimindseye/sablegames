@@ -843,8 +843,8 @@ internal class TbRun(
         var y = 0f
         for (i in 0 until 10) {
             val a = rnd.nextFloat() * 2f * PI.toFloat()
-            x = cos(a) * (stage.radius - 1.6f)
-            y = sin(a) * (stage.radius - 1.6f)
+            x = cos(a) * min(stage.radius - 1.6f, SPAWN_RING)
+            y = sin(a) * min(stage.radius - 1.6f, SPAWN_RING)
             if (TbWorld.dist(x, y, px, py) > SPAWN_CLEAR) break
         }
         val e = TbEnemy(def, x, y, uid++)
@@ -883,7 +883,10 @@ internal class TbRun(
         const val CRIT_MULT = 1.8f
         const val THORNS_RANGE = 4.5f
         const val STREAK_TIME = 3f
-        const val SPAWN_CLEAR = 12f
+        const val SPAWN_CLEAR = 9f
+
+        /** Foes appear this far from the arena's centre, close enough to read on a small screen. */
+        const val SPAWN_RING = 17f
         const val LAVA_TICK = 5f
         const val VENT_DMG = 16f
         const val SPIKE_DMG = 12f
