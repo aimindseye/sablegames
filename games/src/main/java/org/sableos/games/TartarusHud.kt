@@ -170,6 +170,12 @@ internal fun DrawScope.drawHud(
         drawRoundRect(Brush.horizontalGradient(listOf(Color(0xFF7A0F1C), TbColors.Blood, Color(0xFFFF6A55)), bx, bx + bw), Offset(bx, by), Size(bw * frac, s * 0.02f), CornerRadius(s * 0.005f))
         drawRoundRect(TbColors.Gold.copy(alpha = 0.8f), Offset(bx - s * 0.005f, by - s * 0.005f), Size(bw + s * 0.01f, s * 0.03f), CornerRadius(s * 0.008f), style = Stroke(s * 0.003f))
     }
+    drawHitArrows(run, cam)
+    // A reminder of the controls while you settle in on the first wave.
+    if (run.wave == 1 && run.runTime < HINT_SECONDS && run.phase != TbPhase.Draft) {
+        val a = (1f - (run.runTime - (HINT_SECONDS - 1.5f)) / 1.5f).coerceIn(0f, 1f)
+        hudText(m, "W A S D MOVE  ·  J L TURN  ·  SPACE FIRE  ·  X DASH", s / 2f, cam.vh * 0.9f, s * 0.03f, Color.White.copy(alpha = a), align = 1)
+    }
     // Toasts and the streak.
     var ty = s * 0.115f
     for (t in run.toasts.takeLast(3)) {
@@ -208,7 +214,7 @@ private fun DrawScope.drawReady(
 ) {
     val s = cam.s
     val a = (run.readyT / 0.6f).coerceIn(0f, 1f)
-    drawRect(Color.Black.copy(alpha = 0.38f * a), size = Size(s, cam.vh))
+    drawRect(Color.Black.copy(alpha = 0.38f * a), topLeft = Offset(-cam.extra, 0f), size = Size(s + 2f * cam.extra, cam.vh))
     val col = TbColors.Gold.copy(alpha = a.coerceAtLeast(0.2f))
     hudText(m, "WAVE ${run.wave} OF ${run.gate.stages.size}", s / 2f, cam.vh * 0.22f, s * 0.045f, col, align = 1)
     hudText(m, run.stage.title.uppercase(), s / 2f, cam.vh * 0.22f + s * 0.06f, s * 0.07f, Color.White.copy(alpha = a.coerceAtLeast(0.2f)), align = 1)
@@ -267,9 +273,11 @@ private fun DrawScope.drawBar(
     val s = cam.s
     val bh = s * TB_BAR_SHARE
     val y0 = s - bh
-    drawRect(Brush.verticalGradient(listOf(Color(0xFF3A342C), TbColors.StoneDark), y0, s), Offset(0f, y0), Size(s, bh))
-    drawRect(TbColors.Bronze, Offset(0f, y0), Size(s, s * 0.01f))
-    drawRect(TbColors.Gold.copy(alpha = 0.7f), Offset(0f, y0 + s * 0.01f), Size(s, s * 0.003f))
+    val x0 = -cam.extra
+    val fullW = s + 2f * cam.extra
+    drawRect(Brush.verticalGradient(listOf(Color(0xFF3A342C), TbColors.StoneDark), y0, s), Offset(x0, y0), Size(fullW, bh))
+    drawRect(TbColors.Bronze, Offset(x0, y0), Size(fullW, s * 0.01f))
+    drawRect(TbColors.Gold.copy(alpha = 0.7f), Offset(x0, y0 + s * 0.01f), Size(fullW, s * 0.003f))
     meander(s * 0.01f, s * 0.395f, y0 + s * 0.018f, s * 0.016f, TbColors.GoldDark)
     meander(s * 0.605f, s * 0.99f, y0 + s * 0.018f, s * 0.016f, TbColors.GoldDark)
     meander(s * 0.01f, s * 0.395f, s - s * 0.03f, s * 0.016f, TbColors.GoldDark)
@@ -409,4 +417,39 @@ internal fun DrawScope.drawBanner(
     drawRect(Brush.verticalGradient(listOf(Color(0xFFE6E0D2), Color(0xFFB9B1A0)), topLeft.y, topLeft.y + size.height), topLeft, size)
     drawRect(TbColors.Gold, topLeft, size, style = Stroke(size.height * 0.07f))
     drawRect(TbColors.GoldDark, Offset(topLeft.x + size.height * 0.1f, topLeft.y + size.height * 0.1f), Size(size.width - size.height * 0.2f, size.height * 0.8f), style = Stroke(size.height * 0.03f))
+}
+
+private const val HINT_SECONDS = 9f
+
+/** Red arrows round the crosshair pointing at whatever just hurt you, fading over a second or so. */
+private fun DrawScope.drawHitArrows(
+    run: TbRun,
+    cam: TbCam,
+) {
+    if (run.hitDirs.isEmpty()) return
+    val s = cam.s
+    val c = Offset(s / 2f, cam.hz)
+    val ring = s * 0.27f
+    for (h in run.hitDirs) {
+        val age = (run.clock - h.at) / TbRun.HIT_ARROW_TIME
+        if (age !in 0f..1f) continue
+        val b = cam.bearing(run.px + cos(h.angle) * 10f, run.py + sin(h.angle) * 10f)
+        val dx = sin(b)
+        val dy = -cos(b)
+        val tip = Offset(c.x + dx * (ring + s * 0.05f), c.y + dy * (ring + s * 0.05f))
+        val base = Offset(c.x + dx * ring, c.y + dy * ring)
+        val px = -dy
+        val py = dx
+        val w = s * 0.03f
+        val path =
+            Path().apply {
+                moveTo(tip.x, tip.y)
+                lineTo(base.x + px * w, base.y + py * w)
+                lineTo(base.x - px * w, base.y - py * w)
+                close()
+            }
+        val a = (1f - age).coerceIn(0f, 1f)
+        drawPath(path, TbColors.Blood.copy(alpha = 0.9f * a))
+        drawPath(path, Color.White.copy(alpha = 0.7f * a), style = Stroke(s * 0.004f))
+    }
 }

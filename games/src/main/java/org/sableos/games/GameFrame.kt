@@ -21,6 +21,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -73,6 +75,9 @@ internal object GameLayout {
         height: Dp,
     ): Dp = min(width - SableSpacing.ScreenHorizontal * 2, height * 0.72f)
 }
+
+/** The width a board may fill in a square window, for boards that draw wider than they are tall. Null where the board is a square. */
+internal val LocalBoardWidth = compositionLocalOf<Dp?> { null }
 
 /** The bar and tab colours: the shell's game palette, or the theme's where there is no shell. */
 private data class FrameColors(
@@ -128,7 +133,9 @@ internal fun GameFrame(
                 Column(Modifier.fillMaxSize()) {
                     TopBar(title, statusLabel, status, tabs, colors)
                     Box(Modifier.fillMaxSize().padding(GameLayout.Edge), contentAlignment = Alignment.Center) {
-                        board(GameLayout.squareBoardSide(width, height))
+                        CompositionLocalProvider(LocalBoardWidth provides (width - GameLayout.Edge * 2)) {
+                            board(GameLayout.squareBoardSide(width, height))
+                        }
                     }
                 }
             } else {

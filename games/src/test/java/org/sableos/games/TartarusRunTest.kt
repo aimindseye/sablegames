@@ -53,6 +53,9 @@ class TartarusRunTest {
     fun foesSpawnOverTime() {
         val r = run()
         r.begin()
+        // The first foe holds off a few seconds so you can settle in.
+        repeat(100) { r.step(0.02f, still) }
+        assertEquals(0, r.aliveCount)
         repeat(150) { r.step(0.02f, still) }
         assertTrue(r.aliveCount > 0)
     }
@@ -175,7 +178,7 @@ class TartarusRunTest {
         assertEquals(hp, r.hp, 0f)
         repeat(20) { r.step(0.02f, still) }
         r.hurt(30f)
-        assertEquals(hp - 30f, r.hp, 0.01f)
+        assertEquals(hp - 30f * TbRun.WAVE_EASE[0], r.hp, 0.01f)
     }
 
     @Test
@@ -322,5 +325,59 @@ class TartarusRunTest {
             }
         }
         assertTrue(found)
+    }
+
+    @Test
+    fun settingsSaveAndOldSavesStillLoad() {
+        val m = TbMeta(obols = 5, difficulty = 2, aim = 0, sound = false, vibrate = false)
+        assertEquals(m, TbMeta.decode(m.encode()))
+        // A save from before the settings existed has five parts and gets the defaults.
+        val old = TbMeta.decode("12,2,0;0;0;0,0;0;0;0,0;0;0;0;0")
+        assertEquals(12, old.obols)
+        assertEquals(1, old.difficulty)
+        assertTrue(old.sound && old.vibrate)
+    }
+
+    @Test
+    fun hardHitsHarderThanEasy() {
+        fun lost(d: Int): Float {
+            val r = TbRun(gate1, TbMeta(difficulty = d), seed = 5L)
+            r.begin()
+            val hp = r.hp
+            r.hurt(40f, r.px + 5f, r.py)
+            return hp - r.hp
+        }
+        assertTrue(lost(0) < lost(1))
+        assertTrue(lost(1) < lost(2))
+    }
+
+    @Test
+    fun aHitLeavesAnArrowAndSoundsEvents() {
+        val r = run()
+        r.begin()
+        r.events.clear()
+        r.hurt(10f, r.px + 6f, r.py)
+        assertEquals(1, r.hitDirs.size)
+        assertEquals(0f, r.hitDirs[0].angle, 0.01f)
+        assertTrue(TbEvent.Hurt in r.events)
+        repeat(100) { r.step(0.02f, still) }
+        assertTrue(r.hitDirs.isEmpty())
+    }
+
+    @Test
+    fun aimAssistOffLeavesTheShotWhereYouLook() {
+        val r = TbRun(gate1, TbMeta(aim = 0), seed = 5L)
+        r.begin()
+        r.enemies.clear()
+        r.spawn("skeletal_hoplite")
+        val e = r.enemies.last()
+        e.x = r.px + 1.5f
+        e.y = r.py + 12f
+        e.state = TbEState.Stun
+        e.timer = 99f
+        r.wait(0.3f)
+        val hp = e.hp
+        r.tryFire()
+        assertEquals(hp, e.hp, 0.001f)
     }
 }

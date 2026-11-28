@@ -55,11 +55,16 @@ internal class TbCam {
     var z = 0f
     var sx = 0f
 
+    /** How much wider than the square view the canvas is, each side. */
+    var extra = 0f
+
     fun set(
         run: TbRun,
         side: Float,
+        extraEach: Float = 0f,
     ) {
         s = side
+        extra = extraEach
         vh = side * VIEW_SHARE
         hz = vh * HORIZON
         f = (side / 2f) / tan(FOV / 2f)
@@ -139,11 +144,12 @@ internal fun DrawScope.drawTartarusWorld(
     art: TbSprites,
     cam: TbCam,
 ) {
-    cam.set(run, size.width)
+    cam.set(run, size.height, (size.width - size.height) / 2f)
     val s = cam.s
+    val ex = cam.extra
     val shake = run.shake * s * 0.012f
     val gate = run.gate
-    clipRect(0f, 0f, s, cam.vh) {
+    clipRect(-ex, 0f, s + ex, cam.vh) {
         withTransform({
             translate(sin(run.clock * 83f) * shake, cos(run.clock * 71f) * shake)
             rotate(-run.strafeSpeed * 1.4f + run.hurtFlash * 0.8f, Offset(s / 2f, cam.hz))
@@ -164,10 +170,11 @@ internal fun DrawScope.drawTartarusWorld(
                     center = Offset(s / 2f, cam.vh / 2f),
                     radius = s * 0.78f,
                 ),
-                size = Size(s, cam.vh),
+                topLeft = Offset(-ex, 0f),
+                size = Size(s + 2f * ex, cam.vh),
             )
         }
-        if (run.slowT > 0f) drawRect(Color(0xFF7FE8C8).copy(alpha = 0.10f), size = Size(s, cam.vh))
+        if (run.slowT > 0f) drawRect(Color(0xFF7FE8C8).copy(alpha = 0.10f), topLeft = Offset(-ex, 0f), size = Size(s + 2f * ex, cam.vh))
         if (run.dashT > 0f) drawDashLines(run, cam)
     }
 }
@@ -184,10 +191,10 @@ private fun DrawScope.drawBackdrop(
     val base = cam.s / 2f + (run.yaw - START_YAW) * pxPerRad
     // The image's own horizon sits about 53 % down; line it up with the camera's.
     val top = cam.hz - HORIZON * tileW
-    val first = -((base / tileW).toInt()) - 2
-    for (k in first..first + 6) {
+    val first = -((base / tileW).toInt()) - 3
+    for (k in first..first + 8) {
         val c = base + k * tileW
-        if (c + tileW / 2f < 0f || c - tileW / 2f > cam.s) continue
+        if (c + tileW / 2f < -cam.extra || c - tileW / 2f > cam.s + cam.extra) continue
         withTransform({ if (k and 1 != 0) scale(-1f, 1f, Offset(c, 0f)) }) {
             drawImage(
                 img,
@@ -497,6 +504,20 @@ private fun DrawScope.drawEnemy(
     withTransform({ rotate(sin(e.age * 5f + e.uid) * (if (moving) 2.2f else 0.6f), Offset(sx, foot)) }) {
         sprite(img, sx, foot, h, alpha, squash, tint)
     }
+    // A small marker over foes that are far off, so they stay easy to find.
+    if (e.alive && e.state != TbEState.Spawn && z > 8f) {
+        val m = cam.s * 0.014f
+        val top = foot - h - m * 0.6f
+        val tri =
+            Path().apply {
+                moveTo(sx, top)
+                lineTo(sx - m, top - m * 1.4f)
+                lineTo(sx + m, top - m * 1.4f)
+                close()
+            }
+        val hot = e.state == TbEState.Windup
+        drawPath(tri, (if (hot) TbColors.Blood else TbColors.Gold).copy(alpha = 0.85f * alpha))
+    }
     if (!e.boss && e.state != TbEState.Dying && e.hp < e.maxHp && e.def.tier != "swarm") {
         val bw = max(ww * 0.55f, cam.s * 0.04f)
         val by = foot - h - cam.s * 0.012f
@@ -536,10 +557,7 @@ private fun DrawScope.drawEffects(
         when (f.kind) {
             TbFxKind.Beam -> {
                 val end = worldToScreen(cam, f.x2, f.y2, 1.0f) ?: Offset(cam.s / 2f, cam.hz)
-                drawLine(c.copy(alpha = 0.35f * (1f - p)), muzzle, end, cam.s * 0.05f, StrokeCap.Round)
-                drawLine(c.copy(alpha = 0.8f * (1f - p)), muzzle, end, cam.s * 0.022f, StrokeCap.Round)
-                drawLine(Color.White.copy(alpha = 1f - p), muzzle, end, cam.s * 0.008f, StrokeCap.Round)
-                drawCircle(c.copy(alpha = 0.7f * (1f - p)), cam.s * 0.03f * (1f + p), end)
+                drawFireStreak(muzzle, end, c, p, cam.s, f.n + (run.clock * 30f).toInt())
             }
 
             TbFxKind.Wave -> drawWave(f, run, cam, p, c)
@@ -679,4 +697,41 @@ private fun DrawScope.drawDashLines(
         val y = ((i * 37) % 100) / 100f * cam.vh
         drawLine(c, Offset(x, y), Offset(cam.s / 2f + (x - cam.s / 2f) * 1.3f, y + (y - cam.hz) * 0.3f), cam.s * 0.004f)
     }
+}
+
+/** The Sunbow's shot: a tapering streak of flame, fat at the bow and thin at the target, with embers streaming off it. */
+private fun DrawScope.drawFireStreak(
+    from: Offset,
+    to: Offset,
+    c: Color,
+    p: Float,
+    s: Float,
+    seed: Int,
+) {
+    val dx = to.x - from.x
+    val dy = to.y - from.y
+    val len = hypot(dx, dy).coerceAtLeast(1f)
+    val nx = -dy / len
+    val ny = dx / len
+    val fade = 1f - p
+    for ((widthFrac, color, a) in listOf(Triple(0.16f, c, 0.3f), Triple(0.1f, Color(0xFFFF9A2E), 0.65f), Triple(0.05f, Color(0xFFFFE08A), 0.9f), Triple(0.02f, Color.White, 1f))) {
+        val w0 = s * widthFrac * (0.6f + 0.4f * fade)
+        val w1 = w0 * 0.14f
+        val path =
+            Path().apply {
+                moveTo(from.x + nx * w0, from.y + ny * w0)
+                lineTo(to.x + nx * w1, to.y + ny * w1)
+                lineTo(to.x - nx * w1, to.y - ny * w1)
+                lineTo(from.x - nx * w0, from.y - ny * w0)
+                close()
+            }
+        drawPath(path, color.copy(alpha = a * fade))
+    }
+    for (i in 0 until 14) {
+        val t = (i + 0.5f) / 14f
+        val jitter = (((seed * 31 + i * 17) % 23) - 11) / 11f
+        val r = s * (0.012f + 0.01f * ((i * 7 + seed) % 5) / 5f) * fade
+        drawCircle(Color(0xFFFFC04D).copy(alpha = 0.85f * fade), r, Offset(from.x + dx * t + nx * jitter * s * 0.05f * (1f - t * 0.6f), from.y + dy * t + ny * jitter * s * 0.05f * (1f - t * 0.6f) - p * s * 0.04f))
+    }
+    drawCircle(Brush.radialGradient(listOf(Color.White.copy(alpha = fade), c.copy(alpha = 0.7f * fade), Color.Transparent), to, s * 0.07f * (1f + p)), s * 0.07f * (1f + p), to)
 }

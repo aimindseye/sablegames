@@ -55,4 +55,10 @@ io.github.aimindseye.sablegames.tartarus
 
 It is a separate flavor; no existing app's package name or signing changes.
 
-Planned, not built yet: `io.github.aimindseye.sablegames.installer`.
+The nineteenth app, the Sable Installer, also needs its own name registered before it is released:
+
+```
+io.github.aimindseye.sablegames.installer
+```
+
+It lists the games, downloads the ones you pick from the latest GitHub release and hands them to Android's installer. It checks each file's SHA-256 from `SHA256SUMS.txt`, its package name and that it is signed with the registered key before installing. It is the only app that asks for `INTERNET`, `REQUEST_INSTALL_PACKAGES` and `ACCESS_NETWORK_STATE` (the last only to tell whether the connection is metered, for its Wi-Fi only option), and `tools/check-apks.sh` allows exactly those three for it. It also updates itself: the last row, "This app", is picked automatically when the release is newer than the installed installer. Tartarus Breach asks for `VIBRATE` (an ordinary permission) for its hit feedback, and the check allows only that for it. The installer finds a release's files by the names `tools/build-release.sh` gives them (`sable-<app>-<version>.apk`, `SHA256SUMS.txt`), so keep those names.

@@ -25,6 +25,7 @@ Each game is its own app, so you install only the ones you want.
 | Bitter Melons | `io.github.aimindseye.sablegames.melons` | Fling angry melons from a slingshot and topple the AI Slop. Four worlds: 36 levels |
 | Gravel & Gears | `io.github.aimindseye.sablegames.gravelgears` | Nonstop downhill mountain biking: steer with the trackpad, keys or tilt, fire cards as moves, hit the gates, draft new cards. Day and Night Ride trails, three riders |
 | Tartarus Breach | `io.github.aimindseye.sablegames.tartarus` | First-person arena roguelite in the Underworld: fight down four Gates of Tartarus with four mythic artifacts, draft Olympian Boons between waves and seal each Gate by felling its Guardian. W A S D, J L and the trackpad (or touch) play it. New in the next release; its package name is not registered yet |
+| Sable Installer | `io.github.aimindseye.sablegames.installer` | Pick the games you want and it downloads, checks and installs them from the latest GitHub release. Needs Internet and "install unknown apps"; its package name is not registered yet |
 | Sable Sudoku | `io.github.aimindseye.sablegames.sudoku` | Fill the 9 x 9 grid |
 | Sable Minesweeper | `io.github.aimindseye.sablegames.minesweeper` | Clear the field without hitting a mine |
 | Sable 2048 | `io.github.aimindseye.sablegames.game2048` | Slide tiles to merge them up to 2048 |

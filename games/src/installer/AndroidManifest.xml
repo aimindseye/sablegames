@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The installer downloads the signed APKs from the project's GitHub Releases and hands them to
+         Android's own installer, so it is the one Sable app that asks for these two permissions. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Only to tell whether the connection is metered, for the Wi-Fi only option. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Package visibility: only the Sable apps, so it can show which are installed. -->
+    <queries>
+        <package android:name="io.github.aimindseye.sablegames.console" />
+        <package android:name="io.github.aimindseye.sablegames.cards" />
+        <package android:name="io.github.aimindseye.sablegames.snakesladders" />
+        <package android:name="io.github.aimindseye.sablegames.ludo" />
+        <package android:name="io.github.aimindseye.sablegames.scaffold" />
+        <package android:name="io.github.aimindseye.sablegames.melons" />
+        <package android:name="io.github.aimindseye.sablegames.gravelgears" />
+        <package android:name="io.github.aimindseye.sablegames.tartarus" />
+        <package android:name="io.github.aimindseye.sablegames.sudoku" />
+        <package android:name="io.github.aimindseye.sablegames.minesweeper" />
+        <package android:name="io.github.aimindseye.sablegames.game2048" />
+        <package android:name="io.github.aimindseye.sablegames.bricks" />
+        <package android:name="io.github.aimindseye.sablegames.snake" />
+        <package android:name="io.github.aimindseye.sablegames.blocks" />
+        <package android:name="io.github.aimindseye.sablegames.reversi" />
+        <package android:name="io.github.aimindseye.sablegames.solitaire" />
+        <package android:name="io.github.aimindseye.sablegames.mahjong" />
+        <package android:name="io.github.aimindseye.sablegames.words" />
+        <package android:name="io.github.aimindseye.sablegames.installer" />
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false">
+        <!-- Android reports the install result here. Not exported: it is reached through our own PendingIntent. -->
+        <receiver
+            android:name="org.sableos.games.InstallResultReceiver"
+            android:exported="false" />
+    </application>
+</manifest>

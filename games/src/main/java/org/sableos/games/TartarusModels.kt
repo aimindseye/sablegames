@@ -123,6 +123,12 @@ internal data class TbMeta(
     val bestWave: List<Int> = listOf(0, 0, 0, 0),
     /** Shrine upgrade levels, by [TbUpgrade] order. */
     val levels: List<Int> = TbUpgrade.entries.map { 0 },
+    /** 0 Easy, 1 Normal, 2 Hard. */
+    val difficulty: Int = 1,
+    /** How hard the crosshair pulls toward foes: 0 off, 1 normal, 2 strong. */
+    val aim: Int = 1,
+    val sound: Boolean = true,
+    val vibrate: Boolean = true,
 ) {
     fun level(u: TbUpgrade) = levels.getOrElse(u.ordinal) { 0 }
 
@@ -137,7 +143,9 @@ internal data class TbMeta(
             copy(obols = obols - cost(u), levels = levels.toMutableList().also { it[u.ordinal] = level(u) + 1 })
         }
 
-    fun encode() = listOf(obols, unlocked, bestClear.joinToString(";"), bestWave.joinToString(";"), levels.joinToString(";")).joinToString(",")
+    fun encode() =
+        listOf(obols, unlocked, bestClear.joinToString(";"), bestWave.joinToString(";"), levels.joinToString(";"), difficulty, aim, if (sound) 1 else 0, if (vibrate) 1 else 0)
+            .joinToString(",")
 
     companion object {
         fun decode(text: String?): TbMeta {
@@ -147,7 +155,18 @@ internal data class TbMeta(
             val clear = ints(p[2]).let { if (it.size == 4) it else listOf(0, 0, 0, 0) }
             val wave = ints(p[3]).let { if (it.size == 4) it else listOf(0, 0, 0, 0) }
             val levels = ints(p[4]).let { l -> TbUpgrade.entries.mapIndexed { i, u -> l.getOrElse(i) { 0 }.coerceIn(0, u.maxLevel) } }
-            return TbMeta(p[0].toIntOrNull() ?: 0, (p[1].toIntOrNull() ?: 1).coerceIn(1, 4), clear, wave, levels)
+            fun flag(i: Int) = p.getOrNull(i)?.trim() != "0"
+            return TbMeta(
+                obols = p[0].toIntOrNull() ?: 0,
+                unlocked = (p[1].toIntOrNull() ?: 1).coerceIn(1, 4),
+                bestClear = clear,
+                bestWave = wave,
+                levels = levels,
+                difficulty = (p.getOrNull(5)?.toIntOrNull() ?: 1).coerceIn(0, 2),
+                aim = (p.getOrNull(6)?.toIntOrNull() ?: 1).coerceIn(0, 2),
+                sound = flag(7),
+                vibrate = flag(8),
+            )
         }
     }
 }

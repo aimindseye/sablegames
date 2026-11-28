@@ -141,6 +141,13 @@ android {
             resValue("string", "app_name", "Tartarus Breach")
             buildConfigField("String", "SABLE_GAME", "\"tartarus\"")
         }
+        // Sable Installer: picks the games to install and fetches each one's signed APK from the latest GitHub release.
+        create("installer") {
+            dimension = "game"
+            applicationId = "io.github.aimindseye.sablegames.installer"
+            resValue("string", "app_name", "Sable Installer")
+            buildConfigField("String", "SABLE_GAME", "\"installer\"")
+        }
         // Sable Games Console: games written in Lua, added from a folder without rebuilding the app.
         create("console") {
             dimension = "game"
