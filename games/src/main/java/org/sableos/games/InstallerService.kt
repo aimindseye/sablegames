@@ -352,7 +352,7 @@ internal class InstallerModel(
         for (attempt in 1..ATTEMPTS) {
             try {
                 download(url, part) { pct -> note(if (attempt > 1) "Downloading $pct% (try $attempt)" else "Downloading $pct%") }
-                if (to.exists()) to.delete()
+                if (to.exists() && !to.delete()) throw java.io.IOException("could not replace the old download")
                 if (!part.renameTo(to)) throw java.io.IOException("could not save the download")
                 return
             } catch (e: java.io.IOException) {
@@ -376,7 +376,7 @@ internal class InstallerModel(
             val code = conn.responseCode
             if (code == 416) {
                 // The server thinks we already have it all (or the file changed): start over.
-                to.delete()
+                if (!to.delete()) throw java.io.IOException("could not clear the partial download")
                 throw java.io.IOException("the partial file was out of date")
             }
             if (code != HttpURLConnection.HTTP_OK && code != HttpURLConnection.HTTP_PARTIAL) throw java.io.IOException("HTTP $code")
