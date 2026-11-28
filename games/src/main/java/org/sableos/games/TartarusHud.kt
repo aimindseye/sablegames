@@ -208,7 +208,7 @@ private fun DrawScope.drawReady(
 ) {
     val s = cam.s
     val a = (run.readyT / 0.6f).coerceIn(0f, 1f)
-    drawRect(Color.Black.copy(alpha = 0.38f * a), size = Size(s, cam.vh))
+    drawRect(Color.Black.copy(alpha = 0.38f * a), topLeft = Offset(-cam.extra, 0f), size = Size(s + 2f * cam.extra, cam.vh))
     val col = TbColors.Gold.copy(alpha = a.coerceAtLeast(0.2f))
     hudText(m, "WAVE ${run.wave} OF ${run.gate.stages.size}", s / 2f, cam.vh * 0.22f, s * 0.045f, col, align = 1)
     hudText(m, run.stage.title.uppercase(), s / 2f, cam.vh * 0.22f + s * 0.06f, s * 0.07f, Color.White.copy(alpha = a.coerceAtLeast(0.2f)), align = 1)
@@ -267,9 +267,11 @@ private fun DrawScope.drawBar(
     val s = cam.s
     val bh = s * TB_BAR_SHARE
     val y0 = s - bh
-    drawRect(Brush.verticalGradient(listOf(Color(0xFF3A342C), TbColors.StoneDark), y0, s), Offset(0f, y0), Size(s, bh))
-    drawRect(TbColors.Bronze, Offset(0f, y0), Size(s, s * 0.01f))
-    drawRect(TbColors.Gold.copy(alpha = 0.7f), Offset(0f, y0 + s * 0.01f), Size(s, s * 0.003f))
+    val x0 = -cam.extra
+    val fullW = s + 2f * cam.extra
+    drawRect(Brush.verticalGradient(listOf(Color(0xFF3A342C), TbColors.StoneDark), y0, s), Offset(x0, y0), Size(fullW, bh))
+    drawRect(TbColors.Bronze, Offset(x0, y0), Size(fullW, s * 0.01f))
+    drawRect(TbColors.Gold.copy(alpha = 0.7f), Offset(x0, y0 + s * 0.01f), Size(fullW, s * 0.003f))
     meander(s * 0.01f, s * 0.395f, y0 + s * 0.018f, s * 0.016f, TbColors.GoldDark)
     meander(s * 0.605f, s * 0.99f, y0 + s * 0.018f, s * 0.016f, TbColors.GoldDark)
     meander(s * 0.01f, s * 0.395f, s - s * 0.03f, s * 0.016f, TbColors.GoldDark)

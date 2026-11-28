@@ -300,7 +300,7 @@ internal class TbRun(
         pillars += TbWorld.pillars(stage.pillars, stage.radius)
         zones += TbWorld.zones(stage.hazard, stage.radius, rnd)
         stageT = stage.durationSec.toFloat()
-        spawnT = 0.4f
+        spawnT = FIRST_SPAWN
         minionT = 2f
         px = 0f
         py = -stage.radius * 0.3f
@@ -456,7 +456,8 @@ internal class TbRun(
         slows: Boolean = false,
     ) {
         if (phase != TbPhase.Combat || invuln > 0f || dashT > 0f) return
-        hp -= dmg
+        val dealt = dmg * WAVE_EASE[stageIndex.coerceIn(0, WAVE_EASE.lastIndex)]
+        hp -= dealt
         invuln = HURT_GRACE
         hurtFlash = 1f
         shake = min(1f, shake + 0.7f)
@@ -475,12 +476,12 @@ internal class TbRun(
     private fun aim(w: TbWeapon): Float {
         var best: TbEnemy? = null
         var bestA = Float.MAX_VALUE
-        val magnet = Math.toRadians(w.magnetDeg.toDouble()).toFloat()
+        val magnet = Math.toRadians(w.magnetDeg.toDouble()).toFloat() * MAGNET_BOOST
         for (e in enemies) {
             if (!e.alive || e.state == TbEState.Spawn) continue
             val d = TbWorld.dist(px, py, e.x, e.y)
             val rel = abs(angDiff(atan2(e.y - py, e.x - px), yaw))
-            val slack = magnet + atan2(e.def.radius, d)
+            val slack = magnet + atan2(e.def.radius * HIT_SCALE, d)
             if (rel <= slack && rel < bestA && !blocked(e.x, e.y)) {
                 bestA = rel
                 best = e
@@ -535,7 +536,7 @@ internal class TbRun(
             val t = (e.x - px) * rx + (e.y - py) * ry
             if (t <= 0f || t >= bestT) continue
             val perp = abs((e.x - px) * ry - (e.y - py) * rx)
-            if (perp <= e.def.radius * 0.95f) {
+            if (perp <= e.def.radius * HIT_SCALE) {
                 bestT = t
                 hit = e
             }
@@ -548,7 +549,7 @@ internal class TbRun(
                 hit = null
             }
         }
-        fx += TbFx(TbFxKind.Beam, px, py, px + rx * bestT, py + ry * bestT, w.color, 0.14f)
+        fx += TbFx(TbFxKind.Beam, px, py, px + rx * bestT, py + ry * bestT, w.color, 0.3f)
         if (hit != null) {
             combo = min(COMBO_MAX, combo + 1)
             val bonus = 1f + 0.03f * combo
@@ -730,7 +731,7 @@ internal class TbRun(
             if (!dead && p.friendly) {
                 for (e in enemies) {
                     if (!e.alive || e.uid in p.hitIds || e.state == TbEState.Spawn) continue
-                    if (TbWorld.dist(p.x, p.y, e.x, e.y) < e.def.radius + p.radius) {
+                    if (TbWorld.dist(p.x, p.y, e.x, e.y) < e.def.radius * HIT_SCALE + p.radius) {
                         p.hitIds += e.uid
                         hitEnemy(e, p.dmg, p.dx, p.dy, weapon.knockback)
                         p.pierce--
@@ -902,7 +903,7 @@ internal class TbRun(
         var roll = rnd.nextInt(s.pool.sumOf { it.weight })
         val pick = s.pool.first { p -> (roll < p.weight).also { if (!it) roll -= p.weight } }
         spawn(pick.id)
-        spawnT = s.spawnMs / 1000f
+        spawnT = s.spawnMs / 1000f * SPAWN_PACE
     }
 
     internal fun spawn(id: String) {
@@ -951,10 +952,21 @@ internal class TbRun(
         const val CRIT_MULT = 1.8f
         const val THORNS_RANGE = 4.5f
         const val STREAK_TIME = 3f
-        const val SPAWN_CLEAR = 7f
+        const val SPAWN_CLEAR = 4f
 
         /** Foes appear this far from the arena's centre, close enough to read on a small screen. */
-        const val SPAWN_RING = 13f
+        const val SPAWN_RING = 9f
+
+        /** Seconds before the first foe of a stage appears, and how much slower than the data they keep arriving. */
+        const val FIRST_SPAWN = 3.5f
+        const val SPAWN_PACE = 1.7f
+
+        /** Foe damage by wave, so the first waves let you settle in. The Guardian hits for full. */
+        val WAVE_EASE = floatArrayOf(0.45f, 0.6f, 0.75f, 0.9f, 1f)
+
+        /** Shots hit a foe this much wider than its body circle, to match the larger sprites, and aim pulls this much harder. */
+        const val HIT_SCALE = 1.7f
+        const val MAGNET_BOOST = 1.8f
         const val HIT_STOP = 0.045f
         const val HIT_STOP_BOSS = 0.09f
         const val AEGIS_STUN = 0.7f

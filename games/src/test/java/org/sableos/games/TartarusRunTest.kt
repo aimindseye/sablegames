@@ -53,6 +53,9 @@ class TartarusRunTest {
     fun foesSpawnOverTime() {
         val r = run()
         r.begin()
+        // The first foe holds off a few seconds so you can settle in.
+        repeat(100) { r.step(0.02f, still) }
+        assertEquals(0, r.aliveCount)
         repeat(150) { r.step(0.02f, still) }
         assertTrue(r.aliveCount > 0)
     }
@@ -175,7 +178,7 @@ class TartarusRunTest {
         assertEquals(hp, r.hp, 0f)
         repeat(20) { r.step(0.02f, still) }
         r.hurt(30f)
-        assertEquals(hp - 30f, r.hp, 0.01f)
+        assertEquals(hp - 30f * TbRun.WAVE_EASE[0], r.hp, 0.01f)
     }
 
     @Test

@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -405,7 +407,8 @@ internal fun TartarusScreen() {
             if (screen == TbScreenState.Run && r != null) TbTouchPad(r, touchHeld) { hud++ }
         },
     ) { side ->
-        Box(Modifier.size(side).clipToBounds().background(Color.Black)) {
+        val boardW = maxOf(side, LocalBoardWidth.current ?: side)
+        Box(Modifier.width(boardW).height(side).clipToBounds().background(Color.Black), contentAlignment = Alignment.Center) {
             when {
                 !ready -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -414,18 +417,24 @@ internal fun TartarusScreen() {
                 }
 
                 screen == TbScreenState.Select || r == null -> {
-                    TbSelect(sprites, meta, gateIdx, onPick = { gateIdx = it }, onGo = ::startRun, onShrine = { shrine = true })
+                    Box(Modifier.size(side)) {
+                        TbSelect(sprites, meta, gateIdx, onPick = { gateIdx = it }, onGo = ::startRun, onShrine = { shrine = true })
+                    }
                 }
 
                 else -> {
                     TbArena(r, sprites, frame, keys, touchHeld)
-                    TbOverlays(r, sprites, selected, onPick = { r.pickBoon(it); hud++ }, onRetry = ::startRun, onShrine = { shrine = true }, onGates = ::toSelect, onNext = {
-                        gateIdx = minOf(TartarusData.gates.lastIndex, gateIdx + if (r.gate.number >= 4) 0 else 1)
-                        toSelect()
-                    })
+                    Box(Modifier.size(side)) {
+                        TbOverlays(r, sprites, selected, onPick = { r.pickBoon(it); hud++ }, onRetry = ::startRun, onShrine = { shrine = true }, onGates = ::toSelect, onNext = {
+                            gateIdx = minOf(TartarusData.gates.lastIndex, gateIdx + if (r.gate.number >= 4) 0 else 1)
+                            toSelect()
+                        })
+                    }
                 }
             }
-            if (shrine) TbShrine(meta, shrineSel, onSelect = { shrineSel = it }, onBuy = ::buy, onClose = { shrine = false })
+            if (shrine) {
+                Box(Modifier.size(side)) { TbShrine(meta, shrineSel, onSelect = { shrineSel = it }, onBuy = ::buy, onClose = { shrine = false }) }
+            }
         }
     }
 }
@@ -447,7 +456,7 @@ private fun TbArena(
     Canvas(
         Modifier
             .fillMaxSize()
-            .pointerInput(r) { detectDragGestures { _, d -> r.turnBy(d.x / size.width * 2.4f) } }
+            .pointerInput(r) { detectDragGestures { _, d -> r.turnBy(d.x / size.height * 2.4f) } }
             .pointerInput(r) {
                 detectTapGestures(onPress = {
                     touch.press(TbHeld.Key.Fire, System.nanoTime() / 1_000_000L, 60_000L)
@@ -457,10 +466,13 @@ private fun TbArena(
             },
     ) {
         if (frame < 0) return@Canvas
-        drawTartarusWorld(r, sprites, cam)
-        drawWeapon(r, sprites, cam)
-        drawSight(r, cam)
-        drawHud(r, sprites, cam, measurer, labels)
+        // The board may be wider than it is tall: draw the square in the middle and let the view and bar run out to the edges.
+        translate(left = (size.width - size.height) / 2f) {
+            drawTartarusWorld(r, sprites, cam)
+            drawWeapon(r, sprites, cam)
+            drawSight(r, cam)
+            drawHud(r, sprites, cam, measurer, labels)
+        }
     }
 }
 
