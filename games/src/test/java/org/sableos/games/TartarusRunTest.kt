@@ -151,7 +151,8 @@ class TartarusRunTest {
         val boss = r.boss
         assertNotNull(boss)
         r.hitEnemy(boss!!, 99999f, 0f, 0f, 0f, proc = true)
-        r.step(0.02f, still)
+        // The kill's brief freeze-frame passes first.
+        r.wait(0.3f)
         assertEquals(TbPhase.Sealed, r.phase)
     }
 
@@ -253,5 +254,73 @@ class TartarusRunTest {
         val far = cam.floorY(cam.z)
         cam.project(r.px, r.py + 5f)
         assertTrue(cam.floorY(cam.z) > far)
+    }
+
+    @Test
+    fun aegisBoltStunsWhatItStrikes() {
+        val r = run()
+        r.begin()
+        r.enemies.clear()
+        r.spawn("skeletal_hoplite")
+        val e = r.enemies.last()
+        e.x = r.px
+        e.y = r.py + 8f
+        e.state = TbEState.Move
+        r.selectWeapon(3)
+        r.wait(0.4f)
+        r.favor = 100f
+        assertTrue(r.tryFire())
+        assertTrue(!e.alive || e.state == TbEState.Stun)
+    }
+
+    @Test
+    fun aKillFreezesTheFrameBriefly() {
+        val r = run()
+        r.begin()
+        r.spawn("skeletal_hoplite")
+        val e = r.enemies.last()
+        r.hitEnemy(e, 99999f, 0f, 0f, 0f, proc = true)
+        val t = r.runTime
+        r.step(0.02f, still)
+        assertEquals(t, r.runTime, 0f)
+        repeat(10) { r.step(0.02f, still) }
+        assertTrue(r.runTime > t)
+    }
+
+    @Test
+    fun pairedBoonsAnnounceTheirBonus() {
+        val r = run()
+        r.begin()
+        val zeus = TartarusData.boons.first { it.id == "zeus_chain_arc" }
+        val pose = TartarusData.boons.first { it.id == "poseidon_undertow" }
+        assertEquals(null, r.completes(pose))
+        r.boons["zeus_chain_arc"] = 1
+        assertNotNull(r.completes(pose))
+        assertEquals(null, r.completes(zeus))
+    }
+
+    @Test
+    fun aCursedBoonGivesTwoStacksAndCostsMaxHp() {
+        var found = false
+        for (seed in 1L..80L) {
+            val r = TbRun(gate1, TbMeta(), seed = seed)
+            r.begin()
+            r.skipTime(1000f)
+            r.step(0.02f, still)
+            r.pickBoon(0)
+            r.begin()
+            r.skipTime(1000f)
+            r.step(0.02f, still)
+            val i = r.draftChoices.indexOfFirst { it.cursed }
+            if (i >= 0) {
+                val id = r.draftChoices[i].id
+                r.pickBoon(i)
+                assertEquals(2, r.boons[id] ?: 0)
+                assertEquals(90f, r.maxHp, 0f)
+                found = true
+                break
+            }
+        }
+        assertTrue(found)
     }
 }

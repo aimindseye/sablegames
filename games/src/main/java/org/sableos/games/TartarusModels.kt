@@ -38,6 +38,7 @@ internal data class TbBoon(
     val stat: String,
     val value: Float,
     val operation: String,
+    val cursed: Boolean = false,
 )
 
 internal data class TbEnemyDef(
