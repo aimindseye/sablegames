@@ -605,6 +605,8 @@ private fun TbDraft(
                             Spacer(Modifier.weight(1f))
                             val stacks = r.boons[b.id] ?: 0
                             if (stacks > 0) Text("OWNED x$stacks", color = accent, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = u(0.024f))
+                            r.completes(b)?.let { Text("PAIR BONUS: ${it.substringBefore(":")}", color = TbColors.Gold, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Black, fontSize = u(0.024f), textAlign = TextAlign.Center) }
+                            if (b.cursed) Text("CURSED", color = TbColors.Blood, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Black, fontSize = u(0.026f))
                             Surface(shape = RoundedCornerShape(s * 0.01f), color = accent.copy(alpha = 0.25f), border = BorderStroke(s * 0.004f, accent)) {
                                 Text("[${i + 1}]", Modifier.padding(horizontal = s * 0.02f, vertical = s * 0.006f), color = Color.White, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Black, fontSize = u(0.05f))
                             }

@@ -32,6 +32,7 @@ internal class TbEnemy(
     var burn = 0f
     var burnDps = 0f
     var marked = 0f
+    var lavaT = 0f
     var dirX = 0f
     var dirY = 0f
     var orbit = 0f

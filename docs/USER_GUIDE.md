@@ -96,6 +96,8 @@ You are a fallen warrior fighting down through four Gates of Tartarus to seal th
 - **Artifacts.** Q Apollo's Sunbow (fast solar beam, free, hits in a row build a damage combo), U Poseidon's Trident (close-range wave that shoves foes back, 4 Favor), E Hades' Bident (two piercing shadow bolts, 6 Favor), R Zeus's Aegis Bolt (lightning across eight foes, 35 Favor). Space, Enter or a trackpad click fires; hold to keep firing. The crosshair pulls toward foes in front of you.
 - **Favor and healing.** Favor comes from kills and a slow trickle. You heal a quarter of your HP after every wave.
 - **Boons.** After each wave pick one of three Olympian Boons: 1, 2 or 3 (or A, S, D). They stack up to their limit.
+- **Pair bonuses and curses.** Some boons are stronger together (Zeus + Poseidon, Apollo + Hephaestus, Athena + Hades, Ares + Artemis); the card says PAIR BONUS when picking it completes one. Now and then a card is CURSED: two stacks at once, for 10% of your max HP.
+- **Tricks.** The Aegis Bolt stuns what it strikes. Shove a foe into lava with the Trident for a big hit. Kills freeze the frame for a moment.
 - **Warnings.** Red circles and lines on the floor show where a strike will land. Gates add hazards: soul fog, lava, vents, spike plates, gravity wells and time rifts.
 - **Obols and the Shrine.** Foes drop Obols that you keep between runs. When you fall, R retries at once and U opens the Underworld Shrine, which sells permanent upgrades (more HP, damage, Favor, a quicker dash, more Obols). Sealing a Gate opens the next.
 

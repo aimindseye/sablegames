@@ -106,7 +106,7 @@ private class TbThing(
     val ref: Any,
 )
 
-private fun fog(z: Float) = 1f - ((z - 17f) / 15f).coerceIn(0f, 1f) * 0.7f
+private fun fog(z: Float) = 1f - ((z - 30f) / 16f).coerceIn(0f, 1f) * 0.4f
 
 internal fun colorOf(c: Long) = Color(c.toInt())
 
@@ -473,7 +473,8 @@ private fun DrawScope.drawEnemy(
     val moving = e.state == TbEState.Move
     val bob = if (moving && hover == 0f) abs(sin(e.age * e.def.speed * 1.6f)) * 0.06f * worldH else 0f
     if (e.state == TbEState.Windup) squash = 1f + 0.05f * sin(e.age * 34f)
-    val h = worldH / z * cam.f
+    // Never smaller than a readable minimum, however far away (bosses are big enough already).
+    val h = max(worldH / z * cam.f, if (e.boss) 0f else cam.s * 0.16f * scale)
     val foot = cam.heightY(z, hover) - bob / z * cam.f
     val floor = cam.floorY(z)
     val ww = h * img.width / img.height

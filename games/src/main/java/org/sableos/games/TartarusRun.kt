@@ -48,7 +48,11 @@ internal class TbRun(
     var py = 0f
     var yaw = (PI / 2).toFloat()
     var hp = 0f
-    val maxHp = BASE_HP + 10f * meta.level(TbUpgrade.Vigor)
+    var maxHp = BASE_HP + 10f * meta.level(TbUpgrade.Vigor)
+        private set
+
+    /** A short freeze after a kill, so hits land with weight. */
+    private var hitStop = 0f
     var favor = 40f
     var obols = 0
         private set
@@ -115,9 +119,28 @@ internal class TbRun(
     val timeLeft get() = max(0f, stageT)
 
     // Stats the boons and Shrine upgrades give.
-    private fun mul(stat: String) = boons.entries.fold(1f) { acc, (id, n) -> TartarusData.boons.first { it.id == id }.let { if (it.stat == stat && it.operation == "multiply") acc * it.value.pow(n) else acc } }
+    private fun mul(stat: String): Float {
+        val base = boons.entries.fold(1f) { acc, (id, n) -> TartarusData.boons.first { it.id == id }.let { if (it.stat == stat && it.operation == "multiply") acc * it.value.pow(n) else acc } }
+        return if (stat == "fire_rate_multiplier" && paired("ares_bloodlust", "artemis_crit_mark")) base * 0.9f else base
+    }
 
-    private fun add(stat: String) = boons.entries.sumOf { (id, n) -> TartarusData.boons.first { it.id == id }.let { if (it.stat == stat && it.operation == "add") (it.value * n).toDouble() else 0.0 } }.toFloat()
+    private fun add(stat: String): Float {
+        val base = boons.entries.sumOf { (id, n) -> TartarusData.boons.first { it.id == id }.let { if (it.stat == stat && it.operation == "add") (it.value * n).toDouble() else 0.0 } }.toFloat()
+        return when {
+            stat == "proc_chain_damage" && paired("zeus_chain_arc", "poseidon_undertow") -> base * 1.5f
+            stat == "burn_dps" && paired("apollo_radiance", "hephaestus_burn") -> base * 1.5f
+            stat == "thorns_reflect_pct" && paired("athena_aegis", "hades_soul_siphon") && base > 0f -> base + 0.2f
+            else -> base
+        }
+    }
+
+    private fun paired(
+        a: String,
+        b: String,
+    ) = (boons[a] ?: 0) > 0 && (boons[b] ?: 0) > 0
+
+    /** The pair bonus choosing [b] would complete, if any. */
+    fun completes(b: TbBoon): String? = SYNERGIES.firstOrNull { (x, y, _) -> (b.id == x && (boons[y] ?: 0) > 0 && (boons[x] ?: 0) == 0) || (b.id == y && (boons[x] ?: 0) > 0 && (boons[y] ?: 0) == 0) }?.third
 
     val fireMult get() = mul("fire_rate_multiplier")
     val moveMult get() = mul("move_speed_multiplier")
@@ -176,8 +199,14 @@ internal class TbRun(
     fun pickBoon(i: Int) {
         if (phase != TbPhase.Draft || i !in draftChoices.indices) return
         val b = draftChoices[i]
-        boons[b.id] = (boons[b.id] ?: 0) + 1
+        val pair = completes(b)
+        boons[b.id] = (boons[b.id] ?: 0) + if (b.cursed) 2 else 1
         say("${b.name}${if (boons.getValue(b.id) > 1) " x${boons.getValue(b.id)}" else ""}")
+        if (b.cursed) {
+            maxHp = (maxHp * CURSE_HP).roundToInt().toFloat()
+            hp = min(hp, maxHp)
+        }
+        if (pair != null) say(pair)
         draftChoices = emptyList()
         stageIndex++
         setupStage()
@@ -208,6 +237,10 @@ internal class TbRun(
         swapT = max(0f, swapT - dt)
         toasts.removeAll { clock - it.at > TOAST_TIME }
         stepFx(dt)
+        if (phase == TbPhase.Combat && hitStop > 0f) {
+            hitStop -= dt
+            return
+        }
         when (phase) {
             TbPhase.Ready -> {
                 movePlayer(dt, input)
@@ -297,6 +330,14 @@ internal class TbRun(
         val pool = TartarusData.boons.filter { (boons[it.id] ?: 0) < it.maxStacks }.toMutableList()
         val out = ArrayList<TbBoon>()
         while (out.size < 3 && pool.isNotEmpty()) out += pool.removeAt(rnd.nextInt(pool.size))
+        // From the second wave on, one card may be a cursed boon: two stacks at once, at the cost of max HP.
+        if (stageIndex >= 1 && out.isNotEmpty() && rnd.nextFloat() < CURSE_CHANCE) {
+            val k = rnd.nextInt(out.size)
+            val b = out[k]
+            if ((boons[b.id] ?: 0) + 2 <= b.maxStacks) {
+                out[k] = b.copy(name = "Cursed ${b.name}", description = "${b.description}, twice over. Max HP -10%", cursed = true)
+            }
+        }
         return out
     }
 
@@ -576,6 +617,10 @@ internal class TbRun(
             fx += TbFx(TbFxKind.Chain, fromX, fromY, cur.x, cur.y, w.color, 0.35f, n = i)
             val dir = TbWorld.dist(fromX, fromY, cur.x, cur.y).coerceAtLeast(0.1f)
             hitEnemy(cur, w.damage.toFloat(), (cur.x - fromX) / dir, (cur.y - fromY) / dir, w.knockback)
+            if (cur.alive && !cur.boss) {
+                cur.state = TbEState.Stun
+                cur.timer = AEGIS_STUN
+            }
             fromX = cur.x
             fromY = cur.y
             val next = enemies.filter { it.alive && it.uid !in struck && TbWorld.dist(it.x, it.y, cur.x, cur.y) <= w.chainRadius }.minByOrNull { TbWorld.dist(it.x, it.y, cur.x, cur.y) } ?: break
@@ -642,6 +687,7 @@ internal class TbRun(
 
     internal fun kill(e: TbEnemy) {
         if (!e.alive) return
+        hitStop = max(hitStop, if (e.boss) HIT_STOP_BOSS else HIT_STOP)
         e.state = TbEState.Dying
         e.fall = 0f
         if (e.pays) {
@@ -744,13 +790,35 @@ internal class TbRun(
             }
             val d = TbWorld.dist(px, py, z.x, z.y)
             when (z.kind) {
-                TbZoneKind.LavaRing -> if (ticking && hypot(px, py) > z.r) hurt(LAVA_TICK)
-                TbZoneKind.LavaStrip -> if (ticking && abs(px - z.x) < z.r) hurt(LAVA_TICK)
+                TbZoneKind.LavaRing -> {
+                    if (ticking && hypot(px, py) > z.r) hurt(LAVA_TICK)
+                    scorchFoes(dt) { hypot(it.x, it.y) > z.r }
+                }
+
+                TbZoneKind.LavaStrip -> {
+                    if (ticking && abs(px - z.x) < z.r) hurt(LAVA_TICK)
+                    scorchFoes(dt) { abs(it.x - z.x) < z.r }
+                }
+
                 TbZoneKind.Vent -> cycle(z, dt, rest = 3.2f, warn = 1.0f, fire = 0.35f) { if (d < z.r) hurt(VENT_DMG, z.x, z.y) }
                 TbZoneKind.Spikes -> cycle(z, dt, rest = 2.2f, warn = 0.8f, fire = 0.6f) { if (d < z.r) hurt(SPIKE_DMG, z.x, z.y) }
                 TbZoneKind.Well -> pullFoes(z, dt)
                 else -> Unit
             }
+        }
+    }
+
+    /** A foe shoved fast into lava burns for a big hit, so the Trident's knockback pays off. */
+    private fun scorchFoes(
+        dt: Float,
+        inLava: (TbEnemy) -> Boolean,
+    ) {
+        for (e in enemies) {
+            e.lavaT -= dt
+            if (!e.alive || e.boss || e.lavaT > 0f || hypot(e.vx, e.vy) < SHOVE_SPEED || !inLava(e)) continue
+            e.lavaT = 0.6f
+            hitEnemy(e, SHOVE_LAVA, 0f, 0f, 0f, proc = true)
+            fx += TbFx(TbFxKind.Burst, e.x, e.y, 0f, 0f, 0xFFFF7B00, 0.4f)
         }
     }
 
@@ -843,8 +911,8 @@ internal class TbRun(
         var y = 0f
         for (i in 0 until 10) {
             val a = rnd.nextFloat() * 2f * PI.toFloat()
-            x = cos(a) * (stage.radius - 1.6f)
-            y = sin(a) * (stage.radius - 1.6f)
+            x = cos(a) * min(stage.radius - 1.6f, SPAWN_RING)
+            y = sin(a) * min(stage.radius - 1.6f, SPAWN_RING)
             if (TbWorld.dist(x, y, px, py) > SPAWN_CLEAR) break
         }
         val e = TbEnemy(def, x, y, uid++)
@@ -883,7 +951,26 @@ internal class TbRun(
         const val CRIT_MULT = 1.8f
         const val THORNS_RANGE = 4.5f
         const val STREAK_TIME = 3f
-        const val SPAWN_CLEAR = 12f
+        const val SPAWN_CLEAR = 7f
+
+        /** Foes appear this far from the arena's centre, close enough to read on a small screen. */
+        const val SPAWN_RING = 13f
+        const val HIT_STOP = 0.045f
+        const val HIT_STOP_BOSS = 0.09f
+        const val AEGIS_STUN = 0.7f
+        const val CURSE_CHANCE = 0.3f
+        const val CURSE_HP = 0.9f
+        const val SHOVE_SPEED = 3.5f
+        const val SHOVE_LAVA = 40f
+
+        /** Pairs of boons that give a bonus together, with the line shown when the second one is picked. */
+        val SYNERGIES =
+            listOf(
+                Triple("zeus_chain_arc", "poseidon_undertow", "Storm Surge: Zeus + Poseidon, chains hit 50% harder"),
+                Triple("apollo_radiance", "hephaestus_burn", "Sun Forge: Apollo + Hephaestus, burns 50% hotter"),
+                Triple("athena_aegis", "hades_soul_siphon", "Stygian Guard: Athena + Hades, +20% reflect"),
+                Triple("ares_bloodlust", "artemis_crit_mark", "Hunt: Ares + Artemis, 10% faster fire"),
+            )
         const val LAVA_TICK = 5f
         const val VENT_DMG = 16f
         const val SPIKE_DMG = 12f
