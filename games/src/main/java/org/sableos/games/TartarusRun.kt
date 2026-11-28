@@ -551,7 +551,8 @@ internal class TbRun(
         w: TbWeapon,
         aim: Float,
     ): Boolean {
-        val a = aim + Math.toRadians(((rnd.nextFloat() - 0.5f) * w.spreadDeg).toDouble()).toFloat()
+        // No random spread: the Sunbow goes exactly where the sight points.
+        val a = aim
         val rx = cos(a)
         val ry = sin(a)
         var bestT = BEAM_RANGE
