@@ -348,11 +348,11 @@ private fun TbRun.lunge(
     when (e.state) {
         TbEState.Move -> {
             walk(e, ux, uy, e.def.speed, dt)
-            if (d in 2.5f..7.5f && e.cooldown <= 0f) {
+            if (d in 2.0f..4.5f && e.cooldown <= 0f) {
                 windup(e, 0.55f)
                 e.dirX = ux
                 e.dirY = uy
-                lineTele(e, atan2(uy, ux), 7f, 0.7f, 0.55f, 0)
+                lineTele(e, atan2(uy, ux), 4.8f, 0.7f, 0.55f, 0)
             }
         }
 
@@ -365,7 +365,7 @@ private fun TbRun.lunge(
         }
 
         else -> {
-            walk(e, e.dirX, e.dirY, 20f, dt)
+            walk(e, e.dirX, e.dirY, 13f, dt)
             if (!e.hit && d < e.def.range * 0.9f + 0.6f) {
                 e.hit = true
                 hurt(e.def.damage.toFloat(), e.x, e.y)
