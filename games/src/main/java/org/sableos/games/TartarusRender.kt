@@ -504,6 +504,20 @@ private fun DrawScope.drawEnemy(
     withTransform({ rotate(sin(e.age * 5f + e.uid) * (if (moving) 2.2f else 0.6f), Offset(sx, foot)) }) {
         sprite(img, sx, foot, h, alpha, squash, tint)
     }
+    // A small marker over foes that are far off, so they stay easy to find.
+    if (e.alive && e.state != TbEState.Spawn && z > 8f) {
+        val m = cam.s * 0.014f
+        val top = foot - h - m * 0.6f
+        val tri =
+            Path().apply {
+                moveTo(sx, top)
+                lineTo(sx - m, top - m * 1.4f)
+                lineTo(sx + m, top - m * 1.4f)
+                close()
+            }
+        val hot = e.state == TbEState.Windup
+        drawPath(tri, (if (hot) TbColors.Blood else TbColors.Gold).copy(alpha = 0.85f * alpha))
+    }
     if (!e.boss && e.state != TbEState.Dying && e.hp < e.maxHp && e.def.tier != "swarm") {
         val bw = max(ww * 0.55f, cam.s * 0.04f)
         val by = foot - h - cam.s * 0.012f

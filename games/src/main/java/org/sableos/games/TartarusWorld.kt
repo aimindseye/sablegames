@@ -248,3 +248,12 @@ internal object TbWorld {
         return d
     }
 }
+
+/** Things that happened this frame, for the sound and vibration to answer. */
+internal enum class TbEvent { Fire, Hit, Kill, Hurt, Dash, Draft, Seal, Fall }
+
+/** Where a hit on the player came from, in the world, and when. */
+internal class TbHitDir(
+    val angle: Float,
+    val at: Float,
+)

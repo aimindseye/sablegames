@@ -61,6 +61,16 @@ internal class TbRun(
     var weaponIdx = 0
         private set
     var invuln = 0f
+
+    /** What happened this frame; the screen plays sounds for these and clears the list. */
+    val events = ArrayList<TbEvent>()
+
+    /** Recent hits on the player and the direction each came from, for the red arrows. */
+    val hitDirs = ArrayList<TbHitDir>()
+
+    internal fun emit(e: TbEvent) {
+        if (events.size < 24) events += e
+    }
     var dashT = 0f
     var dashCd = 0f
     private var dashX = 0f
@@ -193,6 +203,7 @@ internal class TbRun(
         dashY = sin(yaw) * f - cos(yaw) * s
         dashT = DASH_TIME
         dashCd = dashCooldown
+        emit(TbEvent.Dash)
         fx += TbFx(TbFxKind.Puff, px, py, 0f, 0f, 0xFF00E5A0, 0.35f)
     }
 
@@ -233,6 +244,7 @@ internal class TbRun(
         shake = max(0f, shake - dt * 3.2f)
         hurtFlash = max(0f, hurtFlash - dt * 2.4f)
         hitMarker = max(0f, hitMarker - dt)
+        hitDirs.removeAll { clock - it.at > HIT_ARROW_TIME }
         kick = max(0f, kick - dt * 5f)
         swapT = max(0f, swapT - dt)
         toasts.removeAll { clock - it.at > TOAST_TIME }
@@ -318,6 +330,7 @@ internal class TbRun(
         teles.clear()
         hp = min(maxHp, hp + maxHp * WAVE_HEAL)
         say("Wave ${wave} cleared: +${(maxHp * WAVE_HEAL).roundToInt()} HP")
+        emit(TbEvent.Draft)
         draftChoices = rollDraft()
         phase = if (draftChoices.isEmpty()) TbPhase.Ready else TbPhase.Draft
         if (draftChoices.isEmpty()) {
@@ -348,11 +361,13 @@ internal class TbRun(
         projs.clear()
         teles.clear()
         say("${gate.name} sealed")
+        emit(TbEvent.Seal)
     }
 
     private fun fall(reason: String) {
         if (phase == TbPhase.Fallen) return
         phase = TbPhase.Fallen
+        emit(TbEvent.Fall)
         wipeReason = reason
         hp = 0f
         shake = 1f
@@ -456,7 +471,9 @@ internal class TbRun(
         slows: Boolean = false,
     ) {
         if (phase != TbPhase.Combat || invuln > 0f || dashT > 0f) return
-        val dealt = dmg * WAVE_EASE[stageIndex.coerceIn(0, WAVE_EASE.lastIndex)]
+        val dealt = dmg * WAVE_EASE[stageIndex.coerceIn(0, WAVE_EASE.lastIndex)] * DIFF_DAMAGE[meta.difficulty.coerceIn(0, 2)]
+        if (fromX != px || fromY != py) hitDirs += TbHitDir(atan2(fromY - py, fromX - px), clock)
+        emit(TbEvent.Hurt)
         hp -= dealt
         invuln = HURT_GRACE
         hurtFlash = 1f
@@ -474,9 +491,10 @@ internal class TbRun(
 
     /** The angle the shot takes: the yaw, pulled toward the nearest foe inside the weapon's horizontal magnetism. */
     private fun aim(w: TbWeapon): Float {
+        if (meta.aim == 0) return yaw
         var best: TbEnemy? = null
         var bestA = Float.MAX_VALUE
-        val magnet = Math.toRadians(w.magnetDeg.toDouble()).toFloat() * MAGNET_BOOST
+        val magnet = Math.toRadians(w.magnetDeg.toDouble()).toFloat() * AIM_BOOST[meta.aim.coerceIn(0, 2)]
         for (e in enemies) {
             if (!e.alive || e.state == TbEState.Spawn) continue
             val d = TbWorld.dist(px, py, e.x, e.y)
@@ -517,6 +535,7 @@ internal class TbRun(
             return false
         }
         favor -= w.favor
+        emit(TbEvent.Fire)
         fireCd = w.fireMs / 1000f * fireMult
         kick = 1f
         return true
@@ -653,6 +672,7 @@ internal class TbRun(
         }
         if (!proc) {
             hitMarker = 0.18f
+            emit(TbEvent.Hit)
             val bd = burnDps
             if (bd > 0f) {
                 e.burn = 3f
@@ -689,6 +709,7 @@ internal class TbRun(
     internal fun kill(e: TbEnemy) {
         if (!e.alive) return
         hitStop = max(hitStop, if (e.boss) HIT_STOP_BOSS else HIT_STOP)
+        emit(TbEvent.Kill)
         e.state = TbEState.Dying
         e.fall = 0f
         if (e.pays) {
@@ -903,7 +924,7 @@ internal class TbRun(
         var roll = rnd.nextInt(s.pool.sumOf { it.weight })
         val pick = s.pool.first { p -> (roll < p.weight).also { if (!it) roll -= p.weight } }
         spawn(pick.id)
-        spawnT = s.spawnMs / 1000f * SPAWN_PACE
+        spawnT = s.spawnMs / 1000f * SPAWN_PACE * DIFF_PACE[meta.difficulty.coerceIn(0, 2)]
     }
 
     internal fun spawn(id: String) {
@@ -966,7 +987,12 @@ internal class TbRun(
 
         /** Shots hit a foe this much wider than its body circle, to match the larger sprites, and aim pulls this much harder. */
         const val HIT_SCALE = 1.7f
-        const val MAGNET_BOOST = 1.8f
+        val AIM_BOOST = floatArrayOf(0f, 1.2f, 2.2f)
+
+        /** Foe damage and spawn gaps for Easy, Normal and Hard. */
+        val DIFF_DAMAGE = floatArrayOf(0.7f, 1f, 1.3f)
+        val DIFF_PACE = floatArrayOf(1.3f, 1f, 0.8f)
+        const val HIT_ARROW_TIME = 1.3f
         const val HIT_STOP = 0.045f
         const val HIT_STOP_BOSS = 0.09f
         const val AEGIS_STUN = 0.7f

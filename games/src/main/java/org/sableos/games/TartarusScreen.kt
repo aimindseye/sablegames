@@ -130,6 +130,10 @@ internal fun TartarusScreen() {
     var recorded by remember { mutableStateOf(false) }
     var ready by remember { mutableStateOf(false) }
     val held = remember { TbHeld() }
+    val feedback = remember { TbFeedback(context) }
+    DisposableEffect(feedback) { onDispose { feedback.release() } }
+    feedback.sound = meta.sound
+    feedback.vibrate = meta.vibrate
     val touchHeld = remember { TbHeld() }
     val suspended = shell?.suspended == true
 
@@ -165,6 +169,18 @@ internal fun TartarusScreen() {
         }
         meta = m
         saveMeta(context, m)
+    }
+
+    fun cycleSetting(n: Int) {
+        meta =
+            when (n) {
+                1 -> meta.copy(difficulty = (meta.difficulty + 1) % 3)
+                2 -> meta.copy(aim = (meta.aim + 1) % 3)
+                3 -> meta.copy(sound = !meta.sound)
+                else -> meta.copy(vibrate = !meta.vibrate)
+            }
+        saveMeta(context, meta)
+        hud++
     }
 
     fun toSelect() {
@@ -273,6 +289,7 @@ internal fun TartarusScreen() {
             when {
                 cmd is GameCommand.Move -> if (cmd.dy != 0) gateIdx = (gateIdx + cmd.dy).coerceIn(0, TartarusData.gates.lastIndex)
                 press.keyCode == KeyEvent.KEYCODE_U -> shrine = true
+                cmd is GameCommand.Digit && cmd.value in 1..4 -> cycleSetting(cmd.value)
                 cmd == GameCommand.Primary || cmd == GameCommand.Select -> startRun()
                 cmd == GameCommand.Pause -> shell?.onPause?.invoke()
                 else -> return false
@@ -373,6 +390,10 @@ internal fun TartarusScreen() {
                         )
                     val before = r.phase
                     r.step(dt, input)
+                    if (r.events.isNotEmpty()) {
+                        r.events.forEach { feedback.play(it) }
+                        r.events.clear()
+                    }
                     if (r.phase != before) {
                         record(r)
                         hud++
@@ -418,7 +439,7 @@ internal fun TartarusScreen() {
 
                 screen == TbScreenState.Select || r == null -> {
                     Box(Modifier.size(side)) {
-                        TbSelect(sprites, meta, gateIdx, onPick = { gateIdx = it }, onGo = ::startRun, onShrine = { shrine = true })
+                        TbSelect(sprites, meta, gateIdx, onPick = { gateIdx = it }, onGo = ::startRun, onShrine = { shrine = true }, onSetting = ::cycleSetting)
                     }
                 }
 
@@ -488,6 +509,7 @@ private fun TbSelect(
     onPick: (Int) -> Unit,
     onGo: () -> Unit,
     onShrine: () -> Unit,
+    onSetting: (Int) -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val u = unit(maxWidth)
@@ -531,7 +553,34 @@ private fun TbSelect(
                     }
                 }
             }
-            Spacer(Modifier.height(s * 0.02f))
+            Spacer(Modifier.height(s * 0.015f))
+            val chips =
+                listOf(
+                    "DIFFICULTY: ${listOf("EASY", "NORMAL", "HARD")[meta.difficulty.coerceIn(0, 2)]}",
+                    "AIM ASSIST: ${listOf("OFF", "NORMAL", "STRONG")[meta.aim.coerceIn(0, 2)]}",
+                    "SOUND: ${if (meta.sound) "ON" else "OFF"}",
+                    "VIBRATION: ${if (meta.vibrate) "ON" else "OFF"}",
+                )
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(s * 0.012f)) {
+                for (rowChips in listOf(0, 2)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(s * 0.015f)) {
+                        for (k in rowChips until rowChips + 2) {
+                            Surface(
+                                modifier = Modifier.weight(1f).clickable { onSetting(k + 1) },
+                                shape = RoundedCornerShape(s * 0.01f),
+                                color = Color(0xCC2A2620),
+                                border = BorderStroke(s * 0.003f, TbColors.GoldDark),
+                            ) {
+                                Row(Modifier.padding(horizontal = s * 0.015f, vertical = s * 0.011f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(s * 0.01f)) {
+                                    Text("[${k + 1}]", color = TbColors.Gold, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Black, fontSize = u(0.03f))
+                                    Text(chips[k], color = Color(0xFFEDE3C8), fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = u(0.03f))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(s * 0.015f))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 KeyHint("W/S", "SELECT", u)
                 KeyHint("ENTER", "DESCEND", u)

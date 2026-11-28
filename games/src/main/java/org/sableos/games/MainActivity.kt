@@ -97,6 +97,10 @@ class MainActivity : ComponentActivity() {
                             GameShell(GameCatalog.tartarus) { TartarusScreen() }
                         }
 
+                        "installer" -> {
+                            InstallerScreen()
+                        }
+
                         "scaffold" -> {
                             ScaffoldApp()
                         }

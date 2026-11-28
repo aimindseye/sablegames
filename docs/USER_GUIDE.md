@@ -99,7 +99,12 @@ You are a fallen warrior fighting down through four Gates of Tartarus to seal th
 - **Pair bonuses and curses.** Some boons are stronger together (Zeus + Poseidon, Apollo + Hephaestus, Athena + Hades, Ares + Artemis); the card says PAIR BONUS when picking it completes one. Now and then a card is CURSED: two stacks at once, for 10% of your max HP.
 - **Tricks.** The Aegis Bolt stuns what it strikes. Shove a foe into lava with the Trident for a big hit. Kills freeze the frame for a moment.
 - **Warnings.** Red circles and lines on the floor show where a strike will land. Gates add hazards: soul fog, lava, vents, spike plates, gravity wells and time rifts.
+- **Settings.** On the Gate screen, 1 to 4 (or tap) change Difficulty (Easy, Normal, Hard), Aim assist (Off, Normal, Strong), Sound and Vibration. A red arrow at the crosshair points at whatever just hit you, and small gold markers sit over far-off foes.
 - **Obols and the Shrine.** Foes drop Obols that you keep between runs. When you fall, R retries at once and U opens the Underworld Shrine, which sells permanent upgrades (more HP, damage, Favor, a quicker dash, more Obols). Sealing a Gate opens the next.
+
+## Sable Installer
+
+A small app that installs the other games. Open it, move with W and S (or touch), press Space to pick the games you want and Enter to install. It looks up the latest release on GitHub, downloads each game, checks the file and hands it to Android, which asks you to confirm each install. The first time, Android sends you to a settings page to allow Sable Installer to install apps; allow it and press Enter again. Installed games show their version, and R refreshes.
 
 ## Gravel & Gears
 

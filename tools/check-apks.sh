@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Checks each release APK under DIR (games/build/outputs/apk): one per app, with the app's
-# io.github.aimindseye.sablegames.* package name, and no Android permissions requested.
+# io.github.aimindseye.sablegames.* package name, and no Android permissions requested (the installer
+# alone may ask for INTERNET and REQUEST_INSTALL_PACKAGES, to download and install the games, and
+# Tartarus Breach for VIBRATE).
 # With --signed (tools/build-release.sh), every APK must also be signed with the registered key: the
 # owner's TenSeven Launcher key, whose certificate is registered in the Android Developer Console.
 # SABLEGAMES_EXPECTED_CERT overrides the expected certificate SHA-256.
@@ -16,7 +18,7 @@ aapt2="$(find "$sdk/build-tools" -maxdepth 2 -name aapt2 -type f 2>/dev/null | L
 
 # Each flavor's package is io.github.aimindseye.sablegames.<flavor>. Plain arrays only: macOS ships
 # bash 3.2, which has no associative arrays and no mapfile.
-flavors=(console sudoku minesweeper game2048 bricks snake blocks reversi solitaire mahjong words cards snakesladders ludo scaffold melons gravelgears tartarus)
+flavors=(console sudoku minesweeper game2048 bricks snake blocks reversi solitaire mahjong words cards snakesladders ludo scaffold melons gravelgears tartarus installer)
 apksigner="$(dirname "$aapt2")/apksigner"
 certs=()
 fail=0
@@ -35,6 +37,12 @@ for flavor in "${flavors[@]}"; do
     # AndroidX adds <package>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION, the app's own signature
     # permission for its private receivers; it grants nothing. Any other permission is a failure.
     others="$(grep "^uses-permission" <<< "$badging" | grep -v "name='$want.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'" || true)"
+    if [[ "$flavor" == tartarus ]]; then
+        others="$(grep -v -e "name='android.permission.VIBRATE'" <<< "$others" || true)"
+    fi
+    if [[ "$flavor" == installer ]]; then
+        others="$(grep -v -e "name='android.permission.INTERNET'" -e "name='android.permission.REQUEST_INSTALL_PACKAGES'" <<< "$others" || true)"
+    fi
     if [[ -n "$others" ]]; then
         echo "FAIL $flavor asks for permissions:"; echo "$others"; fail=1
     fi
