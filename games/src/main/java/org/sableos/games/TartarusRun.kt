@@ -943,6 +943,9 @@ internal class TbRun(
     internal val foeSpeedScale get() = (if (early) EARLY_SPEED[stageIndex] else 1f) * DIFF_SPEED[meta.difficulty.coerceIn(0, 2)]
 
     /** Seconds a foe waits after appearing before it may attack. */
+    /** Seconds a melee foe rests between swings. */
+    internal val meleeRest get() = if (early) EARLY_MELEE_REST[stageIndex] else MELEE_REST
+
     internal val attackGrace get() = if (early) EARLY_GRACE[stageIndex] else ATTACK_GRACE
     private val earlyPace get() = if (early) EARLY_PACE[stageIndex] else 1f
     private val concurrentCap get() = if (early) EARLY_CAP[stageIndex] else Int.MAX_VALUE
@@ -985,6 +988,9 @@ internal class TbRun(
     }
 
     companion object {
+        /** Shown on the Gate screen; bump it with every balance change. */
+        const val BALANCE = "B4"
+
         const val BASE_HP = 100f
         const val MAX_FAVOR = 100f
         const val FAVOR_TRICKLE = 2f
@@ -1029,6 +1035,8 @@ internal class TbRun(
         const val EARLY_NEXT_SPAWN = 8f
         const val ATTACK_GRACE = 1.2f
         val EARLY_GRACE = floatArrayOf(3f, 2.5f, 2f, 1.5f)
+        const val MELEE_REST = 1f
+        val EARLY_MELEE_REST = floatArrayOf(2.5f, 2f, 1.6f, 1.3f)
 
         /** Gate 1, stages 1 to 4: foe speed, spacing between arrivals, and most foes alive at once. */
         const val EARLY_STAGES = 4

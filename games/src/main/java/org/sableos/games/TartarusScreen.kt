@@ -517,7 +517,9 @@ private fun TbSelect(
         Image(sprites.background(selected + 1), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xCC0A0812), Color(0x660A0812), Color(0xE60A0812)))))
         Column(Modifier.fillMaxSize().padding(horizontal = s * 0.06f, vertical = s * 0.025f), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                // Which balance this build plays with, so a phone test can be matched to a change.
+                Text("BALANCE ${TbRun.BALANCE}", color = Color(0x99FFFFFF), fontSize = u(0.028f))
                 Text("OBOLS: ${"%,d".format(meta.obols)}", color = TbColors.Gold, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, fontSize = u(0.04f))
             }
             Text("TARTARUS", color = TbColors.Gold, fontFamily = FontFamily.Serif, fontWeight = FontWeight.Black, fontSize = u(0.105f), lineHeight = u(0.105f))

@@ -418,4 +418,24 @@ class TartarusRunTest {
         repeat(100) { r.step(0.02f, still) }
         assertEquals(hp, r.hp, 0.001f)
     }
+
+    @Test
+    fun aHopliteStaysInFrontOfYouAndRestsBetweenSwings() {
+        val r = run()
+        r.begin()
+        val e = r.enemies.first()
+        val hits = ArrayList<Float>()
+        var hp = r.hp
+        var t = 0f
+        while (t < 20f) {
+            r.step(0.02f, still)
+            t += 0.02f
+            if (r.hp < hp) hits += t
+            hp = r.hp
+            // It never walks into you, where you could not see it.
+            assertTrue(TbWorld.dist(e.x, e.y, r.px, r.py) > 1f)
+        }
+        assertTrue(hits.size >= 2)
+        assertTrue(hits.zipWithNext().all { (a, b) -> b - a > 2.4f })
+    }
 }
