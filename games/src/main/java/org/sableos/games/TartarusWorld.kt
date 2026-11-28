@@ -29,6 +29,9 @@ internal class TbEnemy(
     var vy = 0f
     var cooldown = 1.2f
     var flash = 0f
+
+    /** Seconds left that this foe shows a red mark because its attack just hurt you. */
+    var culprit = 0f
     var burn = 0f
     var burnDps = 0f
     var marked = 0f

@@ -53,11 +53,22 @@ class TartarusRunTest {
     fun foesSpawnOverTime() {
         val r = run()
         r.begin()
-        // The first foe holds off a few seconds so you can settle in.
+        // One foe is waiting in front of you; the next holds off a few seconds so you can settle in.
+        assertEquals(1, r.aliveCount)
         repeat(100) { r.step(0.02f, still) }
-        assertEquals(0, r.aliveCount)
-        repeat(150) { r.step(0.02f, still) }
-        assertTrue(r.aliveCount > 0)
+        assertEquals(1, r.aliveCount)
+        repeat(300) { r.step(0.02f, still) }
+        assertTrue(r.aliveCount > 1)
+    }
+
+    @Test
+    fun theOpeningFoeStartsStraightAheadAndEarlyFoesComeFromTheFront() {
+        val r = run()
+        r.begin()
+        val e = r.enemies.first()
+        assertTrue(kotlin.math.abs(e.x - r.px) < 0.5f)
+        assertTrue(e.y > r.py + 5f)
+        assertTrue(r.straightOnly)
     }
 
     @Test
@@ -85,6 +96,7 @@ class TartarusRunTest {
     fun theTridentSpendsFavorAndTheSunbowDoesNot() {
         val r = run()
         r.begin()
+        r.enemies.clear()
         val before = r.favor
         r.tryFire()
         assertEquals(before, r.favor, 0.5f)

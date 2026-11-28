@@ -25,8 +25,9 @@ private fun TbRun.walk(
     speed: Float,
     dt: Float,
 ): Boolean {
-    val nx = e.x + ux * speed * dt
-    val ny = e.y + uy * speed * dt
+    val go = speed * foeSpeedScale
+    val nx = e.x + ux * go * dt
+    val ny = e.y + uy * go * dt
     if (e.def.flies) {
         e.x = nx
         e.y = ny
@@ -89,6 +90,7 @@ internal fun TbRun.updateFoe(
 ) {
     e.age += dt
     e.flash = max(0f, e.flash - dt)
+    e.culprit = max(0f, e.culprit - dt)
     if (e.state == TbEState.Dying) {
         e.fall += dt / TbRun.DEATH_TIME
         return
@@ -276,7 +278,7 @@ private fun TbRun.foeMoves(
         }
 
         "telegraphed_charge" -> {
-            charge(e, dt, d, ux, uy, speed = 17f, time = 1.1f, wind = 0.8f)
+            charge(e, dt, d, ux, uy, speed = 14f, time = 0.7f, wind = 0.8f, from = 7f, reach = 10f)
         }
 
         "petrify_beam" -> {
@@ -332,7 +334,7 @@ private fun TbRun.kite(
     when {
         d > far -> walk(e, ux, uy, s, dt)
         d < near -> walk(e, -ux, -uy, s * 0.9f, dt)
-        else -> walk(e, -uy * e.orbitDir, ux * e.orbitDir, s * 0.7f, dt)
+        else -> if (!straightOnly) walk(e, -uy * e.orbitDir, ux * e.orbitDir, s * 0.7f, dt)
     }
 }
 
@@ -346,11 +348,11 @@ private fun TbRun.lunge(
     when (e.state) {
         TbEState.Move -> {
             walk(e, ux, uy, e.def.speed, dt)
-            if (d in 2.5f..7.5f && e.cooldown <= 0f) {
+            if (d in 2.0f..4.5f && e.cooldown <= 0f) {
                 windup(e, 0.55f)
                 e.dirX = ux
                 e.dirY = uy
-                lineTele(e, atan2(uy, ux), 7f, 0.7f, 0.55f, 0)
+                lineTele(e, atan2(uy, ux), 4.8f, 0.7f, 0.55f, 0)
             }
         }
 
@@ -363,7 +365,7 @@ private fun TbRun.lunge(
         }
 
         else -> {
-            walk(e, e.dirX, e.dirY, 20f, dt)
+            walk(e, e.dirX, e.dirY, 13f, dt)
             if (!e.hit && d < e.def.range * 0.9f + 0.6f) {
                 e.hit = true
                 hurt(e.def.damage.toFloat(), e.x, e.y)
@@ -382,6 +384,11 @@ private fun TbRun.swoop(
 ) {
     when (e.state) {
         TbEState.Move -> {
+            if (straightOnly) {
+                if (d > e.def.range * 0.6f) walk(e, ux, uy, e.def.speed, dt)
+                if (e.cooldown <= 0f && d < e.def.range + 4f) windup(e, 0.5f)
+                return
+            }
             e.orbit += e.orbitDir * (e.def.speed / 9f) * dt
             val tx = px + cos(e.orbit) * 9f
             val ty = py + sin(e.orbit) * 9f
@@ -432,15 +439,17 @@ private fun TbRun.charge(
     speed: Float,
     time: Float,
     wind: Float,
+    from: Float = 14f,
+    reach: Float = 22f,
 ) {
     when (e.state) {
         TbEState.Move -> {
             walk(e, ux, uy, e.def.speed * (if (e.boss) 0.7f else 1f), dt)
-            if (d in 3.5f..14f && e.cooldown <= 0f) {
+            if (d in 3.5f..from && e.cooldown <= 0f) {
                 windup(e, wind)
                 e.dirX = ux
                 e.dirY = uy
-                lineTele(e, atan2(uy, ux), 22f, e.def.radius * 0.55f, wind, 0)
+                lineTele(e, atan2(uy, ux), reach, e.def.radius * 0.55f, wind, 0)
             }
         }
 

@@ -311,13 +311,17 @@ internal class TbRun(
         zones.clear()
         pillars += TbWorld.pillars(stage.pillars, stage.radius)
         zones += TbWorld.zones(stage.hazard, stage.radius, rnd)
-        stageT = stage.durationSec.toFloat()
+        stageT = stage.durationSec * DURATION_SCALE
         spawnT = FIRST_SPAWN
         minionT = 2f
         px = 0f
         py = -stage.radius * 0.3f
         yaw = (PI / 2).toFloat()
         dashT = 0f
+        if (!stage.boss && stage.pool.isNotEmpty()) {
+            // One foe is already there, in front of you, so there is something to shoot straight away.
+            spawn(stage.pool.first().id, ahead = true)
+        }
         if (stage.boss) {
             val def = TartarusData.enemies.first { it.id == stage.bossId }
             enemies += TbEnemy(def, 0f, stage.radius * 0.62f, uid++).also { it.timer = 1.8f }
@@ -474,6 +478,7 @@ internal class TbRun(
         val dealt = dmg * WAVE_EASE[stageIndex.coerceIn(0, WAVE_EASE.lastIndex)] * DIFF_DAMAGE[meta.difficulty.coerceIn(0, 2)]
         if (fromX != px || fromY != py) hitDirs += TbHitDir(atan2(fromY - py, fromX - px), clock)
         emit(TbEvent.Hurt)
+        enemies.filter { it.alive }.minByOrNull { TbWorld.dist(it.x, it.y, fromX, fromY) }?.takeIf { TbWorld.dist(it.x, it.y, fromX, fromY) < 4f }?.culprit = CULPRIT_TIME
         hp -= dealt
         invuln = HURT_GRACE
         hurtFlash = 1f
@@ -920,21 +925,46 @@ internal class TbRun(
             return
         }
         spawnT -= dt
-        if (spawnT > 0f || aliveCount >= s.maxConcurrent || s.pool.isEmpty()) return
+        if (spawnT > 0f || aliveCount >= min(s.maxConcurrent, concurrentCap) || s.pool.isEmpty()) return
         var roll = rnd.nextInt(s.pool.sumOf { it.weight })
-        val pick = s.pool.first { p -> (roll < p.weight).also { if (!it) roll -= p.weight } }
+        // The very first stage is melee only: nothing shoots at you from a distance yet.
+        val pick = if (early && stageIndex == 0) s.pool.first() else s.pool.first { p -> (roll < p.weight).also { if (!it) roll -= p.weight } }
         spawn(pick.id)
-        spawnT = s.spawnMs / 1000f * SPAWN_PACE * DIFF_PACE[meta.difficulty.coerceIn(0, 2)]
+        spawnT = s.spawnMs / 1000f * SPAWN_PACE * earlyPace * DIFF_PACE[meta.difficulty.coerceIn(0, 2)]
     }
 
-    internal fun spawn(id: String) {
+    /** The first gate eases you in: foes are slower, arrive further apart and fewer at once in its first stages. */
+    private val early get() = gate.number == 1 && stageIndex < EARLY_STAGES
+
+    /** In the first stages foes come straight at you instead of circling or strafing. */
+    internal val straightOnly get() = early && stageIndex < STRAIGHT_STAGES
+
+    internal val foeSpeedScale get() = if (early) EARLY_SPEED[stageIndex] else 1f
+    private val earlyPace get() = if (early) EARLY_PACE[stageIndex] else 1f
+    private val concurrentCap get() = if (early) EARLY_CAP[stageIndex] else Int.MAX_VALUE
+
+    internal fun spawn(
+        id: String,
+        ahead: Boolean = false,
+    ) {
         val def = TartarusData.enemies.first { it.id == id }
         var x = 0f
         var y = 0f
-        for (i in 0 until 10) {
-            val a = rnd.nextFloat() * 2f * PI.toFloat()
-            x = cos(a) * min(stage.radius - 1.6f, SPAWN_RING)
-            y = sin(a) * min(stage.radius - 1.6f, SPAWN_RING)
+        if (ahead) {
+            x = px + cos(yaw) * AHEAD_DIST
+            y = py + sin(yaw) * AHEAD_DIST
+        }
+        for (i in 0 until if (ahead) 0 else 10) {
+            // Early on, foes arrive in the arc you are facing; later from anywhere.
+            val a = if (early) yaw + (rnd.nextFloat() - 0.5f) * EARLY_ARC[stageIndex.coerceIn(0, EARLY_ARC.lastIndex)] else rnd.nextFloat() * 2f * PI.toFloat()
+            val lim = stage.radius - 1.6f
+            x = if (early) px + cos(a) * AHEAD_DIST else cos(a) * min(lim, SPAWN_RING)
+            y = if (early) py + sin(a) * AHEAD_DIST else sin(a) * min(lim, SPAWN_RING)
+            val len = hypot(x, y)
+            if (len > lim) {
+                x *= lim / len
+                y *= lim / len
+            }
             if (TbWorld.dist(x, y, px, py) > SPAWN_CLEAR) break
         }
         val e = TbEnemy(def, x, y, uid++)
@@ -963,6 +993,9 @@ internal class TbRun(
         const val DASH_SPEED = 21f
         const val DASH_CD = 1.4f
         const val HURT_GRACE = 0.55f
+
+        /** How long the foe that hurt you stays marked in red. */
+        const val CULPRIT_TIME = 1.8f
         const val READY_TIME = 2.2f
         const val TOAST_TIME = 2.4f
         const val DEATH_TIME = 0.45f
@@ -982,8 +1015,23 @@ internal class TbRun(
         const val FIRST_SPAWN = 3.5f
         const val SPAWN_PACE = 1.7f
 
+        /** Stages last this much longer than the data says, so there is time to settle in. */
+        const val DURATION_SCALE = 1.6f
+
+        /** The first foe of a stage starts this far in front of you. */
+        const val AHEAD_DIST = 7f
+
+        /** Gate 1, stages 1 to 4: foe speed, spacing between arrivals, and most foes alive at once. */
+        const val EARLY_STAGES = 4
+        const val STRAIGHT_STAGES = 2
+        val EARLY_SPEED = floatArrayOf(0.6f, 0.72f, 0.85f, 0.95f)
+        val EARLY_PACE = floatArrayOf(2.2f, 1.7f, 1.3f, 1.1f)
+        /** How wide the arc in front of you is, in radians, that early foes arrive in: your starting view, then wider. */
+        val EARLY_ARC = floatArrayOf(0.7f, 0.9f, 1.3f, 1.8f)
+        val EARLY_CAP = intArrayOf(2, 3, 5, 7)
+
         /** Foe damage by wave, so the first waves let you settle in. The Guardian hits for full. */
-        val WAVE_EASE = floatArrayOf(0.45f, 0.6f, 0.75f, 0.9f, 1f)
+        val WAVE_EASE = floatArrayOf(0.3f, 0.4f, 0.55f, 0.75f, 1f)
 
         /** Shots hit a foe this much wider than its body circle, to match the larger sprites, and aim pulls this much harder. */
         const val HIT_SCALE = 1.7f
