@@ -883,10 +883,10 @@ internal class TbRun(
         const val CRIT_MULT = 1.8f
         const val THORNS_RANGE = 4.5f
         const val STREAK_TIME = 3f
-        const val SPAWN_CLEAR = 9f
+        const val SPAWN_CLEAR = 7f
 
         /** Foes appear this far from the arena's centre, close enough to read on a small screen. */
-        const val SPAWN_RING = 17f
+        const val SPAWN_RING = 13f
         const val LAVA_TICK = 5f
         const val VENT_DMG = 16f
         const val SPIKE_DMG = 12f
