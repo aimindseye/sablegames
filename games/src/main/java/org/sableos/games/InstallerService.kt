@@ -1,5 +1,6 @@
 package org.sableos.games
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -118,9 +119,15 @@ internal class InstallerModel(
         prefs.edit().putBoolean("wifi_only", wifiOnly).apply()
     }
 
+    @SuppressLint("MissingPermission") // held by the installer's manifest only; a SecurityException is handled below
     private fun metered(): Boolean {
+        // Only the installer's manifest holds this permission; this class is shared by every flavor.
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        return cm.isActiveNetworkMetered
+        return try {
+            cm.isActiveNetworkMetered
+        } catch (_: SecurityException) {
+            false
+        }
     }
 
     private fun isNewer(row: InstallerRow): Boolean {
