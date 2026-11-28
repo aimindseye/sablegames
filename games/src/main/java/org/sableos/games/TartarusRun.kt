@@ -312,7 +312,7 @@ internal class TbRun(
         pillars += TbWorld.pillars(stage.pillars, stage.radius)
         zones += TbWorld.zones(stage.hazard, stage.radius, rnd)
         stageT = stage.durationSec * DURATION_SCALE
-        spawnT = FIRST_SPAWN
+        spawnT = if (early) EARLY_NEXT_SPAWN else FIRST_SPAWN
         minionT = 2f
         px = 0f
         py = -stage.radius * 0.3f
@@ -504,7 +504,8 @@ internal class TbRun(
             if (!e.alive || e.state == TbEState.Spawn) continue
             val d = TbWorld.dist(px, py, e.x, e.y)
             val rel = abs(angDiff(atan2(e.y - py, e.x - px), yaw))
-            val slack = magnet + atan2(e.def.radius * HIT_SCALE, d)
+            // Only a foe under the sight circle is pulled on, and the pull stays small, so a shot lands where the circle points.
+            val slack = min(magnet + atan2(e.def.radius * 1.1f, d), MAX_PULL)
             if (rel <= slack && rel < bestA && !blocked(e.x, e.y)) {
                 bestA = rel
                 best = e
@@ -939,7 +940,10 @@ internal class TbRun(
     /** In the first stages foes come straight at you instead of circling or strafing. */
     internal val straightOnly get() = early && stageIndex < STRAIGHT_STAGES
 
-    internal val foeSpeedScale get() = if (early) EARLY_SPEED[stageIndex] else 1f
+    internal val foeSpeedScale get() = (if (early) EARLY_SPEED[stageIndex] else 1f) * DIFF_SPEED[meta.difficulty.coerceIn(0, 2)]
+
+    /** Seconds a foe waits after appearing before it may attack. */
+    internal val attackGrace get() = if (early) EARLY_GRACE[stageIndex] else ATTACK_GRACE
     private val earlyPace get() = if (early) EARLY_PACE[stageIndex] else 1f
     private val concurrentCap get() = if (early) EARLY_CAP[stageIndex] else Int.MAX_VALUE
 
@@ -998,7 +1002,7 @@ internal class TbRun(
         const val CULPRIT_TIME = 1.8f
         const val READY_TIME = 2.2f
         const val TOAST_TIME = 2.4f
-        const val DEATH_TIME = 0.45f
+        const val DEATH_TIME = 0.8f
         const val WAVE_HEAL = 0.25f
         const val BEAM_RANGE = 46f
         const val WAVE_RANGE = 10f
@@ -1019,27 +1023,36 @@ internal class TbRun(
         const val DURATION_SCALE = 1.6f
 
         /** The first foe of a stage starts this far in front of you. */
-        const val AHEAD_DIST = 7f
+        const val AHEAD_DIST = 8f
+
+        /** The second foe of an early stage comes this many seconds in, and no foe attacks for a while after it appears. */
+        const val EARLY_NEXT_SPAWN = 8f
+        const val ATTACK_GRACE = 1.2f
+        val EARLY_GRACE = floatArrayOf(3f, 2.5f, 2f, 1.5f)
 
         /** Gate 1, stages 1 to 4: foe speed, spacing between arrivals, and most foes alive at once. */
         const val EARLY_STAGES = 4
         const val STRAIGHT_STAGES = 2
-        val EARLY_SPEED = floatArrayOf(0.6f, 0.72f, 0.85f, 0.95f)
-        val EARLY_PACE = floatArrayOf(2.2f, 1.7f, 1.3f, 1.1f)
+        val EARLY_SPEED = floatArrayOf(0.4f, 0.55f, 0.7f, 0.85f)
+        val EARLY_PACE = floatArrayOf(2.2f, 1.8f, 1.4f, 1.2f)
         /** How wide the arc in front of you is, in radians, that early foes arrive in: your starting view, then wider. */
-        val EARLY_ARC = floatArrayOf(0.7f, 0.9f, 1.3f, 1.8f)
+        val EARLY_ARC = floatArrayOf(0.25f, 0.5f, 0.9f, 1.4f)
         val EARLY_CAP = intArrayOf(2, 3, 5, 7)
 
         /** Foe damage by wave, so the first waves let you settle in. The Guardian hits for full. */
         val WAVE_EASE = floatArrayOf(0.3f, 0.4f, 0.55f, 0.75f, 1f)
 
         /** Shots hit a foe this much wider than its body circle, to match the larger sprites, and aim pulls this much harder. */
+        const val MAX_PULL = 0.16f
         const val HIT_SCALE = 1.7f
-        val AIM_BOOST = floatArrayOf(0f, 1.2f, 2.2f)
+        val AIM_BOOST = floatArrayOf(0f, 0.5f, 0.9f)
 
         /** Foe damage and spawn gaps for Easy, Normal and Hard. */
         val DIFF_DAMAGE = floatArrayOf(0.7f, 1f, 1.3f)
         val DIFF_PACE = floatArrayOf(1.3f, 1f, 0.8f)
+
+        /** How fast foes move on Easy, Normal and Hard. */
+        val DIFF_SPEED = floatArrayOf(0.8f, 1f, 1.1f)
         const val HIT_ARROW_TIME = 1.3f
         const val HIT_STOP = 0.045f
         const val HIT_STOP_BOSS = 0.09f

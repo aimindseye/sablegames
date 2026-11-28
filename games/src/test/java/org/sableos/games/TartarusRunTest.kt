@@ -57,7 +57,7 @@ class TartarusRunTest {
         assertEquals(1, r.aliveCount)
         repeat(100) { r.step(0.02f, still) }
         assertEquals(1, r.aliveCount)
-        repeat(300) { r.step(0.02f, still) }
+        repeat(500) { r.step(0.02f, still) }
         assertTrue(r.aliveCount > 1)
     }
 
@@ -391,5 +391,31 @@ class TartarusRunTest {
         val hp = e.hp
         r.tryFire()
         assertEquals(hp, e.hp, 0.001f)
+    }
+
+    @Test
+    fun theOpeningFoeWalksDownTheMiddleAndIsSlowOnEasy() {
+        val r = run(meta = TbMeta(difficulty = 0))
+        r.begin()
+        val e = r.enemies.first()
+        val d0 = TbWorld.dist(e.x, e.y, r.px, r.py)
+        repeat(150) { r.step(0.02f, still) }
+        assertTrue(kotlin.math.abs(e.x - r.px) < 0.5f)
+        // Three seconds in, it has not covered even half of its way: nothing rushes you.
+        assertTrue(TbWorld.dist(e.x, e.y, r.px, r.py) > d0 * 0.5f)
+    }
+
+    @Test
+    fun aFoeDoesNotAttackRightAfterItAppears() {
+        val r = run()
+        r.begin()
+        r.enemies.clear()
+        r.spawn("skeletal_hoplite")
+        val e = r.enemies.first()
+        e.x = r.px
+        e.y = r.py + 1f
+        val hp = r.hp
+        repeat(100) { r.step(0.02f, still) }
+        assertEquals(hp, r.hp, 0.001f)
     }
 }

@@ -130,7 +130,10 @@ internal fun TbRun.updateFoe(
     when (e.state) {
         TbEState.Spawn -> {
             e.timer -= dt
-            if (e.timer <= 0f) e.state = TbEState.Move
+            if (e.timer <= 0f) {
+                e.state = TbEState.Move
+                e.cooldown = max(e.cooldown, attackGrace)
+            }
         }
 
         TbEState.Stun -> {
@@ -209,12 +212,12 @@ private fun TbRun.foeMoves(
             when (e.state) {
                 TbEState.Move -> {
                     walk(e, ux, uy, speed, dt)
-                    if (d < def.range * 0.9f && e.cooldown <= 0f) windup(e, 0.45f)
+                    if (d < def.range * 0.75f && e.cooldown <= 0f) windup(e, 0.45f)
                 }
 
                 else -> {
                     tick(e, dt) {
-                        if (d < def.range * 1.5f) hurt(def.damage.toFloat(), e.x, e.y)
+                        if (d < def.range * 1.15f) hurt(def.damage.toFloat(), e.x, e.y)
                         recover(e, 0.5f, 0.4f)
                     }
                 }
@@ -229,12 +232,12 @@ private fun TbRun.foeMoves(
             when (e.state) {
                 TbEState.Move -> {
                     walk(e, ux, uy, speed, dt)
-                    if (d < def.range) windup(e, 0.5f)
+                    if (d < def.range * 0.7f && e.cooldown <= 0f) windup(e, 0.5f)
                 }
 
                 else -> {
                     tick(e, dt) {
-                        if (d < 3.3f) hurt(def.damage.toFloat(), e.x, e.y)
+                        if (d < 2.6f) hurt(def.damage.toFloat(), e.x, e.y)
                         fx += TbFx(TbFxKind.Burst, e.x, e.y, 0f, 0f, 0xFFFF7B00, 0.5f, n = 2)
                         e.pays = false
                         e.state = TbEState.Dying
@@ -278,7 +281,7 @@ private fun TbRun.foeMoves(
         }
 
         "telegraphed_charge" -> {
-            charge(e, dt, d, ux, uy, speed = 14f, time = 0.7f, wind = 0.8f, from = 7f, reach = 10f)
+            charge(e, dt, d, ux, uy, speed = 14f, time = 0.7f, wind = 0.8f, from = 5.5f, reach = 8f)
         }
 
         "petrify_beam" -> {
@@ -301,9 +304,9 @@ private fun TbRun.foeMoves(
             when (e.state) {
                 TbEState.Move -> {
                     walk(e, ux, uy, speed, dt)
-                    if (d < def.range && e.cooldown <= 0f) {
+                    if (d < def.range * 0.65f && e.cooldown <= 0f) {
                         windup(e, 0.9f)
-                        circleTele(e.x, e.y, 5.2f, 0.9f, def.damage)
+                        circleTele(e.x, e.y, 4f, 0.9f, def.damage)
                     }
                 }
 
@@ -348,11 +351,11 @@ private fun TbRun.lunge(
     when (e.state) {
         TbEState.Move -> {
             walk(e, ux, uy, e.def.speed, dt)
-            if (d in 2.0f..4.5f && e.cooldown <= 0f) {
+            if (d in 1.8f..3.5f && e.cooldown <= 0f) {
                 windup(e, 0.55f)
                 e.dirX = ux
                 e.dirY = uy
-                lineTele(e, atan2(uy, ux), 4.8f, 0.7f, 0.55f, 0)
+                lineTele(e, atan2(uy, ux), 3.8f, 0.7f, 0.55f, 0)
             }
         }
 
