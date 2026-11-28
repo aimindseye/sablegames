@@ -27,7 +27,9 @@
         <package android:name="io.github.aimindseye.sablegames.words" />
     </queries>
 
-    <application>
+    <application
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false">
         <!-- Android reports the install result here. Not exported: it is reached through our own PendingIntent. -->
         <receiver
             android:name="org.sableos.games.InstallResultReceiver"

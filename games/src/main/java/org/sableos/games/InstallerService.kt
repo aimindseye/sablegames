@@ -87,9 +87,9 @@ internal object InstallEvents {
         minutes: Long,
     ): Result? {
         val w = waiters[pkg] ?: return null
-        w.latch.await(minutes, TimeUnit.MINUTES)
+        val arrived = w.latch.await(minutes, TimeUnit.MINUTES)
         waiters.remove(pkg)
-        return w.result
+        return if (arrived) w.result else null
     }
 }
 
