@@ -105,6 +105,18 @@ internal class InstallerModel(
 
     @Volatile private var release: Release? = null
 
+    /** The latest release's version once it is known; the screen compares installed versions with it. */
+    var latest by mutableStateOf<String?>(null)
+
+    fun rowsOf(group: InstallerGroup) = rows.filter { it.app.id in group.ids }
+
+    /** Picks every game in [group], or clears them all if they are all picked already. */
+    fun toggleGroup(group: InstallerGroup) {
+        val mine = rowsOf(group).filterNot { it.busy }
+        val pick = !mine.all { it.selected }
+        mine.forEach { it.selected = pick }
+    }
+
     val canInstall get() = !working && release != null && rows.any { it.selected }
 
     fun refresh() {
@@ -116,9 +128,11 @@ internal class InstallerModel(
                 val json = fetchText(ReleaseFeed.LATEST)
                 val found = ReleaseFeed.parseRelease(json)
                 release = found
+                latest = found?.version
                 headline = if (found == null) "No release with APKs was found." else "Latest release: ${found.version}"
             } catch (e: java.io.IOException) {
                 release = null
+                latest = null
                 headline = "Could not reach GitHub: ${e.message ?: "no network"}"
             } finally {
                 working = false

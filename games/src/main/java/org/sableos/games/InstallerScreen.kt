@@ -52,6 +52,8 @@ private val Muted = Color(0xFFA9A2B3)
 internal fun InstallerScreen() {
     val context = LocalContext.current
     val model = remember { InstallerModel(context.applicationContext) }
+    // The list is each group's header followed by its games; the cursor moves over all of them.
+    val entries = remember(model) { InstallerCatalog.groups.flatMap { g -> listOf<Any>(g) + model.rowsOf(g) } }
     var cursor by remember { mutableIntStateOf(0) }
     val list = rememberLazyListState()
     val focus = remember { FocusRequester() }
@@ -62,8 +64,10 @@ internal fun InstallerScreen() {
     LaunchedEffect(cursor) { list.animateScrollToItem(cursor) }
 
     fun toggle(i: Int) {
-        val row = model.rows[i]
-        if (!row.busy) row.selected = !row.selected
+        when (val e = entries[i]) {
+            is InstallerGroup -> model.toggleGroup(e)
+            is InstallerRow -> if (!e.busy) e.selected = !e.selected
+        }
     }
     Column(
         Modifier
@@ -77,7 +81,7 @@ internal fun InstallerScreen() {
                 if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 when (e.key.nativeKeyCode) {
                     AndroidKeyEvent.KEYCODE_DPAD_UP, AndroidKeyEvent.KEYCODE_W -> cursor = (cursor - 1).coerceAtLeast(0)
-                    AndroidKeyEvent.KEYCODE_DPAD_DOWN, AndroidKeyEvent.KEYCODE_S -> cursor = (cursor + 1).coerceAtMost(model.rows.lastIndex)
+                    AndroidKeyEvent.KEYCODE_DPAD_DOWN, AndroidKeyEvent.KEYCODE_S -> cursor = (cursor + 1).coerceAtMost(entries.lastIndex)
                     AndroidKeyEvent.KEYCODE_SPACE, AndroidKeyEvent.KEYCODE_DPAD_CENTER -> toggle(cursor)
                     AndroidKeyEvent.KEYCODE_ENTER, AndroidKeyEvent.KEYCODE_I -> model.installSelected()
                     AndroidKeyEvent.KEYCODE_R -> model.refresh()
@@ -90,9 +94,14 @@ internal fun InstallerScreen() {
         Text("SABLE INSTALLER", color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Black)
         Text(model.headline, color = Muted, fontSize = 13.sp)
         LazyColumn(Modifier.weight(1f), state = list, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            itemsIndexed(model.rows) { i, row -> InstallerRowView(row, focused = i == cursor, onTap = { cursor = i; toggle(i) }) }
+            itemsIndexed(entries) { i, e ->
+                when (e) {
+                    is InstallerGroup -> InstallerHeaderView(e, model.rowsOf(e), focused = i == cursor, onTap = { cursor = i; toggle(i) })
+                    is InstallerRow -> InstallerRowView(e, model.latest, focused = i == cursor, onTap = { cursor = i; toggle(i) })
+                }
+            }
         }
-        Text("W S move · Space picks · Enter installs · R refreshes", color = Muted, fontSize = 11.sp)
+        Text("W S move · Space picks a game or a whole group · Enter installs · R refreshes", color = Muted, fontSize = 11.sp)
         Box(
             Modifier
                 .fillMaxWidth()
@@ -113,8 +122,38 @@ internal fun InstallerScreen() {
 }
 
 @Composable
+private fun InstallerHeaderView(
+    group: InstallerGroup,
+    rows: List<InstallerRow>,
+    focused: Boolean,
+    onTap: () -> Unit,
+) {
+    val picked = rows.count { it.selected }
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp)
+            .border(if (focused) 2.dp else 0.dp, if (focused) Gold else Color.Transparent, RoundedCornerShape(8.dp))
+            .clickable(onClick = onTap)
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier
+                .size(18.dp)
+                .border(2.dp, Gold, RoundedCornerShape(4.dp))
+                .background(if (picked == rows.size) Gold else if (picked > 0) Gold.copy(alpha = 0.4f) else Color.Transparent, RoundedCornerShape(4.dp)),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(group.name.uppercase(), color = Gold, fontWeight = FontWeight.Black, fontSize = 13.sp, modifier = Modifier.weight(1f))
+        Text("$picked of ${rows.size}", color = Muted, fontSize = 12.sp)
+    }
+}
+
+@Composable
 private fun InstallerRowView(
     row: InstallerRow,
+    latest: String?,
     focused: Boolean,
     onTap: () -> Unit,
 ) {
@@ -139,6 +178,16 @@ private fun InstallerRowView(
             Text(row.app.blurb, color = Muted, fontSize = 12.sp)
             if (row.note.isNotEmpty()) Text(row.note, color = Gold, fontSize = 12.sp)
         }
-        Text(row.installed?.let { "v$it" } ?: "not installed", color = if (row.installed != null) Gold else Muted, fontSize = 12.sp)
+        val have = row.installed
+        val newer = have != null && latest != null && ReleaseFeed.isNewer(have, latest)
+        Text(
+            when {
+                have == null -> "not installed"
+                newer -> "v$have → $latest"
+                else -> "v$have"
+            },
+            color = if (have != null) Gold else Muted,
+            fontSize = 12.sp,
+        )
     }
 }
