@@ -119,26 +119,6 @@ internal fun DrawScope.drawSight(
         drawLine(hc, Offset(c.x - k, c.y + k), Offset(c.x - k * 0.4f, c.y + k * 0.4f), s * 0.006f, StrokeCap.Round)
         drawLine(hc, Offset(c.x + k, c.y + k), Offset(c.x + k * 0.4f, c.y + k * 0.4f), s * 0.006f, StrokeCap.Round)
     }
-    // Flank radar: a red arc on a ring round the crosshair for each foe out of sight, pointing the way it is.
-    val ring = s * 0.105f
-    for (e in run.enemies) {
-        if (!e.alive || e.state == TbEState.Spawn) continue
-        val d = TbWorld.dist(run.px, run.py, e.x, e.y)
-        if (d > 18f) continue
-        val b = cam.bearing(e.x, e.y)
-        if (abs(b) < 0.62f) continue
-        val deg = (b * 180f / PI.toFloat())
-        val hot = (1f - d / 18f).coerceIn(0.25f, 1f)
-        drawArc(
-            TbColors.Blood.copy(alpha = 0.85f * hot),
-            startAngle = -90f + deg - 9f,
-            sweepAngle = 18f,
-            useCenter = false,
-            topLeft = Offset(c.x - ring, c.y - ring),
-            size = Size(ring * 2f, ring * 2f),
-            style = Stroke(s * 0.011f, cap = StrokeCap.Round),
-        )
-    }
 }
 
 /** Everything on top of the view: counters, boss bar, toasts, the countdown and the status bar. */
@@ -170,7 +150,7 @@ internal fun DrawScope.drawHud(
         drawRoundRect(Brush.horizontalGradient(listOf(Color(0xFF7A0F1C), TbColors.Blood, Color(0xFFFF6A55)), bx, bx + bw), Offset(bx, by), Size(bw * frac, s * 0.02f), CornerRadius(s * 0.005f))
         drawRoundRect(TbColors.Gold.copy(alpha = 0.8f), Offset(bx - s * 0.005f, by - s * 0.005f), Size(bw + s * 0.01f, s * 0.03f), CornerRadius(s * 0.008f), style = Stroke(s * 0.003f))
     }
-    drawHitArrows(run, cam)
+    drawRadar(run, cam)
     // A reminder of the controls while you settle in on the first wave.
     if (run.wave == 1 && run.runTime < HINT_SECONDS && run.phase != TbPhase.Draft) {
         val a = (1f - (run.runTime - (HINT_SECONDS - 1.5f)) / 1.5f).coerceIn(0f, 1f)
@@ -421,35 +401,60 @@ internal fun DrawScope.drawBanner(
 
 private const val HINT_SECONDS = 9f
 
-/** Red arrows round the crosshair pointing at whatever just hurt you, fading over a second or so. */
-private fun DrawScope.drawHitArrows(
+/** A small round map at the top right: you at the centre looking up, a dot for each foe, an edge flash where you were hit. */
+private fun DrawScope.drawRadar(
     run: TbRun,
     cam: TbCam,
 ) {
-    if (run.hitDirs.isEmpty()) return
     val s = cam.s
-    val c = Offset(s / 2f, cam.hz)
-    val ring = s * 0.27f
+    val c = Offset(s * 0.855f, s * 0.2f)
+    val r = s * 0.115f
+    drawCircle(Color.Black.copy(alpha = 0.55f), r, c)
+    // The slice of the map you can see.
+    val half = cam.fov / 2f
+    for (side in intArrayOf(-1, 1)) {
+        drawLine(
+            Color.White.copy(alpha = 0.3f),
+            c,
+            Offset(c.x + sin(half) * side * r, c.y - cos(half) * r),
+            s * 0.003f,
+        )
+    }
+    drawCircle(TbColors.Gold.copy(alpha = 0.6f), r, c, style = Stroke(s * 0.004f))
+    drawCircle(Color.White.copy(alpha = 0.15f), r * 0.5f, c, style = Stroke(s * 0.002f))
     for (h in run.hitDirs) {
         val age = (run.clock - h.at) / TbRun.HIT_ARROW_TIME
         if (age !in 0f..1f) continue
         val b = cam.bearing(run.px + cos(h.angle) * 10f, run.py + sin(h.angle) * 10f)
-        val dx = sin(b)
-        val dy = -cos(b)
-        val tip = Offset(c.x + dx * (ring + s * 0.05f), c.y + dy * (ring + s * 0.05f))
-        val base = Offset(c.x + dx * ring, c.y + dy * ring)
-        val px = -dy
-        val py = dx
-        val w = s * 0.03f
-        val path =
-            Path().apply {
-                moveTo(tip.x, tip.y)
-                lineTo(base.x + px * w, base.y + py * w)
-                lineTo(base.x - px * w, base.y - py * w)
-                close()
-            }
-        val a = (1f - age).coerceIn(0f, 1f)
-        drawPath(path, TbColors.Blood.copy(alpha = 0.9f * a))
-        drawPath(path, Color.White.copy(alpha = 0.7f * a), style = Stroke(s * 0.004f))
+        drawArc(
+            TbColors.Blood.copy(alpha = 0.9f * (1f - age)),
+            startAngle = -90f + b * 180f / PI.toFloat() - 16f,
+            sweepAngle = 32f,
+            useCenter = false,
+            topLeft = Offset(c.x - r, c.y - r),
+            size = Size(r * 2f, r * 2f),
+            style = Stroke(s * 0.012f, cap = StrokeCap.Round),
+        )
     }
+    for (e in run.enemies) {
+        if (!e.alive || e.state == TbEState.Spawn) continue
+        val d = TbWorld.dist(run.px, run.py, e.x, e.y)
+        val b = cam.bearing(e.x, e.y)
+        val rr = (d / RADAR_RANGE).coerceAtMost(1f) * (r - s * 0.012f)
+        val p = Offset(c.x + sin(b) * rr, c.y - cos(b) * rr)
+        val dot = if (e.boss) s * 0.016f else s * 0.01f
+        drawCircle(if (e.boss) TbColors.Gold else Color(0xFFFF5A4A), dot, p)
+        if (e.culprit > 0f) drawCircle(Color.White.copy(alpha = 0.9f), dot * 2f, p, style = Stroke(s * 0.004f))
+        if (d > RADAR_RANGE) drawCircle(Color.Black.copy(alpha = 0.5f), dot * 0.4f, p)
+    }
+    val tri =
+        Path().apply {
+            moveTo(c.x, c.y - s * 0.015f)
+            lineTo(c.x + s * 0.01f, c.y + s * 0.01f)
+            lineTo(c.x - s * 0.01f, c.y + s * 0.01f)
+            close()
+        }
+    drawPath(tri, Color.White)
 }
+
+private const val RADAR_RANGE = 20f

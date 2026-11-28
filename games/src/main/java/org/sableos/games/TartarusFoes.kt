@@ -25,8 +25,9 @@ private fun TbRun.walk(
     speed: Float,
     dt: Float,
 ): Boolean {
-    val nx = e.x + ux * speed * dt
-    val ny = e.y + uy * speed * dt
+    val go = speed * foeSpeedScale
+    val nx = e.x + ux * go * dt
+    val ny = e.y + uy * go * dt
     if (e.def.flies) {
         e.x = nx
         e.y = ny
@@ -89,6 +90,7 @@ internal fun TbRun.updateFoe(
 ) {
     e.age += dt
     e.flash = max(0f, e.flash - dt)
+    e.culprit = max(0f, e.culprit - dt)
     if (e.state == TbEState.Dying) {
         e.fall += dt / TbRun.DEATH_TIME
         return
@@ -332,7 +334,7 @@ private fun TbRun.kite(
     when {
         d > far -> walk(e, ux, uy, s, dt)
         d < near -> walk(e, -ux, -uy, s * 0.9f, dt)
-        else -> walk(e, -uy * e.orbitDir, ux * e.orbitDir, s * 0.7f, dt)
+        else -> if (!straightOnly) walk(e, -uy * e.orbitDir, ux * e.orbitDir, s * 0.7f, dt)
     }
 }
 
@@ -382,6 +384,11 @@ private fun TbRun.swoop(
 ) {
     when (e.state) {
         TbEState.Move -> {
+            if (straightOnly) {
+                if (d > e.def.range * 0.6f) walk(e, ux, uy, e.def.speed, dt)
+                if (e.cooldown <= 0f && d < e.def.range + 4f) windup(e, 0.5f)
+                return
+            }
             e.orbit += e.orbitDir * (e.def.speed / 9f) * dt
             val tx = px + cos(e.orbit) * 9f
             val ty = py + sin(e.orbit) * 9f

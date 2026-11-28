@@ -95,6 +95,9 @@ internal class TbCam {
     ) = hz + (CAM_H - h) / max(depth, NEAR) * f
 
     /** The bearing of a world point relative to where the camera looks: positive to the right. */
+    /** The camera's field of view in radians. */
+    val fov get() = FOV
+
     fun bearing(
         wx: Float,
         wy: Float,
@@ -495,6 +498,7 @@ private fun DrawScope.drawEnemy(
         when {
             e.flash > 0f -> ColorFilter.tint(Color.White.copy(alpha = 0.7f), BlendMode.SrcAtop)
             e.state == TbEState.Windup -> ColorFilter.tint(Color(0xFFFF3B30).copy(alpha = 0.25f + 0.2f * sin(e.age * 28f)), BlendMode.SrcAtop)
+            e.culprit > 0f -> ColorFilter.tint(Color(0xFFFF2A1A).copy(alpha = 0.35f + 0.25f * sin(e.age * 30f)), BlendMode.SrcAtop)
             e.burn > 0f -> ColorFilter.tint(Color(0xFFFF7B00).copy(alpha = 0.3f), BlendMode.SrcAtop)
             e.marked > 0f -> ColorFilter.tint(Color(0xFFB44CFF).copy(alpha = 0.25f), BlendMode.SrcAtop)
             e.enraged -> ColorFilter.tint(Color(0xFFFF3B30).copy(alpha = 0.18f), BlendMode.SrcAtop)
@@ -505,8 +509,8 @@ private fun DrawScope.drawEnemy(
         sprite(img, sx, foot, h, alpha, squash, tint)
     }
     // A small marker over foes that are far off, so they stay easy to find.
-    if (e.alive && e.state != TbEState.Spawn && z > 8f) {
-        val m = cam.s * 0.014f
+    if (e.alive && e.state != TbEState.Spawn && (z > 8f || e.culprit > 0f)) {
+        val m = cam.s * (if (e.culprit > 0f) 0.022f else 0.014f)
         val top = foot - h - m * 0.6f
         val tri =
             Path().apply {
@@ -515,7 +519,7 @@ private fun DrawScope.drawEnemy(
                 lineTo(sx + m, top - m * 1.4f)
                 close()
             }
-        val hot = e.state == TbEState.Windup
+        val hot = e.state == TbEState.Windup || e.culprit > 0f
         drawPath(tri, (if (hot) TbColors.Blood else TbColors.Gold).copy(alpha = 0.85f * alpha))
     }
     if (!e.boss && e.state != TbEState.Dying && e.hp < e.maxHp && e.def.tier != "swarm") {
