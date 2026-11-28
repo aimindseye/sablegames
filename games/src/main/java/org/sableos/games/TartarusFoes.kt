@@ -146,6 +146,24 @@ internal fun TbRun.updateFoe(
         }
     }
     separate(e)
+    keepOut(e)
+}
+
+/** A foe never stands inside you, where it would be out of sight while it hits you. */
+private fun TbRun.keepOut(e: TbEnemy) {
+    if (e.def.flies || !e.alive) return
+    val dx = e.x - px
+    val dy = e.y - py
+    val d = hypot(dx, dy)
+    val min = TbRun.PLAYER_R + e.def.radius * 0.6f + 0.35f
+    if (d >= min) return
+    if (d < 1e-3f) {
+        e.x = px + cos(yaw) * min
+        e.y = py + sin(yaw) * min
+    } else {
+        e.x = px + dx / d * min
+        e.y = py + dy / d * min
+    }
 }
 
 /** Foes shoulder each other apart so a crowd spreads around the player instead of stacking up. */
@@ -211,14 +229,15 @@ private fun TbRun.foeMoves(
         "melee" -> {
             when (e.state) {
                 TbEState.Move -> {
-                    walk(e, ux, uy, speed, dt)
+                    // Close in to striking distance and stand there; never walk into you.
+                    if (d > def.range * 0.6f) walk(e, ux, uy, speed, dt)
                     if (d < def.range * 0.75f && e.cooldown <= 0f) windup(e, 0.45f)
                 }
 
                 else -> {
                     tick(e, dt) {
                         if (d < def.range * 1.15f) hurt(def.damage.toFloat(), e.x, e.y)
-                        recover(e, 0.5f, 0.4f)
+                        recover(e, 0.5f, meleeRest)
                     }
                 }
             }

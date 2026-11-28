@@ -102,7 +102,8 @@ internal fun DrawScope.drawSight(
     cam: TbCam,
 ) {
     val s = cam.s
-    val c = Offset(s / 2f, cam.hz + s * 0.02f)
+    // Dead centre of the view on the horizon: exactly where a shot goes.
+    val c = Offset(s / 2f, cam.hz)
     val locked = run.aimTarget != null
     val r = s * (if (locked) 0.045f else 0.058f) * (1f + run.kick * 0.15f)
     val color = if (locked) Color(0xFFFFD447) else Color(0xFF9FEFFF)

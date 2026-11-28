@@ -536,7 +536,7 @@ private fun DrawScope.drawShot(
 ) {
     val z = cam.z
     val sx = cam.sx
-    val y = cam.heightY(z, 1.1f)
+    val y = cam.heightY(z, CAM_H)
     val r = (p.radius * 1.5f / z * cam.f).coerceIn(cam.s * 0.008f, cam.s * 0.1f)
     val c = colorOf(p.color)
     val a = fog(z)
@@ -560,7 +560,8 @@ private fun DrawScope.drawEffects(
         val c = colorOf(f.color)
         when (f.kind) {
             TbFxKind.Beam -> {
-                val end = worldToScreen(cam, f.x2, f.y2, 1.0f) ?: Offset(cam.s / 2f, cam.hz)
+                // Shots fly at eye height, so they meet the centre of the sight circle (which sits on the horizon).
+                val end = worldToScreen(cam, f.x2, f.y2, CAM_H) ?: Offset(cam.s / 2f, cam.hz)
                 drawFireStreak(muzzle, end, c, p, cam.s, f.n + (run.clock * 30f).toInt())
             }
 
