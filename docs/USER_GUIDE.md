@@ -106,6 +106,8 @@ You are a fallen warrior fighting down through four Gates of Tartarus to seal th
 
 A small app that installs the other games. Open it, move with W and S (or touch), press Space to pick the games you want and Enter to install. It looks up the latest release on GitHub, downloads each game, checks the file and hands it to Android, which asks you to confirm each install. The first time, Android sends you to a settings page to allow Sable Installer to install apps; allow it and press Enter again. Installed games show their version, and R refreshes.
 
+Quick picks: N picks the games you do not have, U picks the ones with an update, C clears. Installed games have Open (O) and Remove (X); Remove opens Android's app page, where Uninstall is. F turns Wi-Fi only on or off, so nothing downloads over mobile data. A download that drops resumes where it stopped (three tries). The latest release's notes show under the headline. When a newer Sable Installer is out, it is picked for you and installed last.
+
 ## Gravel & Gears
 
 A nonstop downhill ride. The bike rolls on its own, you steer it across the trail, and your four cards are moves you fire on the spot. Every ride lays a new trail, with gates, rock gardens, kickers and bends in new places, and the ride gets a little faster with every gate.

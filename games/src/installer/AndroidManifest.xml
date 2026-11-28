@@ -4,6 +4,8 @@
          Android's own installer, so it is the one Sable app that asks for these two permissions. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Only to tell whether the connection is metered, for the Wi-Fi only option. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Package visibility: only the Sable apps, so it can show which are installed. -->
     <queries>
@@ -25,6 +27,7 @@
         <package android:name="io.github.aimindseye.sablegames.solitaire" />
         <package android:name="io.github.aimindseye.sablegames.mahjong" />
         <package android:name="io.github.aimindseye.sablegames.words" />
+        <package android:name="io.github.aimindseye.sablegames.installer" />
     </queries>
 
     <application

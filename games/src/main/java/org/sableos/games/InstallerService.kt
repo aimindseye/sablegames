@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.runtime.getValue
@@ -103,6 +104,55 @@ internal class InstallerModel(
     var headline by mutableStateOf("Looking for the latest release…")
     var working by mutableStateOf(false)
 
+    /** The short release notes shown under the headline. */
+    var notes by mutableStateOf("")
+
+    private val prefs = context.getSharedPreferences("installer", Context.MODE_PRIVATE)
+
+    /** When true, nothing is downloaded over a metered (mobile data) connection. */
+    var wifiOnly by mutableStateOf(prefs.getBoolean("wifi_only", false))
+        private set
+
+    fun toggleWifiOnly() {
+        wifiOnly = !wifiOnly
+        prefs.edit().putBoolean("wifi_only", wifiOnly).apply()
+    }
+
+    private fun metered(): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return cm.isActiveNetworkMetered
+    }
+
+    private fun isNewer(row: InstallerRow): Boolean {
+        val have = row.installed ?: return false
+        val now = latest ?: return false
+        return ReleaseFeed.isNewer(have, now)
+    }
+
+    /** Picks only the games that are not installed yet. */
+    fun pickNotInstalled() = rows.forEach { if (!it.busy) it.selected = it.installed == null && it.app.id != SELF }
+
+    /** Picks only the installed games that have a newer release. */
+    fun pickUpdates() = rows.forEach { if (!it.busy) it.selected = isNewer(it) }
+
+    fun clearPicks() = rows.forEach { if (!it.busy) it.selected = false }
+
+    /** Starts an installed game. */
+    fun openApp(row: InstallerRow) {
+        val intent = context.packageManager.getLaunchIntentForPackage(row.app.packageName)
+        if (intent == null) {
+            row.note = "Not installed."
+            return
+        }
+        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
+    /** Opens Android's app page for a game, where Uninstall is; this app never asks to delete packages itself. */
+    fun removeApp(row: InstallerRow) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${row.app.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }
+
     @Volatile private var release: Release? = null
 
     /** The latest release's version once it is known; the screen compares installed versions with it. */
@@ -129,6 +179,7 @@ internal class InstallerModel(
                 val found = ReleaseFeed.parseRelease(json)
                 release = found
                 latest = found?.version
+                notes = found?.let { ReleaseFeed.summary(it.notes) }.orEmpty()
                 headline = if (found == null) "No release with APKs was found." else "Latest release: ${found.version}"
             } catch (e: java.io.IOException) {
                 release = null
@@ -137,8 +188,14 @@ internal class InstallerModel(
             } finally {
                 working = false
                 refreshInstalled()
+                autoPickSelf()
             }
         }
+    }
+
+    /** If a newer installer is out, picks it so it is updated along with the games (always last). */
+    private fun autoPickSelf() {
+        rows.firstOrNull { it.app.id == SELF }?.let { if (isNewer(it)) it.selected = true }
     }
 
     fun refreshInstalled() {
@@ -165,8 +222,13 @@ internal class InstallerModel(
     fun installSelected() {
         val rel = release ?: return
         if (working || !allowedToInstall()) return
-        val chosen = rows.filter { it.selected }
+        // The installer replaces itself, which ends this process, so it goes last.
+        val chosen = rows.filter { it.selected }.sortedBy { it.app.id == SELF }
         if (chosen.isEmpty()) return
+        if (wifiOnly && metered()) {
+            headline = "Wi-Fi only is on and this connection is metered. Connect to Wi-Fi or turn the option off."
+            return
+        }
         working = true
         thread(name = "installer-install") {
             try {
@@ -204,7 +266,7 @@ internal class InstallerModel(
         }
         val file = File(File(context.cacheDir, "apks").apply { mkdirs() }, asset.name)
         row.note = "Downloading…"
-        download(asset.url, file) { pct -> row.note = "Downloading $pct%" }
+        downloadWithResume(asset.url, file) { note -> row.note = note }
         row.note = "Checking…"
         val want = sums[asset.name]
         val problem =
@@ -272,19 +334,53 @@ internal class InstallerModel(
         }
     }
 
+    /** Downloads [url] to [to], resuming a partly downloaded file; tries up to three times. */
+    private fun downloadWithResume(
+        url: String,
+        to: File,
+        note: (String) -> Unit,
+    ) {
+        val part = File(to.path + ".part")
+        var last: java.io.IOException? = null
+        for (attempt in 1..ATTEMPTS) {
+            try {
+                download(url, part) { pct -> note(if (attempt > 1) "Downloading $pct% (try $attempt)" else "Downloading $pct%") }
+                if (to.exists()) to.delete()
+                if (!part.renameTo(to)) throw java.io.IOException("could not save the download")
+                return
+            } catch (e: java.io.IOException) {
+                last = e
+                note("Download interrupted, retrying…")
+                Thread.sleep(1500)
+            }
+        }
+        throw last ?: java.io.IOException("download error")
+    }
+
     private fun download(
         url: String,
         to: File,
         progress: (Int) -> Unit,
     ) {
+        val have = if (to.exists()) to.length() else 0L
         val conn = open(url)
+        if (have > 0) conn.setRequestProperty("Range", "bytes=$have-")
         try {
-            if (conn.responseCode != HttpURLConnection.HTTP_OK) throw java.io.IOException("HTTP ${conn.responseCode}")
-            val total = conn.contentLengthLong
-            var done = 0L
+            val code = conn.responseCode
+            if (code == 416) {
+                // The server thinks we already have it all (or the file changed): start over.
+                to.delete()
+                throw java.io.IOException("the partial file was out of date")
+            }
+            if (code != HttpURLConnection.HTTP_OK && code != HttpURLConnection.HTTP_PARTIAL) throw java.io.IOException("HTTP $code")
+            val resumed = code == HttpURLConnection.HTTP_PARTIAL
+            val base = if (resumed) have else 0L
+            val length = conn.contentLengthLong
+            val total = if (length > 0) base + length else -1L
+            var done = base
             var shown = -1
             conn.inputStream.use { input ->
-                to.outputStream().use { out ->
+                java.io.FileOutputStream(to, resumed).use { out ->
                     val buf = ByteArray(64 * 1024)
                     while (true) {
                         val n = input.read(buf)
@@ -299,12 +395,16 @@ internal class InstallerModel(
                     }
                 }
             }
+            if (total > 0 && done < total) throw java.io.IOException("the connection closed early")
         } finally {
             conn.disconnect()
         }
     }
 
     companion object {
+        const val SELF = "installer"
+        private const val ATTEMPTS = 3
+
         fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
     }
 }

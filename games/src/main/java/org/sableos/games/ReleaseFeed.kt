@@ -10,6 +10,8 @@ internal data class ReleaseAsset(
 internal data class Release(
     val version: String,
     val assets: List<ReleaseAsset>,
+    /** The release notes, as plain text; empty if there are none. */
+    val notes: String = "",
 ) {
     /** The APK for [app], named `sable-<id>-<version>.apk` by tools/build-release.sh. */
     fun apkFor(app: InstallerApp): ReleaseAsset? = assets.firstOrNull { it.name == "sable-${app.id}-$version.apk" }
@@ -22,6 +24,7 @@ internal object ReleaseFeed {
     const val LATEST = "https://api.github.com/repos/aimindseye/sablegames/releases/latest"
 
     private val tag = Regex(""""tag_name"\s*:\s*"([^"]+)"""")
+    private val body = Regex(""""body"\s*:\s*"((?:[^"\\]|\\.)*)"""")
     private val download = Regex(""""browser_download_url"\s*:\s*"([^"]+)"""")
 
     /** Parses the body of the `releases/latest` API call. Returns null if it is not a release we can use. */
@@ -34,8 +37,51 @@ internal object ReleaseFeed {
                 .filter { it.startsWith("https://") }
                 .map { ReleaseAsset(it.substringAfterLast('/'), it) }
                 .toList()
-        return if (assets.isEmpty()) null else Release(version, assets)
+        val notes = body.find(json)?.groupValues?.get(1)?.let { unescape(it) }.orEmpty().trim()
+        return if (assets.isEmpty()) null else Release(version, assets, notes)
     }
+
+    /** Undoes the JSON string escapes that matter in release notes. */
+    fun unescape(text: String): String {
+        val out = StringBuilder()
+        var i = 0
+        while (i < text.length) {
+            val c = text[i]
+            if (c != '\\' || i + 1 >= text.length) {
+                out.append(c)
+                i++
+                continue
+            }
+            val n = text[i + 1]
+            i += 2
+            when (n) {
+                'n' -> out.append('\n')
+                'r' -> Unit
+                't' -> out.append(' ')
+                'u' -> {
+                    val code = text.substring(i, minOf(i + 4, text.length)).toIntOrNull(16)
+                    if (code != null) {
+                        out.append(code.toChar())
+                        i += 4
+                    }
+                }
+                else -> out.append(n)
+            }
+        }
+        return out.toString()
+    }
+
+    /** The first [lines] non-empty lines of [notes], without markdown marks, for a short summary. */
+    fun summary(
+        notes: String,
+        lines: Int = 4,
+    ): String =
+        notes
+            .lineSequence()
+            .map { it.trim().trimStart('#', '*', '-', ' ') }
+            .filter { it.isNotEmpty() }
+            .take(lines)
+            .joinToString("\n")
 
     /** Parses SHA256SUMS.txt (`<hash>  <file>` per line) into file name to lowercase hash. */
     fun parseSums(text: String): Map<String, String> =

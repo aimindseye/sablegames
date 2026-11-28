@@ -57,10 +57,23 @@ class InstallerTest {
     fun theCatalogCoversEveryAppOnce() {
         val ids = InstallerCatalog.apps.map { it.id }
         assertEquals(ids.size, ids.toSet().size)
-        assertEquals(18, ids.size)
+        assertEquals(19, ids.size)
         // Every game is in exactly one group.
         assertEquals(ids.sorted(), InstallerCatalog.groups.flatMap { it.ids }.sorted())
         assertTrue(InstallerCatalog.apps.all { it.packageName == "io.github.aimindseye.sablegames.${it.id}" })
         assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", InstallerModel.sha256(byteArrayOf()))
+    }
+
+    @Test
+    fun readsReleaseNotes() {
+        val withNotes = json.replace("\"assets\"", "\"body\":\"## What is new\\r\\n- Bigger foes\\n- Better \\\"aim\\\"\",\"assets\"")
+        val r = ReleaseFeed.parseRelease(withNotes)!!
+        assertEquals("What is new\nBigger foes\nBetter \"aim\"", ReleaseFeed.summary(r.notes))
+        assertEquals("", ReleaseFeed.parseRelease(json)!!.notes)
+    }
+
+    @Test
+    fun summaryKeepsOnlyTheFirstLines() {
+        assertEquals("a\nb", ReleaseFeed.summary("# a\n\n* b\nc\nd", 2))
     }
 }

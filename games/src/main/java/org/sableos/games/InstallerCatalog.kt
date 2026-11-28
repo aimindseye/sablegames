@@ -41,6 +41,7 @@ internal object InstallerCatalog {
             InstallerApp("scaffold", "Sable Scaffold", "Climb the site, dodge rolling hazards, rescue Juno"),
             InstallerApp("sudoku", "Sable Sudoku", "Fill the 9 x 9 grid"),
             InstallerApp("words", "Sable Words", "Guess the five-letter word in six tries"),
+            InstallerApp("installer", "Sable Installer", "This app: updates itself, always last"),
         )
 
     val groups =
@@ -51,6 +52,7 @@ internal object InstallerCatalog {
             InstallerGroup("Retro", listOf("snake", "blocks", "bricks", "game2048", "minesweeper")),
             InstallerGroup("Action and adventure", listOf("tartarus", "gravelgears", "melons", "scaffold")),
             InstallerGroup("Puzzle and word", listOf("sudoku", "words")),
+            InstallerGroup("This app", listOf("installer")),
         )
 
     /** The apps in the order the groups list them. */

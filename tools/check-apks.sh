@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Checks each release APK under DIR (games/build/outputs/apk): one per app, with the app's
 # io.github.aimindseye.sablegames.* package name, and no Android permissions requested (the installer
-# alone may ask for INTERNET and REQUEST_INSTALL_PACKAGES, to download and install the games, and
+# alone may ask for INTERNET, REQUEST_INSTALL_PACKAGES and ACCESS_NETWORK_STATE, to download and install the games, and
 # Tartarus Breach for VIBRATE).
 # With --signed (tools/build-release.sh), every APK must also be signed with the registered key: the
 # owner's TenSeven Launcher key, whose certificate is registered in the Android Developer Console.
@@ -41,7 +41,7 @@ for flavor in "${flavors[@]}"; do
         others="$(grep -v -e "name='android.permission.VIBRATE'" <<< "$others" || true)"
     fi
     if [[ "$flavor" == installer ]]; then
-        others="$(grep -v -e "name='android.permission.INTERNET'" -e "name='android.permission.REQUEST_INSTALL_PACKAGES'" <<< "$others" || true)"
+        others="$(grep -v -e "name='android.permission.INTERNET'" -e "name='android.permission.REQUEST_INSTALL_PACKAGES'" -e "name='android.permission.ACCESS_NETWORK_STATE'" <<< "$others" || true)"
     fi
     if [[ -n "$others" ]]; then
         echo "FAIL $flavor asks for permissions:"; echo "$others"; fail=1

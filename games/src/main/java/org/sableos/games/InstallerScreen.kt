@@ -85,6 +85,12 @@ internal fun InstallerScreen() {
                     AndroidKeyEvent.KEYCODE_SPACE, AndroidKeyEvent.KEYCODE_DPAD_CENTER -> toggle(cursor)
                     AndroidKeyEvent.KEYCODE_ENTER, AndroidKeyEvent.KEYCODE_I -> model.installSelected()
                     AndroidKeyEvent.KEYCODE_R -> model.refresh()
+                    AndroidKeyEvent.KEYCODE_N -> model.pickNotInstalled()
+                    AndroidKeyEvent.KEYCODE_U -> model.pickUpdates()
+                    AndroidKeyEvent.KEYCODE_C -> model.clearPicks()
+                    AndroidKeyEvent.KEYCODE_F -> model.toggleWifiOnly()
+                    AndroidKeyEvent.KEYCODE_O -> (entries[cursor] as? InstallerRow)?.takeIf { it.installed != null }?.let { model.openApp(it) }
+                    AndroidKeyEvent.KEYCODE_X -> (entries[cursor] as? InstallerRow)?.takeIf { it.installed != null }?.let { model.removeApp(it) }
                     else -> return@onPreviewKeyEvent false
                 }
                 true
@@ -93,15 +99,22 @@ internal fun InstallerScreen() {
     ) {
         Text("SABLE INSTALLER", color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Black)
         Text(model.headline, color = Muted, fontSize = 13.sp)
+        if (model.notes.isNotEmpty()) Text(model.notes, color = Muted, fontSize = 11.sp, maxLines = 4)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Chip("Not installed (N)") { model.pickNotInstalled() }
+            Chip("Updates (U)") { model.pickUpdates() }
+            Chip("Clear (C)") { model.clearPicks() }
+            Chip(if (model.wifiOnly) "Wi-Fi only: on (F)" else "Wi-Fi only: off (F)") { model.toggleWifiOnly() }
+        }
         LazyColumn(Modifier.weight(1f), state = list, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             itemsIndexed(entries) { i, e ->
                 when (e) {
                     is InstallerGroup -> InstallerHeaderView(e, model.rowsOf(e), focused = i == cursor, onTap = { cursor = i; toggle(i) })
-                    is InstallerRow -> InstallerRowView(e, model.latest, focused = i == cursor, onTap = { cursor = i; toggle(i) })
+                    is InstallerRow -> InstallerRowView(e, model.latest, focused = i == cursor, onTap = { cursor = i; toggle(i) }, onOpen = { model.openApp(e) }, onRemove = { model.removeApp(e) })
                 }
             }
         }
-        Text("W S move · Space picks a game or a whole group · Enter installs · R refreshes", color = Muted, fontSize = 11.sp)
+        Text("W S move · Space picks · Enter installs · R refreshes · O opens · X removes", color = Muted, fontSize = 11.sp)
         Box(
             Modifier
                 .fillMaxWidth()
@@ -156,6 +169,8 @@ private fun InstallerRowView(
     latest: String?,
     focused: Boolean,
     onTap: () -> Unit,
+    onOpen: () -> Unit,
+    onRemove: () -> Unit,
 ) {
     Row(
         Modifier
@@ -189,5 +204,28 @@ private fun InstallerRowView(
             color = if (have != null) Gold else Muted,
             fontSize = 12.sp,
         )
+        if (have != null && row.app.id != InstallerModel.SELF) {
+            Spacer(Modifier.width(8.dp))
+            Chip("Open", onOpen)
+            Spacer(Modifier.width(4.dp))
+            Chip("Remove", onRemove)
+        }
     }
+}
+
+@Composable
+private fun Chip(
+    label: String,
+    onClick: () -> Unit,
+) {
+    Text(
+        label,
+        color = Gold,
+        fontSize = 11.sp,
+        modifier =
+            Modifier
+                .border(1.dp, Gold, RoundedCornerShape(12.dp))
+                .clickable(onClick = onClick)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+    )
 }
