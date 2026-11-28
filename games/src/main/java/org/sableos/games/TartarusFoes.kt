@@ -278,7 +278,7 @@ private fun TbRun.foeMoves(
         }
 
         "telegraphed_charge" -> {
-            charge(e, dt, d, ux, uy, speed = 17f, time = 1.1f, wind = 0.8f)
+            charge(e, dt, d, ux, uy, speed = 14f, time = 0.7f, wind = 0.8f, from = 7f, reach = 10f)
         }
 
         "petrify_beam" -> {
@@ -439,15 +439,17 @@ private fun TbRun.charge(
     speed: Float,
     time: Float,
     wind: Float,
+    from: Float = 14f,
+    reach: Float = 22f,
 ) {
     when (e.state) {
         TbEState.Move -> {
             walk(e, ux, uy, e.def.speed * (if (e.boss) 0.7f else 1f), dt)
-            if (d in 3.5f..14f && e.cooldown <= 0f) {
+            if (d in 3.5f..from && e.cooldown <= 0f) {
                 windup(e, wind)
                 e.dirX = ux
                 e.dirY = uy
-                lineTele(e, atan2(uy, ux), 22f, e.def.radius * 0.55f, wind, 0)
+                lineTele(e, atan2(uy, ux), reach, e.def.radius * 0.55f, wind, 0)
             }
         }
 
